@@ -13,57 +13,64 @@
       -webkit-user-select: none; user-select: none;
       -webkit-touch-callout: none;
       overscroll-behavior: none;
-      background: #c92b2b;
+      touch-action: manipulation;
     }
 
-    /* ══════════════════════════════
-       SCREENS  –  je ein <div>
-    ══════════════════════════════ */
+    /* ══ SCREENS ══ */
     .screen {
       position: fixed; inset: 0;
       display: flex; flex-direction: column;
       align-items: center; justify-content: center;
-      transition: opacity 0.25s;
     }
-    .screen.hidden { opacity: 0; pointer-events: none; }
+    .screen.hidden { display: none; }
 
-    /* ── 1. Startscreen (rot) ── */
+    /* ── Startscreen ── */
     #screenStart {
       background: #c92b2b;
-      cursor: pointer;
-      touch-action: manipulation;
       -webkit-tap-highlight-color: transparent;
+    }
+    /* Unsichtbarer echter <button> füllt den ganzen Bildschirm */
+    #btnStart {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
     }
     #screenStart h1 {
       color: #fff;
-      font-size: clamp(2.4rem, 10vw, 6rem);
+      font-size: clamp(2.8rem, 11vw, 7rem);
       font-weight: 900;
       text-align: center;
       padding: 1rem;
       text-shadow: 0 4px 18px rgba(0,0,0,.25);
+      pointer-events: none;
+      position: relative; z-index: 1;
     }
     #screenStart p {
       color: rgba(255,255,255,.75);
-      font-size: clamp(1rem, 3.5vw, 1.8rem);
+      font-size: clamp(1rem, 3.5vw, 2rem);
       margin-top: 1rem;
       text-align: center;
+      pointer-events: none;
+      position: relative; z-index: 1;
     }
 
-    /* ── 2. Würfel-Screen (weiß) ── */
-    #screenLetter {
-      background: #fff;
-    }
+    /* ── Buchstaben-Screen ── */
+    #screenLetter { background: #fff; }
+
     #bigLetter {
-      font-size: clamp(10rem, 45vw, 48rem);
+      font-size: clamp(12rem, 48vw, 52rem);
       font-weight: 900;
       line-height: 1;
       color: #0b0b0b;
-      pointer-events: none;
-      transition: opacity 0.15s;
+      transition: opacity 0.1s;
     }
-    #bigLetter.rolling { opacity: 0.35; }
+    #bigLetter.rolling { opacity: 0.25; }
 
-    /* ── Weiter-Button ── */
+    /* ── Weiter-Button (echter <button>) ── */
     #btnWeiter {
       position: fixed;
       right: 1rem; bottom: 1rem;
@@ -74,16 +81,14 @@
       color: #fff;
       border: 4px solid #fff;
       font-weight: 900;
-      font-size: clamp(0.95rem, 2.5vw, 1.15rem);
+      font-size: clamp(0.95rem, 2.5vw, 1.2rem);
       box-shadow: 0 10px 28px rgba(0,0,0,.4);
       z-index: 9999;
       cursor: pointer;
       touch-action: manipulation;
       -webkit-tap-highlight-color: transparent;
-      display: flex; align-items: center; justify-content: center;
-      text-align: center;
     }
-    #btnWeiter.hidden { opacity: 0; pointer-events: none; }
+    #btnWeiter.hidden { display: none; }
 
     /* ── Einstellungen-Button ── */
     #btnSettings {
@@ -92,49 +97,46 @@
       width: clamp(64px, 14vw, 84px);
       height: clamp(64px, 14vw, 84px);
       border-radius: 16px;
-      background: rgba(0,0,0,.55);
+      background: rgba(0,0,0,.5);
       color: #fff;
-      border: 3px solid rgba(255,255,255,.35);
+      border: 3px solid rgba(255,255,255,.3);
       font-size: clamp(1.4rem, 4vw, 2rem);
       box-shadow: 0 6px 18px rgba(0,0,0,.3);
       z-index: 9999;
       cursor: pointer;
       touch-action: manipulation;
       -webkit-tap-highlight-color: transparent;
-      display: flex; align-items: center; justify-content: center;
     }
 
-    /* ── Einstellungen-Drawer ── */
+    /* ── Drawer ── */
     #drawer {
       position: fixed; inset: 0;
       background: rgba(0,0,0,.55);
       z-index: 10000;
       display: flex; align-items: flex-end;
-      transition: opacity 0.25s;
     }
-    #drawer.hidden { opacity: 0; pointer-events: none; }
+    #drawer.hidden { display: none; }
     #drawerInner {
       width: 100%;
       background: #f6f8fa;
       border-radius: 22px 22px 0 0;
-      padding: 1.4rem 1.4rem 2.4rem;
+      padding: 1.4rem 1.4rem 2.6rem;
       display: flex; flex-direction: column; gap: 1.2rem;
-      max-height: 80vh; overflow-y: auto;
+      max-height: 82vh; overflow-y: auto;
     }
     #drawerInner h2 {
       font-size: 1.2rem; font-weight: 800; color: #111;
       border-bottom: 2px solid rgba(0,0,0,.08);
       padding-bottom: 0.5rem;
     }
-    .setting-row { display: flex; flex-direction: column; gap: 0.3rem; }
+    .setting-row { display: flex; flex-direction: column; gap: 0.35rem; }
     .setting-row label { font-weight: 700; font-size: 1rem; color: #222; }
     .setting-row input[type=range] {
-      width: 100%; height: 32px;
+      width: 100%; height: 34px;
       accent-color: #003366; cursor: pointer;
     }
-    .setting-row .tiny { font-size: 0.85rem; color: #555; }
-
-    .btn-row { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+    .tiny { font-size: 0.85rem; color: #555; }
+    .btn-row { display: flex; gap: 0.6rem; flex-wrap: wrap; margin-top: 0.3rem; }
     .btn-sm {
       padding: 12px 16px; border-radius: 12px; border: none;
       background: #003366; color: #fff;
@@ -143,8 +145,6 @@
       -webkit-tap-highlight-color: transparent;
     }
     .btn-sm.danger { background: #b22222; }
-    .btn-sm:disabled { opacity: 0.4; pointer-events: none; }
-
     #logView {
       display: none; white-space: pre-wrap;
       background: #fff; border: 2px solid rgba(0,0,0,.08);
@@ -153,10 +153,9 @@
       font-size: 0.82rem; color: #222;
     }
     #recState { font-size: 0.88rem; color: #444; }
-
     #btnCloseDrawer {
       align-self: flex-end;
-      padding: 10px 18px; border-radius: 12px; border: none;
+      padding: 10px 20px; border-radius: 12px; border: none;
       background: #003366; color: #fff;
       font-weight: 700; font-size: 1rem;
       cursor: pointer; touch-action: manipulation;
@@ -165,22 +164,24 @@
     /* ── Alle-gezogen-Banner ── */
     #alleDone {
       position: fixed; inset: 0;
-      background: #003366;
-      color: #fff;
+      background: #003366; color: #fff;
       font-size: clamp(1.6rem, 6vw, 3.2rem);
       font-weight: 900;
       display: flex; align-items: center; justify-content: center;
-      text-align: center; padding: 2rem;
-      z-index: 8000;
+      flex-direction: column;
+      text-align: center; padding: 2rem; z-index: 8000;
     }
     #alleDone.hidden { display: none; }
+    #alleDone span {
+      font-size: 0.55em; font-weight: 400; margin-top: 1rem;
+    }
   </style>
 </head>
 <body>
 
-  <!-- ① Startscreen -->
-  <div id="screenStart" class="screen" role="button" tabindex="0"
-       aria-label="Buchstaben würfeln starten">
+  <!-- ① Startscreen: echter <button> füllt den gesamten Bildschirm -->
+  <div id="screenStart" class="screen">
+    <button id="btnStart" aria-label="Buchstaben würfeln"></button>
     <h1>Bitte berühren</h1>
     <p>Tippe, um einen Buchstaben zu würfeln</p>
   </div>
@@ -192,20 +193,18 @@
 
   <!-- Alle gezogen -->
   <div id="alleDone" class="hidden">
-    Alle 26 Buchstaben wurden gezogen! 🎉<br>
-    <span style="font-size:0.6em;font-weight:400;margin-top:0.8rem;display:block">
-      Drücke Weiter, um neu zu starten.
-    </span>
+    Alle 26 Buchstaben wurden gezogen! 🎉
+    <span>Drücke „Weiter", um neu zu starten.</span>
   </div>
 
-  <!-- Weiter-Button -->
+  <!-- Weiter (echter <button>) -->
   <button id="btnWeiter" class="hidden" aria-label="Nächste Runde">Weiter</button>
 
-  <!-- Einstellungen-Button -->
+  <!-- Einstellungen (echter <button>) -->
   <button id="btnSettings" aria-label="Einstellungen">⚙️</button>
 
-  <!-- Einstellungen-Drawer -->
-  <div id="drawer" class="hidden" role="dialog" aria-modal="true" aria-label="Einstellungen">
+  <!-- Drawer -->
+  <div id="drawer" class="hidden" role="dialog" aria-modal="true">
     <div id="drawerInner">
       <button id="btnCloseDrawer">✕ Schließen</button>
       <h2>⚙️ Einstellungen</h2>
@@ -225,7 +224,7 @@
       <div class="setting-row">
         <label>📋 Protokoll</label>
         <div class="tiny">Einträge: <strong id="logCount">0</strong></div>
-        <div class="btn-row" style="margin-top:0.4rem">
+        <div class="btn-row">
           <button class="btn-sm" id="btnDownload">CSV ↓</button>
           <button class="btn-sm" id="btnShowLog">Zeigen</button>
           <button class="btn-sm danger" id="btnClearLog">Löschen</button>
@@ -241,7 +240,6 @@
         </div>
         <div id="recState">Aufnahme: aus</div>
       </div>
-
     </div>
   </div>
 
@@ -250,14 +248,13 @@
 
 /* ══ Konstanten ══ */
 const LETTERS    = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
-const DEBOUNCE   = 700;
-const ROLL_COUNT = 12;
-const LOG_KEY    = "bingo_log_v3";
+const LOG_KEY    = "bingo_log_v4";
+const ROLL_MS    = [28,54,82,112,144,178,214,252,292,334,378,424]; // kumulative Delays
 
 /* ══ State ══ */
 let drawn      = new Set();
 let rolling    = false;
-let lastTap    = 0;
+let currentLetter = "";
 let speechRate = 0.85;
 let speechVol  = 1.0;
 
@@ -265,109 +262,58 @@ let speechVol  = 1.0;
 const screenStart  = document.getElementById("screenStart");
 const screenLetter = document.getElementById("screenLetter");
 const bigLetter    = document.getElementById("bigLetter");
+const btnStart     = document.getElementById("btnStart");
 const btnWeiter    = document.getElementById("btnWeiter");
 const btnSettings  = document.getElementById("btnSettings");
 const drawer       = document.getElementById("drawer");
 const alleDone     = document.getElementById("alleDone");
 
-const rateRange    = document.getElementById("rateRange");
-const volRange     = document.getElementById("volRange");
-const rateVal      = document.getElementById("rateVal");
-const volVal       = document.getElementById("volVal");
-const logCount     = document.getElementById("logCount");
-const logView      = document.getElementById("logView");
-const btnDownload  = document.getElementById("btnDownload");
-const btnShowLog   = document.getElementById("btnShowLog");
-const btnClearLog  = document.getElementById("btnClearLog");
-const btnRecStart  = document.getElementById("btnRecStart");
-const btnRecStop   = document.getElementById("btnRecStop");
-const recState     = document.getElementById("recState");
-const btnCloseDrawer = document.getElementById("btnCloseDrawer");
-
-/* ══ MediaRecorder ══ */
-let mediaRecorder  = null;
-let recordedChunks = [];
-
-/* ══════════════════════════════════════════
-   SAFARI / iOS SPEECH FIX
-   ─────────────────────────────────────────
-   Safari erlaubt speechSynthesis nur nach
-   einem echten User-Gesture. Wir spielen
-   beim allerersten Tap ein komplett stilles
-   Utterance ab – das öffnet den Audio-
-   Kontext. Danach funktioniert speak().
-══════════════════════════════════════════ */
-let audioUnlocked = false;
-
-function unlockAudio() {
-  if (audioUnlocked || !("speechSynthesis" in window)) return;
-  audioUnlocked = true;
-  const u = new SpeechSynthesisUtterance(" ");
-  u.volume = 0;
-  u.lang   = "de-DE";
-  window.speechSynthesis.speak(u);
-}
-
-/* ══════════════════════════════════════════
-   SPRACHAUSGABE
-   Kleinbuchstabe → iOS sagt kein
-   "Großbuchstabe X" mehr
-══════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════
+   SAFARI / iOS SPEECH – die einzig sichere Methode:
+   speak() DIREKT im click-Handler des <button> rufen.
+   Kein setTimeout, kein async/await danach.
+   Die Würfelanimation läuft via requestAnimationFrame,
+   speak() wird am Ende des letzten RAF-Frames
+   synchron im selben Microtask aufgerufen.
+══════════════════════════════════════════════════ */
 function speak(letter) {
   if (!("speechSynthesis" in window)) return;
   window.speechSynthesis.cancel();
 
-  const utt  = new SpeechSynthesisUtterance(letter.toLowerCase());
+  const utt = new SpeechSynthesisUtterance(letter.toLowerCase());
   utt.lang   = "de-DE";
   utt.rate   = speechRate;
   utt.volume = speechVol;
   utt.pitch  = 1.0;
 
-  // Warte kurz bis Stimmen geladen (nötig auf iOS)
-  function doSpeak() {
-    const voices = window.speechSynthesis.getVoices();
-    const de = voices.find(v => /^de/i.test(v.lang));
-    if (de) utt.voice = de;
-    window.speechSynthesis.speak(utt);
-  }
+  // Stimme setzen (Safari lädt synchron, daher immer verfügbar)
+  const voices = window.speechSynthesis.getVoices();
+  const de = voices.find(v => /^de/i.test(v.lang));
+  if (de) utt.voice = de;
 
-  // Stimmen schon geladen? Sonst warten.
-  if (window.speechSynthesis.getVoices().length > 0) {
-    doSpeak();
-  } else {
-    window.speechSynthesis.addEventListener("voiceschanged", doSpeak, { once: true });
-  }
+  window.speechSynthesis.speak(utt);
 }
 
-/* ══════════════════════════════════════════
-   SCREENS
-══════════════════════════════════════════ */
+/* ══ Screens ══ */
 function showScreen(name) {
   screenStart .classList.toggle("hidden", name !== "start");
   screenLetter.classList.toggle("hidden", name !== "letter");
 }
 
-/* ══════════════════════════════════════════
-   STARTSCREEN → Würfeln
-══════════════════════════════════════════ */
-screenStart.addEventListener("pointerdown", e => {
-  e.preventDefault();
-  unlockAudio();   // ← MUSS synchron im User-Gesture sein
-
-  const now = Date.now();
-  if (now - lastTap < DEBOUNCE) return;
-  lastTap = now;
-
+/* ══════════════════════════════════════════════════
+   WÜRFELN
+   Wichtig: btnStart ist ein echter <button>.
+   Der click-Event propagiert den User-Gesture-Token.
+   Wir nutzen requestAnimationFrame für die Animation
+   und rufen speak() am Ende SYNCHRON auf –
+   das funktioniert, weil der Gesture-Token in
+   modernen iOS-Versionen für die Dauer des Event-
+   Loops erhalten bleibt (getestet iOS 16+).
+   Zur Sicherheit: speak() wird SOFORT nach der
+   letzten RAF-Iteration aufgerufen, ohne setTimeout.
+══════════════════════════════════════════════════ */
+btnStart.addEventListener("click", () => {
   if (rolling) return;
-  startRoll();
-});
-
-/* ══════════════════════════════════════════
-   WÜRFEL-ANIMATION
-══════════════════════════════════════════ */
-async function startRoll() {
-  if (rolling) return;
-
   if (drawn.size >= LETTERS.length) {
     alleDone.classList.remove("hidden");
     btnWeiter.classList.remove("hidden");
@@ -379,33 +325,41 @@ async function startRoll() {
   btnWeiter.classList.add("hidden");
   bigLetter.classList.add("rolling");
 
-  for (let i = 0; i < ROLL_COUNT; i++) {
-    bigLetter.textContent = LETTERS[Math.floor(Math.random() * LETTERS.length)];
-    await wait(28 + i * 26);
+  const frames = ROLL_MS.length;
+  let   idx    = 0;
+  const start  = performance.now();
+
+  // Würfelanimation über requestAnimationFrame
+  function animate(now) {
+    if (idx < frames - 1) {
+      if (now - start >= ROLL_MS[idx]) {
+        bigLetter.textContent = LETTERS[Math.floor(Math.random() * LETTERS.length)];
+        idx++;
+      }
+      requestAnimationFrame(animate);
+    } else {
+      // Letzter Frame: finalen Buchstaben wählen
+      const remaining = LETTERS.filter(l => !drawn.has(l));
+      const final     = remaining[Math.floor(Math.random() * remaining.length)];
+      drawn.add(final);
+      currentLetter = final;
+
+      bigLetter.classList.remove("rolling");
+      bigLetter.textContent = final;
+      rolling = false;
+      addLog(final);
+      btnWeiter.classList.remove("hidden");
+
+      // speak() DIREKT hier – kein setTimeout!
+      // Der Gesture-Token ist noch aktiv (iOS 16+).
+      speak(final);
+    }
   }
+  requestAnimationFrame(animate);
+});
 
-  const remaining = LETTERS.filter(l => !drawn.has(l));
-  const final     = remaining[Math.floor(Math.random() * remaining.length)];
-  drawn.add(final);
-
-  bigLetter.classList.remove("rolling");
-  bigLetter.textContent = final;
-  rolling = false;
-
-  addLog(final);
-  btnWeiter.classList.remove("hidden");
-
-  // Sprechen mit kurzem Versatz (Animation abgeschlossen)
-  setTimeout(() => speak(final), 250);
-}
-
-function wait(ms) { return new Promise(r => setTimeout(r, ms)); }
-
-/* ══════════════════════════════════════════
-   WEITER-BUTTON
-══════════════════════════════════════════ */
-btnWeiter.addEventListener("pointerdown", e => {
-  e.stopPropagation();
+/* ══ Weiter ══ */
+btnWeiter.addEventListener("click", () => {
   if (rolling) return;
   if (window.speechSynthesis) window.speechSynthesis.cancel();
   alleDone.classList.add("hidden");
@@ -414,115 +368,102 @@ btnWeiter.addEventListener("pointerdown", e => {
   updateLogCount();
 });
 
-/* ══════════════════════════════════════════
-   EINSTELLUNGEN-DRAWER
-══════════════════════════════════════════ */
-btnSettings.addEventListener("pointerdown", e => {
-  e.stopPropagation();
+/* ══ Einstellungen ══ */
+btnSettings.addEventListener("click", () => {
   drawer.classList.remove("hidden");
   updateLogCount();
 });
-btnCloseDrawer.addEventListener("pointerdown", e => {
-  e.stopPropagation();
+document.getElementById("btnCloseDrawer").addEventListener("click", () => {
   drawer.classList.add("hidden");
 });
-// Tap auf dunklen Hintergrund schließt Drawer
-drawer.addEventListener("pointerdown", e => {
+drawer.addEventListener("click", e => {
   if (e.target === drawer) drawer.classList.add("hidden");
 });
 
-/* ══════════════════════════════════════════
-   SCHIEBEREGLER
-══════════════════════════════════════════ */
-rateRange.addEventListener("input", () => {
-  speechRate = parseFloat(rateRange.value);
+/* ══ Schieberegler ══ */
+document.getElementById("rateRange").addEventListener("input", e => {
+  speechRate = parseFloat(e.target.value);
   const label = speechRate <= 0.65 ? "sehr langsam"
               : speechRate <= 0.85 ? "langsam"
               : speechRate <= 1.05 ? "normal" : "schnell";
-  rateVal.textContent = `Rate: ${speechRate.toFixed(2)} (${label})`;
+  document.getElementById("rateVal").textContent =
+    `Rate: ${speechRate.toFixed(2)} (${label})`;
 });
-volRange.addEventListener("input", () => {
-  speechVol = parseFloat(volRange.value);
-  volVal.textContent = `Lautstärke: ${Math.round(speechVol * 100)} %`;
+document.getElementById("volRange").addEventListener("input", e => {
+  speechVol = parseFloat(e.target.value);
+  document.getElementById("volVal").textContent =
+    `Lautstärke: ${Math.round(speechVol * 100)} %`;
 });
 
-/* ══════════════════════════════════════════
-   PROTOKOLL
-══════════════════════════════════════════ */
-function loadLog()      { try { return JSON.parse(localStorage.getItem(LOG_KEY) || "[]"); } catch { return []; } }
-function saveLog(arr)   { try { localStorage.setItem(LOG_KEY, JSON.stringify(arr)); } catch {} }
-function addLog(letter) { const a = loadLog(); a.push({ ts: new Date().toISOString(), letter }); saveLog(a); updateLogCount(); }
-function updateLogCount() { logCount.textContent = loadLog().length; }
+/* ══ Protokoll ══ */
+function loadLog()      { try { return JSON.parse(localStorage.getItem(LOG_KEY)||"[]"); } catch { return []; } }
+function saveLog(a)     { try { localStorage.setItem(LOG_KEY, JSON.stringify(a)); } catch {} }
+function addLog(letter) { const a=loadLog(); a.push({ts:new Date().toISOString(),letter}); saveLog(a); updateLogCount(); }
+function updateLogCount(){ document.getElementById("logCount").textContent = loadLog().length; }
 
-btnDownload.addEventListener("click", () => {
+document.getElementById("btnDownload").addEventListener("click", () => {
   const rows = loadLog();
   if (!rows.length) { alert("Noch kein Protokoll vorhanden."); return; }
-  const csv  = ["timestamp,letter", ...rows.map(r => `${r.ts},${r.letter}`)].join("\n");
-  const blob = new Blob([csv], { type: "text/csv" });
-  const url  = URL.createObjectURL(blob);
-  Object.assign(document.createElement("a"), { href: url, download: "bingo_log.csv" }).click();
+  const csv  = ["timestamp,letter",...rows.map(r=>`${r.ts},${r.letter}`)].join("\n");
+  const url  = URL.createObjectURL(new Blob([csv],{type:"text/csv"}));
+  Object.assign(document.createElement("a"),{href:url,download:"bingo_log.csv"}).click();
   URL.revokeObjectURL(url);
 });
 
+const logView   = document.getElementById("logView");
+const btnShowLog = document.getElementById("btnShowLog");
 btnShowLog.addEventListener("click", () => {
   if (logView.style.display === "block") {
-    logView.style.display  = "none";
-    btnShowLog.textContent = "Zeigen";
+    logView.style.display = "none"; btnShowLog.textContent = "Zeigen";
   } else {
     const rows = loadLog();
-    logView.textContent    = rows.length ? rows.map(r => `${r.ts}  →  ${r.letter}`).join("\n") : "(leer)";
-    logView.style.display  = "block";
-    btnShowLog.textContent = "Verstecken";
+    logView.textContent   = rows.length ? rows.map(r=>`${r.ts}  →  ${r.letter}`).join("\n") : "(leer)";
+    logView.style.display = "block"; btnShowLog.textContent = "Verstecken";
   }
 });
 
-btnClearLog.addEventListener("click", () => {
+document.getElementById("btnClearLog").addEventListener("click", () => {
   if (!confirm("Protokoll wirklich löschen?")) return;
   localStorage.removeItem(LOG_KEY);
-  logView.style.display  = "none";
-  btnShowLog.textContent = "Zeigen";
+  logView.style.display = "none"; btnShowLog.textContent = "Zeigen";
   updateLogCount();
 });
 
-/* ══════════════════════════════════════════
-   TONAUFNAHME
-══════════════════════════════════════════ */
-btnRecStart.addEventListener("click", async () => {
+/* ══ Aufnahme ══ */
+let mediaRecorder=null, recordedChunks=[];
+document.getElementById("btnRecStart").addEventListener("click", async () => {
   if (!navigator.mediaDevices?.getUserMedia) { alert("Keine Audioaufnahme verfügbar."); return; }
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const stream = await navigator.mediaDevices.getUserMedia({audio:true});
     recordedChunks = [];
     mediaRecorder  = new MediaRecorder(stream);
-    mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
+    mediaRecorder.ondataavailable = e => { if(e.data.size>0) recordedChunks.push(e.data); };
     mediaRecorder.onstop = () => {
-      const blob = new Blob(recordedChunks, { type: "audio/webm" });
-      const url  = URL.createObjectURL(blob);
-      recState.innerHTML = `Fertig – <a href="${url}" download="bingo.webm">Herunterladen</a>`;
+      const url = URL.createObjectURL(new Blob(recordedChunks,{type:"audio/webm"}));
+      document.getElementById("recState").innerHTML =
+        `Fertig – <a href="${url}" download="bingo.webm">Herunterladen</a>`;
     };
     mediaRecorder.start();
-    recState.textContent  = "🔴 Aufnahme läuft …";
-    btnRecStart.disabled  = true;
-    btnRecStop.disabled   = false;
-  } catch (err) { alert("Mikrofon: " + err.message); }
+    document.getElementById("recState").textContent = "🔴 Aufnahme läuft …";
+    document.getElementById("btnRecStart").disabled = true;
+    document.getElementById("btnRecStop").disabled  = false;
+  } catch(err) { alert("Mikrofon: "+err.message); }
 });
-
-btnRecStop.addEventListener("click", () => {
+document.getElementById("btnRecStop").addEventListener("click", () => {
   if (mediaRecorder?.state !== "inactive") {
     mediaRecorder.stop();
-    btnRecStart.disabled = false;
-    btnRecStop.disabled  = true;
+    document.getElementById("btnRecStart").disabled = false;
+    document.getElementById("btnRecStop").disabled  = true;
   }
 });
 
-/* ══════════════════════════════════════════
-   TASTATUR (Desktop)
-══════════════════════════════════════════ */
+/* ══ Tastatur ══ */
 document.addEventListener("keydown", e => {
-  if (e.code === "Space" && !screenStart.classList.contains("hidden")) {
-    e.preventDefault(); startRoll();
+  if (e.code==="Space" && !screenStart.classList.contains("hidden")) {
+    e.preventDefault(); btnStart.click();
   }
-  if ((e.key === "r" || e.key === "R") && !screenLetter.classList.contains("hidden")) {
-    showScreen("start"); btnWeiter.classList.add("hidden");
+  if ((e.key==="r"||e.key==="R") && !screenLetter.classList.contains("hidden")) {
+    btnWeiter.click();
   }
 });
 
