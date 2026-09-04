@@ -317,8 +317,8 @@ function utterance(text) {
   return utt;
 }
 
-/* ══ Lautsprache zweimal sprechen, mit Pause ══ */
-function speakDouble(letter, pauseMs = 1200) {
+/* ══ Lautsprache zweimal sprechen, mit 2,5 s Pause ══ */
+function speakDouble(letter, pauseMs = 2500) {
   if (!("speechSynthesis" in window)) return;
   window.speechSynthesis.cancel();
 
@@ -326,12 +326,18 @@ function speakDouble(letter, pauseMs = 1200) {
 
   repeatLocked  = true;
   lastSpeakTime = Date.now();
+  let fired = false;
 
   const utt1 = utterance(sound);
   utt1.onend = () => {
+    if (fired) return;
+    fired = true;
     setTimeout(() => {
+      let fired2 = false;
       const utt2 = utterance(sound);
       utt2.onend = () => {
+        if (fired2) return;
+        fired2 = true;
         lastSpeakTime = Date.now();
         repeatLocked  = false;
       };
