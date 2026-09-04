@@ -23,7 +23,6 @@
     }
     .screen.hidden { display: none; }
 
-    /* ── Startscreen ── */
     #screenStart {
       background: #c92b2b;
       -webkit-tap-highlight-color: transparent;
@@ -31,8 +30,7 @@
     #btnStart {
       position: absolute; inset: 0;
       width: 100%; height: 100%;
-      background: transparent;
-      border: none;
+      background: transparent; border: none;
       cursor: pointer;
       -webkit-tap-highlight-color: transparent;
       touch-action: manipulation;
@@ -40,104 +38,73 @@
     #screenStart h1 {
       color: #fff;
       font-size: clamp(2.8rem, 11vw, 7rem);
-      font-weight: 900;
-      text-align: center;
-      padding: 1rem;
+      font-weight: 900; text-align: center; padding: 1rem;
       text-shadow: 0 4px 18px rgba(0,0,0,.25);
-      pointer-events: none;
-      position: relative; z-index: 1;
+      pointer-events: none; position: relative; z-index: 1;
     }
     #screenStart p {
       color: rgba(255,255,255,.75);
       font-size: clamp(1rem, 3.5vw, 2rem);
-      margin-top: 1rem;
-      text-align: center;
-      pointer-events: none;
-      position: relative; z-index: 1;
+      margin-top: 1rem; text-align: center;
+      pointer-events: none; position: relative; z-index: 1;
     }
 
-    /* ── Buchstaben-Screen ── */
     #screenLetter { background: #fff; cursor: pointer; }
-
     #bigLetter {
       font-size: clamp(12rem, 48vw, 52rem);
-      font-weight: 900;
-      line-height: 1;
-      color: #0b0b0b;
+      font-weight: 900; line-height: 1; color: #0b0b0b;
       transition: opacity 0.1s;
       pointer-events: none;
     }
     #bigLetter.rolling { opacity: 0.25; }
 
-    /* Kurzer visueller Hinweis beim Repeat-Touch */
     #repeatHint {
-      position: fixed;
-      bottom: 7rem;
-      left: 50%;
+      position: fixed; bottom: 7rem; left: 50%;
       transform: translateX(-50%);
-      background: rgba(0,0,0,.55);
-      color: #fff;
-      font-size: 1rem;
-      font-weight: 600;
-      padding: 0.45rem 1.1rem;
-      border-radius: 20px;
-      opacity: 0;
-      transition: opacity 0.25s;
-      pointer-events: none;
-      z-index: 8500;
-      white-space: nowrap;
+      background: rgba(0,0,0,.55); color: #fff;
+      font-size: 1rem; font-weight: 600;
+      padding: 0.45rem 1.1rem; border-radius: 20px;
+      opacity: 0; transition: opacity 0.25s;
+      pointer-events: none; z-index: 8500; white-space: nowrap;
     }
     #repeatHint.show { opacity: 1; }
 
-    /* ── Weiter-Button ── */
     #btnWeiter {
-      position: fixed;
-      right: 1rem; bottom: 1rem;
+      position: fixed; right: 1rem; bottom: 1rem;
       width: clamp(80px, 18vw, 110px);
       height: clamp(80px, 18vw, 110px);
       border-radius: 20px;
       background: linear-gradient(180deg, #003366, #001f3a);
-      color: #fff;
-      border: 4px solid #fff;
-      font-weight: 900;
-      font-size: clamp(0.95rem, 2.5vw, 1.2rem);
+      color: #fff; border: 4px solid #fff;
+      font-weight: 900; font-size: clamp(0.95rem, 2.5vw, 1.2rem);
       box-shadow: 0 10px 28px rgba(0,0,0,.4);
-      z-index: 9999;
-      cursor: pointer;
+      z-index: 9999; cursor: pointer;
       touch-action: manipulation;
       -webkit-tap-highlight-color: transparent;
     }
     #btnWeiter.hidden { display: none; }
 
-    /* ── Einstellungen-Button ── */
     #btnSettings {
-      position: fixed;
-      left: 1rem; bottom: 1rem;
+      position: fixed; left: 1rem; bottom: 1rem;
       width: clamp(64px, 14vw, 84px);
       height: clamp(64px, 14vw, 84px);
-      border-radius: 16px;
-      background: rgba(0,0,0,.5);
-      color: #fff;
-      border: 3px solid rgba(255,255,255,.3);
+      border-radius: 16px; background: rgba(0,0,0,.5);
+      color: #fff; border: 3px solid rgba(255,255,255,.3);
       font-size: clamp(1.4rem, 4vw, 2rem);
       box-shadow: 0 6px 18px rgba(0,0,0,.3);
-      z-index: 9999;
-      cursor: pointer;
+      z-index: 9999; cursor: pointer;
       touch-action: manipulation;
       -webkit-tap-highlight-color: transparent;
     }
 
-    /* ── Drawer ── */
     #drawer {
       position: fixed; inset: 0;
       background: rgba(0,0,0,.55);
-      z-index: 10000;
-      display: flex; align-items: flex-end;
+      z-index: 10000; display: flex; align-items: flex-end;
     }
     #drawer.hidden { display: none; }
     #drawerInner {
-      width: 100%;
-      background: #f6f8fa;
+      width: 100%; background: #f6f8fa;
       border-radius: 22px 22px 0 0;
       padding: 1.4rem 1.4rem 2.6rem;
       display: flex; flex-direction: column; gap: 1.2rem;
@@ -176,13 +143,10 @@
     .drawn-chip {
       background: #003366; color: #fff;
       font-weight: 900; font-size: 1.1rem;
-      width: 2.4rem; height: 2.4rem;
-      border-radius: 10px;
+      width: 2.4rem; height: 2.4rem; border-radius: 10px;
       display: flex; align-items: center; justify-content: center;
     }
-    #drawnEmpty {
-      font-size: 0.88rem; color: #999; align-self: center;
-    }
+    #drawnEmpty { font-size: 0.88rem; color: #999; align-self: center; }
 
     #btnCloseDrawer {
       align-self: flex-end;
@@ -192,52 +156,41 @@
       cursor: pointer; touch-action: manipulation;
     }
 
-    /* ── Alle-gezogen-Banner ── */
     #alleDone {
       position: fixed; inset: 0;
       background: #003366; color: #fff;
       font-size: clamp(1.6rem, 6vw, 3.2rem);
       font-weight: 900;
       display: flex; align-items: center; justify-content: center;
-      flex-direction: column;
-      text-align: center; padding: 2rem; z-index: 8000;
+      flex-direction: column; text-align: center; padding: 2rem;
+      z-index: 8000;
     }
     #alleDone.hidden { display: none; }
-    #alleDone span {
-      font-size: 0.55em; font-weight: 400; margin-top: 1rem;
-    }
+    #alleDone span { font-size: 0.55em; font-weight: 400; margin-top: 1rem; }
   </style>
 </head>
 <body>
 
-  <!-- ① Startscreen -->
   <div id="screenStart" class="screen">
     <button id="btnStart" aria-label="Buchstaben würfeln"></button>
     <h1>Bitte berühren</h1>
     <p>Tippe, um einen Buchstaben zu würfeln</p>
   </div>
 
-  <!-- ② Buchstaben-Screen -->
   <div id="screenLetter" class="screen hidden" aria-live="polite">
     <div id="bigLetter"></div>
   </div>
 
-  <!-- Repeat-Hinweis -->
   <div id="repeatHint">🔊 Nochmal</div>
 
-  <!-- Alle gezogen -->
   <div id="alleDone" class="hidden">
     Alle 26 Buchstaben wurden gezogen! 🎉
     <span>Drücke „Weiter", um neu zu starten.</span>
   </div>
 
-  <!-- Weiter -->
   <button id="btnWeiter" class="hidden" aria-label="Nächste Runde">Weiter</button>
-
-  <!-- Einstellungen -->
   <button id="btnSettings" aria-label="Einstellungen">⚙️</button>
 
-  <!-- Drawer -->
   <div id="drawer" class="hidden" role="dialog" aria-modal="true">
     <div id="drawerInner">
       <button id="btnCloseDrawer">✕ Schließen</button>
@@ -255,8 +208,8 @@
 
       <div class="setting-row">
         <label for="rateRange">🔊 Sprechrate</label>
-        <input id="rateRange" type="range" min="0.4" max="1.4" step="0.05" value="0.65"/>
-        <div class="tiny" id="rateVal">Rate: 0.65 (langsam)</div>
+        <input id="rateRange" type="range" min="0.4" max="1.4" step="0.05" value="0.55"/>
+        <div class="tiny" id="rateVal">Rate: 0.55 (sehr langsam)</div>
       </div>
 
       <div class="setting-row">
@@ -274,15 +227,44 @@
 const LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 const ROLL_MS = [28,54,82,112,144,178,214,252,292,334,378,424];
 
+// Lautsprache-Tabelle: deutsche Phoneme, gedehnt für maximale Klarheit
+const PHONEME = {
+  A: "aaa",
+  B: "bbb",
+  C: "zzz",
+  D: "ddd",
+  E: "eee",
+  F: "fff",
+  G: "ggg",
+  H: "hhh",
+  I: "iii",
+  J: "jjj",
+  K: "kkk",
+  L: "lll",
+  M: "mmm",
+  N: "nnn",
+  O: "ooo",
+  P: "ppp",
+  Q: "kkuuu",
+  R: "rrr",
+  S: "sss",
+  T: "ttt",
+  U: "uuu",
+  V: "fff",
+  W: "www",
+  X: "ksss",
+  Y: "üüü",
+  Z: "zzz",
+};
+
 let drawn         = new Set();
 let rolling       = false;
 let currentLetter = "";
-let speechRate    = 0.65;
+let speechRate    = 0.55;
 let speechVol     = 1.0;
-
-/* Sperr-Zeitstempel für die 1-Sekunde-Pause beim Repeat */
 let lastSpeakTime = 0;
 let hintTimer     = null;
+let repeatLocked  = false;
 
 const screenStart  = document.getElementById("screenStart");
 const screenLetter = document.getElementById("screenLetter");
@@ -322,26 +304,45 @@ document.getElementById("btnReset").addEventListener("click", () => {
   renderDrawn();
 });
 
-/* ══ Speech ══ */
-function speak(letter) {
-  if (!("speechSynthesis" in window)) return;
-  window.speechSynthesis.cancel();
-
-  const utt    = new SpeechSynthesisUtterance(letter.toLowerCase());
-  utt.lang     = "de-DE";
-  utt.rate     = speechRate;
-  utt.volume   = speechVol;
-  utt.pitch    = 1.0;
-
+/* ══ Einzelne TTS-Äußerung ══ */
+function utterance(text) {
+  const utt  = new SpeechSynthesisUtterance(text);
+  utt.lang   = "de-DE";
+  utt.rate   = speechRate;
+  utt.volume = speechVol;
+  utt.pitch  = 1.15;
   const voices = window.speechSynthesis.getVoices();
   const de     = voices.find(v => /^de/i.test(v.lang));
   if (de) utt.voice = de;
-
-  window.speechSynthesis.speak(utt);
-  lastSpeakTime = Date.now();
+  return utt;
 }
 
-/* ══ Repeat-Hinweis anzeigen ══ */
+/* ══ Lautsprache zweimal sprechen, mit Pause ══ */
+function speakDouble(letter, pauseMs = 1200) {
+  if (!("speechSynthesis" in window)) return;
+  window.speechSynthesis.cancel();
+
+  const sound = PHONEME[letter] || letter.toLowerCase();
+
+  repeatLocked  = true;
+  lastSpeakTime = Date.now();
+
+  const utt1 = utterance(sound);
+  utt1.onend = () => {
+    setTimeout(() => {
+      const utt2 = utterance(sound);
+      utt2.onend = () => {
+        lastSpeakTime = Date.now();
+        repeatLocked  = false;
+      };
+      window.speechSynthesis.speak(utt2);
+    }, pauseMs);
+  };
+
+  window.speechSynthesis.speak(utt1);
+}
+
+/* ══ Repeat-Hinweis ══ */
 function showHint() {
   repeatHint.classList.add("show");
   clearTimeout(hintTimer);
@@ -350,17 +351,15 @@ function showHint() {
 
 /* ══ Repeat-Touch auf Buchstaben-Screen ══ */
 screenLetter.addEventListener("pointerdown", e => {
-  // Nur auslösen wenn: Buchstabe fertig gezeigt, kein Würfeln läuft,
-  // Klick NICHT auf Weiter- oder Einstellungs-Button
   if (rolling) return;
   if (!currentLetter) return;
-  if (e.target === btnWeiter || e.target === btnSettings) return;
+  if (repeatLocked) return;
   if (btnWeiter.contains(e.target) || btnSettings.contains(e.target)) return;
 
   const now = Date.now();
-  if (now - lastSpeakTime < 1000) return; // 1-Sekunde-Sperre
+  if (now - lastSpeakTime < 1000) return;
 
-  speak(currentLetter);
+  speakDouble(currentLetter);
   showHint();
 });
 
@@ -406,7 +405,7 @@ btnStart.addEventListener("click", () => {
       rolling = false;
       btnWeiter.classList.remove("hidden");
 
-      speak(final);
+      speakDouble(final);
     }
   }
   requestAnimationFrame(animate);
@@ -416,6 +415,8 @@ btnStart.addEventListener("click", () => {
 btnWeiter.addEventListener("click", () => {
   if (rolling) return;
   if (window.speechSynthesis) window.speechSynthesis.cancel();
+  repeatLocked  = false;
+  lastSpeakTime = 0;
   alleDone.classList.add("hidden");
   showScreen("start");
   btnWeiter.classList.add("hidden");
