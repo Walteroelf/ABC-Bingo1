@@ -35,7 +35,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 1rem 1rem 7rem; /* Platz für fixed Button */
+      padding: 1rem 1rem 7rem;
     }
 
     /* ── Statuszeile ── */
@@ -55,21 +55,18 @@
       align-items: center;
       justify-content: center;
       border-radius: 18px;
-      border: 6px solid #000;
+      border: 6px solid #c92b2b;
       background: linear-gradient(180deg, #ffdede, #ffecec);
       box-shadow: 0 10px 28px rgba(0,0,0,.14);
-      cursor: pointer;          /* zeigt, dass es klickbar ist */
+      cursor: pointer;
       touch-action: manipulation;
       -webkit-tap-highlight-color: transparent;
       transition: background 0.2s, border-color 0.2s;
-      position: relative;
     }
 
     #display.drawn {
       background: #ffffff;
       border-color: #000;
-    }
-    #display.locked {
       cursor: default;
     }
 
@@ -77,7 +74,7 @@
       font-size: clamp(7rem, 28vw, 32rem);
       font-weight: 800;
       line-height: 0.85;
-      pointer-events: none; /* Klick geht ans Elternelement #display */
+      pointer-events: none;
     }
 
     /* ── Hinweistext ── */
@@ -141,18 +138,12 @@
     .control-card input[type=range] {
       width: 100%;
       accent-color: var(--btn-bg);
-      height: 28px;   /* größer = einfacher zu bedienen */
+      height: 28px;
       cursor: pointer;
     }
     .tiny { font-size: 0.82rem; color: #555; margin-top: 0.2rem; }
 
-    /* ── Log-Bereich ── */
-    .log-area {
-      width: 100%;
-      max-width: 960px;
-      margin-top: 1rem;
-      text-align: left;
-    }
+    /* ── Buttons ── */
     .btn-row { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.5rem; }
     .btn-sm {
       padding: 10px 14px;
@@ -164,8 +155,12 @@
       font-size: 0.92rem;
       cursor: pointer;
       touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
     }
     .btn-sm.danger { background: #b22222; }
+    .btn-sm:disabled { opacity: 0.4; pointer-events: none; }
+
+    /* ── Log ── */
     #logView {
       display: none;
       white-space: pre-wrap;
@@ -180,7 +175,7 @@
     }
 
     /* ── Aufnahme ── */
-    #recState { font-size: 0.85rem; color: #444; margin-top: 0.4rem; }
+    #recState { font-size: 0.85rem; color: #444; margin-top: 0.5rem; }
 
     /* ── Weiter-Button (fixed) ── */
     #resetBtn {
@@ -204,10 +199,8 @@
       align-items: center;
       justify-content: center;
     }
-    #resetBtn:disabled {
-      opacity: 0.4;
-      pointer-events: none;
-    }
+    #resetBtn:disabled { opacity: 0.4; pointer-events: none; }
+
     #cornerSub {
       position: fixed;
       right: 1rem;
@@ -222,12 +215,12 @@
       box-shadow: 0 6px 14px rgba(0,0,0,.1);
     }
 
-    /* ── Animationen ── */
+    /* ── Flash-Animation ── */
     @keyframes flash {
-      0%   { box-shadow: 0 0 0  0   rgba(0,119,204,.35); }
-      100% { box-shadow: 0 0 0 40px rgba(0,119,204,0);   }
+      0%   { box-shadow: 0 0 0  0   rgba(0,119,204,.4); }
+      100% { box-shadow: 0 0 0 44px rgba(0,119,204,0);  }
     }
-    .flash { animation: flash 300ms ease-out; }
+    .flash { animation: flash 320ms ease-out; }
 
     /* ── Responsive ── */
     @media (max-width: 520px) {
@@ -243,7 +236,7 @@
 
   <div id="topMessage">Bitte berühren</div>
 
-  <!-- ── Haupt-Display: direkt klickbar, KEIN overlay ── -->
+  <!-- Haupt-Display: direkt klickbar, kein Overlay -->
   <div id="display" role="button" tabindex="0" aria-label="Buchstaben würfeln">
     <div id="char"></div>
   </div>
@@ -253,7 +246,6 @@
   <!-- Piktogramme -->
   <div class="pictos" aria-hidden="true">
     <div class="picto">
-      <!-- Hand / Finger-Tap -->
       <svg viewBox="0 0 24 24" fill="none" stroke="#222" stroke-width="1.6"
            stroke-linecap="round" stroke-linejoin="round">
         <path d="M9 11V6a2 2 0 0 1 4 0v5"/>
@@ -264,7 +256,6 @@
       <span>Tippen = Würfeln</span>
     </div>
     <div class="picto">
-      <!-- Reload / Nächste Runde -->
       <svg viewBox="0 0 24 24" fill="none" stroke="#222" stroke-width="1.6"
            stroke-linecap="round" stroke-linejoin="round">
         <polyline points="1 4 1 10 7 10"/>
@@ -309,12 +300,8 @@
       <div id="recState">Aufnahme: aus</div>
     </div>
 
-  </div><!-- /.controls -->
-
-  <!-- Log-Anzeige -->
-  <div class="log-area" aria-live="polite"></div>
-
-</div><!-- /.wrap -->
+  </div>
+</div>
 
 <!-- Weiter-Button -->
 <button id="resetBtn" aria-label="Nächste Runde">Weiter</button>
@@ -324,70 +311,119 @@
 "use strict";
 
 /* ── Konstanten ── */
-const LETTERS    = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
-const DEBOUNCE   = 650;   // ms
+const LETTERS   = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+const DEBOUNCE  = 650;
 const ROLL_COUNT = 10;
-const LOG_KEY    = "bingo_log_v2";
+const LOG_KEY   = "bingo_log_v2";
 
 /* ── State ── */
-let drawn    = new Set();
-let locked   = false;
-let rolling  = false;
-let lastTap  = 0;
+let drawn      = new Set();
+let locked     = false;
+let rolling    = false;
+let lastTap    = 0;
 let speechRate = 0.85;
 let speechVol  = 1.0;
+let speechUnlocked = false;
 
 /* ── DOM ── */
-const display    = document.getElementById("display");
-const charEl     = document.getElementById("char");
-const topMsg     = document.getElementById("topMessage");
-const hintText   = document.getElementById("hintText");
-const resetBtn   = document.getElementById("resetBtn");
-const cornerSub  = document.getElementById("cornerSub");
-const rateRange  = document.getElementById("rateRange");
-const volRange   = document.getElementById("volRange");
-const rateVal    = document.getElementById("rateVal");
-const volVal     = document.getElementById("volVal");
-const logCount   = document.getElementById("logCount");
-const logView    = document.getElementById("logView");
-const btnDownload  = document.getElementById("btnDownload");
-const btnShowLog   = document.getElementById("btnShowLog");
-const btnClearLog  = document.getElementById("btnClearLog");
-const btnRecStart  = document.getElementById("btnRecStart");
-const btnRecStop   = document.getElementById("btnRecStop");
-const recState     = document.getElementById("recState");
+const display     = document.getElementById("display");
+const charEl      = document.getElementById("char");
+const topMsg      = document.getElementById("topMessage");
+const hintText    = document.getElementById("hintText");
+const resetBtn    = document.getElementById("resetBtn");
+const cornerSub   = document.getElementById("cornerSub");
+const rateRange   = document.getElementById("rateRange");
+const volRange    = document.getElementById("volRange");
+const rateVal     = document.getElementById("rateVal");
+const volVal      = document.getElementById("volVal");
+const logCount    = document.getElementById("logCount");
+const logView     = document.getElementById("logView");
+const btnDownload = document.getElementById("btnDownload");
+const btnShowLog  = document.getElementById("btnShowLog");
+const btnClearLog = document.getElementById("btnClearLog");
+const btnRecStart = document.getElementById("btnRecStart");
+const btnRecStop  = document.getElementById("btnRecStop");
+const recState    = document.getElementById("recState");
 
 /* ── MediaRecorder ── */
-let mediaRecorder   = null;
-let recordedChunks  = [];
+let mediaRecorder  = null;
+let recordedChunks = [];
 
 /* ════════════════════════════════
-   ANZEIGE-FUNKTIONEN
+   SAFARI / iOS: Audio entsperren
+   Muss beim ersten echten Tap
+   (pointerdown) aufgerufen werden,
+   bevor speechSynthesis genutzt wird.
+════════════════════════════════ */
+function unlockSpeech() {
+  if (speechUnlocked || !("speechSynthesis" in window)) return;
+  const silent = new SpeechSynthesisUtterance(" ");
+  silent.volume = 0;
+  silent.rate   = 1;
+  silent.lang   = "de-DE";
+  window.speechSynthesis.speak(silent);
+  speechUnlocked = true;
+}
+
+/* ════════════════════════════════
+   SPRACHAUSGABE
+   - Kleinbuchstabe übergeben →
+     iOS sagt NICHT "Großbuchstabe X"
+   - lang="de-DE" explizit gesetzt →
+     zuverlässige deutsche Stimme
+════════════════════════════════ */
+function speak(text) {
+  if (!("speechSynthesis" in window)) return;
+  window.speechSynthesis.cancel();
+
+  // Kleinbuchstabe verhindert "Großbuchstabe X" auf iOS/Safari
+  const utt  = new SpeechSynthesisUtterance(text.toLowerCase());
+  utt.lang   = "de-DE";
+  utt.rate   = speechRate;
+  utt.volume = speechVol;
+  utt.pitch  = 1.0;
+
+  // Deutsche Stimme bevorzugen, falls vorhanden
+  const voices = window.speechSynthesis.getVoices();
+  const de = voices.find(v => /^de/i.test(v.lang));
+  if (de) utt.voice = de;
+
+  window.speechSynthesis.speak(utt);
+}
+
+if ("speechSynthesis" in window) {
+  window.speechSynthesis.addEventListener("voiceschanged", () => {
+    window.speechSynthesis.getVoices();
+  });
+}
+
+/* ════════════════════════════════
+   ANZEIGE
 ════════════════════════════════ */
 function showStart() {
-  topMsg.textContent  = "Bitte berühren";
-  topMsg.style.color  = "#8b1f1f";
-  charEl.textContent  = "";
+  topMsg.textContent   = "Bitte berühren";
+  topMsg.style.color   = "#8b1f1f";
+  charEl.textContent   = "";
   hintText.textContent = "Tippe auf die rote Fläche, um einen Buchstaben zu ziehen.";
-  display.classList.remove("drawn", "locked", "flash");
-  display.style.background = "linear-gradient(180deg,#ffdede,#ffecec)";
+  display.classList.remove("drawn", "flash");
+  display.style.background  = "linear-gradient(180deg,#ffdede,#ffecec)";
   display.style.borderColor = "#c92b2b";
   display.style.cursor      = "pointer";
   locked  = false;
   rolling = false;
-  resetBtn.disabled  = false;
+  resetBtn.disabled     = false;
   cornerSub.textContent = "Knopf = Startbildschirm";
   updateLogCount();
 }
 
 function showFinal(letter) {
-  charEl.textContent = letter;
+  charEl.textContent = letter;   // Großbuchstabe im Display – sieht besser aus
   display.classList.add("drawn");
   display.classList.remove("flash");
   display.style.background  = "#ffffff";
   display.style.borderColor = "#000000";
   display.style.cursor      = "default";
-  void display.offsetWidth;            // reflow für Animation
+  void display.offsetWidth;      // reflow → Animation neu starten
   display.classList.add("flash");
 
   locked = true;
@@ -398,7 +434,9 @@ function showFinal(letter) {
   resetBtn.disabled    = false;
 
   addLog(letter);
-  setTimeout(() => speak(letter), 180);
+
+  // Sprachausgabe mit kurzem Versatz (Animation läuft zuerst)
+  setTimeout(() => speak(letter), 200);
 }
 
 /* ════════════════════════════════
@@ -426,13 +464,11 @@ async function rollAndPick() {
   topMsg.style.color   = "#003366";
   hintText.textContent = "";
 
-  /* Roll-Animation */
   for (let i = 0; i < ROLL_COUNT; i++) {
     charEl.textContent = LETTERS[Math.floor(Math.random() * LETTERS.length)];
     await wait(30 + i * 28);
   }
 
-  /* Endwert */
   const remaining = LETTERS.filter(l => !drawn.has(l));
   const final     = remaining[Math.floor(Math.random() * remaining.length)];
   drawn.add(final);
@@ -445,37 +481,12 @@ async function rollAndPick() {
 function wait(ms) { return new Promise(r => setTimeout(r, ms)); }
 
 /* ════════════════════════════════
-   SPRACHAUSGABE
-════════════════════════════════ */
-function speak(text) {
-  if (!("speechSynthesis" in window)) return;
-  window.speechSynthesis.cancel();
-  const utt  = new SpeechSynthesisUtterance(text);
-  utt.rate   = speechRate;
-  utt.volume = speechVol;
-  utt.pitch  = 1.0;
-
-  /* deutsche Stimme bevorzugen */
-  const voices = window.speechSynthesis.getVoices();
-  const de = voices.find(v => /^de/i.test(v.lang));
-  if (de) utt.voice = de;
-
-  window.speechSynthesis.speak(utt);
-}
-
-if ("speechSynthesis" in window) {
-  window.speechSynthesis.addEventListener("voiceschanged", () => {
-    window.speechSynthesis.getVoices();
-  });
-}
-
-/* ════════════════════════════════
    PROTOKOLL (localStorage)
 ════════════════════════════════ */
 function loadLog()      { try { return JSON.parse(localStorage.getItem(LOG_KEY) || "[]"); } catch { return []; } }
 function saveLog(arr)   { try { localStorage.setItem(LOG_KEY, JSON.stringify(arr)); } catch {} updateLogCount(); }
 function addLog(letter) { const a = loadLog(); a.push({ ts: new Date().toISOString(), letter }); saveLog(a); }
-function updateLogCount(){ logCount.textContent = loadLog().length; }
+function updateLogCount() { logCount.textContent = loadLog().length; }
 
 function downloadCSV() {
   const rows = loadLog();
@@ -526,7 +537,7 @@ async function startRec() {
     mediaRecorder.onstop = () => {
       const blob = new Blob(recordedChunks, { type: "audio/webm" });
       const url  = URL.createObjectURL(blob);
-      recState.innerHTML = `Aufnahme fertig – <a href="${url}" download="bingo.webm">Herunterladen</a>`;
+      recState.innerHTML = `Fertig – <a href="${url}" download="bingo.webm">Herunterladen</a>`;
     };
     mediaRecorder.start();
     recState.textContent  = "🔴 Aufnahme läuft …";
@@ -549,8 +560,9 @@ function stopRec() {
    EVENT-LISTENER
 ════════════════════════════════ */
 
-/* Haupt-Display – Touch UND Click */
+/* Haupt-Display */
 display.addEventListener("pointerdown", e => {
+  unlockSpeech();          // Safari/iOS Audio-Kontext beim ersten Tap öffnen
   if (locked || rolling) return;
   e.preventDefault();
   rollAndPick();
@@ -558,6 +570,7 @@ display.addEventListener("pointerdown", e => {
 
 /* Weiter-Knopf */
 resetBtn.addEventListener("pointerdown", e => {
+  unlockSpeech();
   e.stopPropagation();
   if (rolling) return;
   if (window.speechSynthesis) window.speechSynthesis.cancel();
@@ -567,24 +580,28 @@ resetBtn.addEventListener("pointerdown", e => {
 /* Schieberegler */
 rateRange.addEventListener("input", () => {
   speechRate = parseFloat(rateRange.value);
-  const label = speechRate <= 0.65 ? "sehr langsam" : speechRate <= 0.85 ? "langsam" : speechRate <= 1.05 ? "normal" : "schnell";
+  const label = speechRate <= 0.65 ? "sehr langsam"
+              : speechRate <= 0.85 ? "langsam"
+              : speechRate <= 1.05 ? "normal"
+              : "schnell";
   rateVal.textContent = `Rate: ${speechRate.toFixed(2)} (${label})`;
 });
+
 volRange.addEventListener("input", () => {
   speechVol = parseFloat(volRange.value);
   volVal.textContent = `Lautstärke: ${Math.round(speechVol * 100)} %`;
 });
 
-/* Log-Buttons */
+/* Log */
 btnDownload.addEventListener("click", downloadCSV);
 btnShowLog .addEventListener("click", toggleLog);
 btnClearLog.addEventListener("click", clearLogData);
 
-/* Aufnahme-Buttons */
+/* Aufnahme */
 btnRecStart.addEventListener("click", startRec);
 btnRecStop .addEventListener("click", stopRec);
 
-/* Tastatur (Desktop-Test: Leertaste = Würfeln, R = Reset) */
+/* Tastatur (Desktop) */
 document.addEventListener("keydown", e => {
   if (e.code === "Space") { e.preventDefault(); if (!locked) rollAndPick(); }
   if (e.key  === "r" || e.key === "R") showStart();
