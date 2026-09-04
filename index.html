@@ -16,7 +16,6 @@
       touch-action: manipulation;
     }
 
-    /* ══ SCREENS ══ */
     .screen {
       position: fixed; inset: 0;
       display: flex; flex-direction: column;
@@ -58,7 +57,7 @@
     }
 
     /* ── Buchstaben-Screen ── */
-    #screenLetter { background: #fff; }
+    #screenLetter { background: #fff; cursor: pointer; }
 
     #bigLetter {
       font-size: clamp(12rem, 48vw, 52rem);
@@ -66,8 +65,29 @@
       line-height: 1;
       color: #0b0b0b;
       transition: opacity 0.1s;
+      pointer-events: none;
     }
     #bigLetter.rolling { opacity: 0.25; }
+
+    /* Kurzer visueller Hinweis beim Repeat-Touch */
+    #repeatHint {
+      position: fixed;
+      bottom: 7rem;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,.55);
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 600;
+      padding: 0.45rem 1.1rem;
+      border-radius: 20px;
+      opacity: 0;
+      transition: opacity 0.25s;
+      pointer-events: none;
+      z-index: 8500;
+      white-space: nowrap;
+    }
+    #repeatHint.show { opacity: 1; }
 
     /* ── Weiter-Button ── */
     #btnWeiter {
@@ -136,7 +156,6 @@
     }
     .tiny { font-size: 0.85rem; color: #555; }
 
-    /* ── Buchstaben-Anzeige ── */
     .drawn-header {
       display: flex; align-items: center;
       justify-content: space-between; gap: 0.8rem;
@@ -165,7 +184,6 @@
       font-size: 0.88rem; color: #999; align-self: center;
     }
 
-    /* ── Schließen-Button ── */
     #btnCloseDrawer {
       align-self: flex-end;
       padding: 10px 20px; border-radius: 12px; border: none;
@@ -204,6 +222,9 @@
     <div id="bigLetter"></div>
   </div>
 
+  <!-- Repeat-Hinweis -->
+  <div id="repeatHint">🔊 Nochmal</div>
+
   <!-- Alle gezogen -->
   <div id="alleDone" class="hidden">
     Alle 26 Buchstaben wurden gezogen! 🎉
@@ -222,7 +243,6 @@
       <button id="btnCloseDrawer">✕ Schließen</button>
       <h2>⚙️ Einstellungen</h2>
 
-      <!-- Bisherige Buchstaben + Reset -->
       <div class="setting-row">
         <div class="drawn-header">
           <label>🔤 Bisherige Buchstaben</label>
@@ -233,14 +253,12 @@
         </div>
       </div>
 
-      <!-- Sprechrate -->
       <div class="setting-row">
         <label for="rateRange">🔊 Sprechrate</label>
         <input id="rateRange" type="range" min="0.4" max="1.4" step="0.05" value="0.65"/>
         <div class="tiny" id="rateVal">Rate: 0.65 (langsam)</div>
       </div>
 
-      <!-- Lautstärke -->
       <div class="setting-row">
         <label for="volRange">🔈 Lautstärke</label>
         <input id="volRange" type="range" min="0.1" max="1.0" step="0.05" value="1.0"/>
@@ -253,18 +271,19 @@
 <script>
 "use strict";
 
-/* ══ Konstanten ══ */
 const LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 const ROLL_MS = [28,54,82,112,144,178,214,252,292,334,378,424];
 
-/* ══ State ══ */
 let drawn         = new Set();
 let rolling       = false;
 let currentLetter = "";
 let speechRate    = 0.65;
 let speechVol     = 1.0;
 
-/* ══ DOM ══ */
+/* Sperr-Zeitstempel für die 1-Sekunde-Pause beim Repeat */
+let lastSpeakTime = 0;
+let hintTimer     = null;
+
 const screenStart  = document.getElementById("screenStart");
 const screenLetter = document.getElementById("screenLetter");
 const bigLetter    = document.getElementById("bigLetter");
@@ -275,17 +294,15 @@ const drawer       = document.getElementById("drawer");
 const alleDone     = document.getElementById("alleDone");
 const drawnLetters = document.getElementById("drawnLetters");
 const drawnEmpty   = document.getElementById("drawnEmpty");
+const repeatHint   = document.getElementById("repeatHint");
 
 /* ══ Bisherige Buchstaben rendern ══ */
 function renderDrawn() {
-  // Alle Chips entfernen (aber drawnEmpty im DOM lassen)
   [...drawnLetters.querySelectorAll(".drawn-chip")].forEach(c => c.remove());
-
   if (drawn.size === 0) {
     drawnEmpty.style.display = "";
   } else {
     drawnEmpty.style.display = "none";
-    // In Reihenfolge des Alphabets anzeigen
     LETTERS.filter(l => drawn.has(l)).forEach(l => {
       const chip = document.createElement("div");
       chip.className = "drawn-chip";
@@ -310,18 +327,42 @@ function speak(letter) {
   if (!("speechSynthesis" in window)) return;
   window.speechSynthesis.cancel();
 
-  const utt = new SpeechSynthesisUtterance(letter.toLowerCase());
-  utt.lang   = "de-DE";
-  utt.rate   = speechRate;
-  utt.volume = speechVol;
-  utt.pitch  = 1.0;
+  const utt    = new SpeechSynthesisUtterance(letter.toLowerCase());
+  utt.lang     = "de-DE";
+  utt.rate     = speechRate;
+  utt.volume   = speechVol;
+  utt.pitch    = 1.0;
 
   const voices = window.speechSynthesis.getVoices();
-  const de = voices.find(v => /^de/i.test(v.lang));
+  const de     = voices.find(v => /^de/i.test(v.lang));
   if (de) utt.voice = de;
 
   window.speechSynthesis.speak(utt);
+  lastSpeakTime = Date.now();
 }
+
+/* ══ Repeat-Hinweis anzeigen ══ */
+function showHint() {
+  repeatHint.classList.add("show");
+  clearTimeout(hintTimer);
+  hintTimer = setTimeout(() => repeatHint.classList.remove("show"), 900);
+}
+
+/* ══ Repeat-Touch auf Buchstaben-Screen ══ */
+screenLetter.addEventListener("pointerdown", e => {
+  // Nur auslösen wenn: Buchstabe fertig gezeigt, kein Würfeln läuft,
+  // Klick NICHT auf Weiter- oder Einstellungs-Button
+  if (rolling) return;
+  if (!currentLetter) return;
+  if (e.target === btnWeiter || e.target === btnSettings) return;
+  if (btnWeiter.contains(e.target) || btnSettings.contains(e.target)) return;
+
+  const now = Date.now();
+  if (now - lastSpeakTime < 1000) return; // 1-Sekunde-Sperre
+
+  speak(currentLetter);
+  showHint();
+});
 
 /* ══ Screens ══ */
 function showScreen(name) {
@@ -378,6 +419,7 @@ btnWeiter.addEventListener("click", () => {
   alleDone.classList.add("hidden");
   showScreen("start");
   btnWeiter.classList.add("hidden");
+  currentLetter = "";
 });
 
 /* ══ Einstellungen-Drawer ══ */
