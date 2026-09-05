@@ -241,16 +241,11 @@ let currentLetter = "";
 let speechRate    = 0.55;
 let speechVol     = 1.0;
 let hintTimer     = null;
-
-// Token-System: jede neue Sprachanfrage bekommt eine neue ID.
-// Veraltete Callbacks erkennen, dass ihre Token-ID nicht mehr aktuell ist.
-let speakToken = 0;
-let speakCooldown = false; // Sperrt neue Anfragen während gesprochen wird
+let busy          = false; // globale Sperre – nur EIN speak() läuft je
 
 const screenStart  = document.getElementById("screenStart");
 const screenLetter = document.getElementById("screenLetter");
 const bigLetter    = document.getElementById("bigLetter");
-const btnStart     = document.getElementById("btnStart");
 const btnWeiter    = document.getElementById("btnWeiter");
 const btnSettings  = document.getElementById("btnSettings");
 const drawer       = document.getElementById("drawer");
@@ -285,17 +280,13 @@ document.getElementById("btnReset").addEventListener("click", () => {
   renderDrawn();
 });
 
-/* ══ Sprachausgabe – einmal, sicher, mit Token-Schutz ══ */
+/* ══ Sprachausgabe – absolut einmalig ══ */
 function speakOnce(letter) {
   if (!("speechSynthesis" in window)) return;
+  if (busy) return; // bereits am Sprechen → ignorieren
 
-  // Alle laufenden Ausgaben sofort stoppen
+  busy = true;
   window.speechSynthesis.cancel();
-
-  // Neues Token – alte onend-Callbacks werden ignoriert
-  speakToken++;
-  const myToken = speakToken;
-  speakCooldown = true;
 
   const sound = PHONEME[letter] || letter.toLowerCase();
   const utt   = new SpeechSynthesisUtterance(sound);
@@ -304,21 +295,25 @@ function speakOnce(letter) {
   utt.volume  = speechVol;
   utt.pitch   = 1.15;
 
+  // Stimme setzen – aber NUR wenn Voices bereits geladen, sonst weglassen
   const voices = window.speechSynthesis.getVoices();
-  const de     = voices.find(v => /^de/i.test(v.lang));
-  if (de) utt.voice = de;
+  if (voices.length > 0) {
+    const de = voices.find(v => /^de/i.test(v.lang));
+    if (de) utt.voice = de;
+  }
 
-  utt.onend = () => {
-    if (myToken !== speakToken) return; // veralteter Callback → ignorieren
-    speakCooldown = false;
-  };
+  // Sperre nach Abschluss aufheben
+  const unlock = () => { busy = false; };
+  utt.onend   = unlock;
+  utt.onerror = unlock;
 
-  // Fallback: falls onend nie feuert, nach 4 s entsperren
+  // Sicherheits-Fallback: nach 5 s entsperren
+  setTimeout(unlock, 5000);
+
+  // Kleines Delay nach cancel() – verhindert Browser-Bug bei sofortigem speak()
   setTimeout(() => {
-    if (myToken === speakToken) speakCooldown = false;
-  }, 4000);
-
-  window.speechSynthesis.speak(utt);
+    window.speechSynthesis.speak(utt);
+  }, 50);
 }
 
 /* ══ Repeat-Hinweis ══ */
@@ -328,25 +323,14 @@ function showHint() {
   hintTimer = setTimeout(() => repeatHint.classList.remove("show"), 900);
 }
 
-/* ══ Repeat-Touch auf Buchstaben-Screen ══ */
-screenLetter.addEventListener("pointerdown", e => {
-  if (rolling) return;
-  if (!currentLetter) return;
-  if (speakCooldown) return;
-  if (btnWeiter.contains(e.target) || btnSettings.contains(e.target)) return;
-
-  speakOnce(currentLetter);
-  showHint();
-});
-
 /* ══ Screens ══ */
 function showScreen(name) {
   screenStart .classList.toggle("hidden", name !== "start");
   screenLetter.classList.toggle("hidden", name !== "letter");
 }
 
-/* ══ Würfeln ══ */
-btnStart.addEventListener("click", () => {
+/* ══ Würfeln – NUR über click, kein pointerdown ══ */
+document.getElementById("btnStart").addEventListener("click", () => {
   if (rolling) return;
   if (drawn.size >= LETTERS.length) {
     alleDone.classList.remove("hidden");
@@ -381,18 +365,29 @@ btnStart.addEventListener("click", () => {
       rolling = false;
       btnWeiter.classList.remove("hidden");
 
+      busy = false; // Reset vor neuem Buchstaben
       speakOnce(final);
     }
   }
   requestAnimationFrame(animate);
 });
 
+/* ══ Repeat-Touch auf Buchstaben-Screen – NUR click ══ */
+screenLetter.addEventListener("click", e => {
+  if (rolling) return;
+  if (!currentLetter) return;
+  if (busy) return;
+  if (btnWeiter.contains(e.target) || btnSettings.contains(e.target)) return;
+
+  speakOnce(currentLetter);
+  showHint();
+});
+
 /* ══ Weiter ══ */
 btnWeiter.addEventListener("click", () => {
   if (rolling) return;
   if (window.speechSynthesis) window.speechSynthesis.cancel();
-  speakToken++;          // invalidiert alle laufenden Callbacks
-  speakCooldown = false;
+  busy = false;
   alleDone.classList.add("hidden");
   showScreen("start");
   btnWeiter.classList.add("hidden");
@@ -429,7 +424,8 @@ document.getElementById("volRange").addEventListener("input", e => {
 /* ══ Tastatur ══ */
 document.addEventListener("keydown", e => {
   if (e.code === "Space" && !screenStart.classList.contains("hidden")) {
-    e.preventDefault(); btnStart.click();
+    e.preventDefault();
+    document.getElementById("btnStart").click();
   }
   if ((e.key === "r" || e.key === "R") && !screenLetter.classList.contains("hidden")) {
     btnWeiter.click();
@@ -439,7 +435,13 @@ document.addEventListener("keydown", e => {
 /* ══ Init ══ */
 window.addEventListener("load", () => {
   showScreen("start");
-  if ("speechSynthesis" in window) window.speechSynthesis.getVoices();
+  // Voices vorladen
+  if ("speechSynthesis" in window) {
+    window.speechSynthesis.getVoices();
+    window.speechSynthesis.onvoiceschanged = () => {
+      window.speechSynthesis.getVoices();
+    };
+  }
 });
 </script>
 </body>
