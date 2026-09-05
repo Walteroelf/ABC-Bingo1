@@ -6,16 +6,13 @@
   <title>Buchstaben-Bingo</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     html, body {
       width: 100%; height: 100%;
-      font-family: system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+      font-family: system-ui, sans-serif;
       -webkit-user-select: none; user-select: none;
-      -webkit-touch-callout: none;
-      overscroll-behavior: none;
       touch-action: manipulation;
+      overscroll-behavior: none;
     }
-
     .screen {
       position: fixed; inset: 0;
       display: flex; flex-direction: column;
@@ -23,83 +20,74 @@
     }
     .screen.hidden { display: none; }
 
-    #screenStart {
-      background: #c92b2b;
-      -webkit-tap-highlight-color: transparent;
-    }
-    #btnStart {
-      position: absolute; inset: 0;
-      width: 100%; height: 100%;
-      background: transparent; border: none;
-      cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
-      touch-action: manipulation;
-    }
+    /* START */
+    #screenStart { background: #c92b2b; }
     #screenStart h1 {
-      color: #fff;
-      font-size: clamp(2.8rem, 11vw, 7rem);
+      color: #fff; font-size: clamp(2.8rem,11vw,7rem);
       font-weight: 900; text-align: center; padding: 1rem;
-      text-shadow: 0 4px 18px rgba(0,0,0,.25);
-      pointer-events: none; position: relative; z-index: 1;
+      pointer-events: none;
     }
     #screenStart p {
       color: rgba(255,255,255,.75);
-      font-size: clamp(1rem, 3.5vw, 2rem);
+      font-size: clamp(1rem,3.5vw,2rem);
       margin-top: 1rem; text-align: center;
-      pointer-events: none; position: relative; z-index: 1;
-    }
-
-    #screenLetter { background: #fff; }
-    #bigLetter {
-      font-size: clamp(12rem, 48vw, 52rem);
-      font-weight: 900; line-height: 1; color: #0b0b0b;
-      transition: opacity 0.1s;
       pointer-events: none;
     }
-    #bigLetter.rolling { opacity: 0.25; }
-
-    #repeatHint {
-      position: fixed; bottom: 7rem; left: 50%;
-      transform: translateX(-50%);
-      background: rgba(0,0,0,.55); color: #fff;
-      font-size: 1rem; font-weight: 600;
-      padding: 0.45rem 1.1rem; border-radius: 20px;
-      opacity: 0; transition: opacity 0.25s;
-      pointer-events: none; z-index: 8500; white-space: nowrap;
+    #btnStart {
+      position: absolute; inset: 0;
+      background: transparent; border: none; cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
     }
-    #repeatHint.show { opacity: 1; }
 
+    /* LETTER */
+    #screenLetter { background: #fff; }
+    #bigLetter {
+      font-size: clamp(12rem,48vw,52rem);
+      font-weight: 900; line-height: 1; color: #111;
+      pointer-events: none;
+      transition: opacity 0.1s;
+    }
+    #bigLetter.rolling { opacity: 0.2; }
+
+    /* BUTTONS */
     #btnWeiter {
       position: fixed; right: 1rem; bottom: 1rem;
-      width: clamp(80px, 18vw, 110px);
-      height: clamp(80px, 18vw, 110px);
+      width: clamp(80px,18vw,110px); height: clamp(80px,18vw,110px);
       border-radius: 20px;
-      background: linear-gradient(180deg, #003366, #001f3a);
+      background: linear-gradient(180deg,#003366,#001f3a);
       color: #fff; border: 4px solid #fff;
-      font-weight: 900; font-size: clamp(0.95rem, 2.5vw, 1.2rem);
+      font-weight: 900; font-size: clamp(.95rem,2.5vw,1.2rem);
       box-shadow: 0 10px 28px rgba(0,0,0,.4);
       z-index: 9999; cursor: pointer;
-      touch-action: manipulation;
       -webkit-tap-highlight-color: transparent;
     }
     #btnWeiter.hidden { display: none; }
 
     #btnSettings {
       position: fixed; left: 1rem; bottom: 1rem;
-      width: clamp(64px, 14vw, 84px);
-      height: clamp(64px, 14vw, 84px);
+      width: clamp(64px,14vw,84px); height: clamp(64px,14vw,84px);
       border-radius: 16px; background: rgba(0,0,0,.5);
       color: #fff; border: 3px solid rgba(255,255,255,.3);
-      font-size: clamp(1.4rem, 4vw, 2rem);
-      box-shadow: 0 6px 18px rgba(0,0,0,.3);
+      font-size: clamp(1.4rem,4vw,2rem);
       z-index: 9999; cursor: pointer;
-      touch-action: manipulation;
       -webkit-tap-highlight-color: transparent;
     }
 
+    /* HINT */
+    #repeatHint {
+      position: fixed; bottom: 7rem; left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,.6); color: #fff;
+      font-size: 1rem; font-weight: 700;
+      padding: .4rem 1rem; border-radius: 20px;
+      opacity: 0; transition: opacity .2s;
+      pointer-events: none; z-index: 8000;
+    }
+    #repeatHint.show { opacity: 1; }
+
+    /* DRAWER */
     #drawer {
-      position: fixed; inset: 0;
-      background: rgba(0,0,0,.55);
+      position: fixed; inset: 0; background: rgba(0,0,0,.5);
       z-index: 10000; display: flex; align-items: flex-end;
     }
     #drawer.hidden { display: none; }
@@ -110,320 +98,261 @@
       display: flex; flex-direction: column; gap: 1.2rem;
       max-height: 82vh; overflow-y: auto;
     }
-    #drawerInner h2 {
-      font-size: 1.2rem; font-weight: 800; color: #111;
-      border-bottom: 2px solid rgba(0,0,0,.08);
-      padding-bottom: 0.5rem;
-    }
-    .setting-row { display: flex; flex-direction: column; gap: 0.35rem; }
-    .setting-row label { font-weight: 700; font-size: 1rem; color: #222; }
-    .setting-row input[type=range] {
-      width: 100%; height: 34px;
-      accent-color: #003366; cursor: pointer;
-    }
-    .tiny { font-size: 0.85rem; color: #555; }
-
-    .drawn-header {
-      display: flex; align-items: center;
-      justify-content: space-between; gap: 0.8rem;
-    }
-    .drawn-header label { font-weight: 700; font-size: 1rem; color: #222; }
+    #drawerInner h2 { font-size: 1.2rem; font-weight: 800; }
+    .srow { display: flex; flex-direction: column; gap: .35rem; }
+    .srow label { font-weight: 700; font-size: 1rem; }
+    .srow input[type=range] { width: 100%; height: 34px; accent-color: #003366; }
+    .tiny { font-size: .85rem; color: #555; }
+    .drawn-header { display: flex; align-items: center; justify-content: space-between; }
     #btnReset {
-      padding: 10px 18px; border-radius: 12px; border: none;
-      background: #b22222; color: #fff;
-      font-weight: 700; font-size: 0.95rem;
-      cursor: pointer; touch-action: manipulation;
-      -webkit-tap-highlight-color: transparent;
-      white-space: nowrap; flex-shrink: 0;
+      padding: 8px 16px; border-radius: 10px; border: none;
+      background: #b22222; color: #fff; font-weight: 700; cursor: pointer;
     }
-    #drawnLetters {
-      display: flex; flex-wrap: wrap; gap: 0.45rem;
-      min-height: 2.5rem;
-    }
-    .drawn-chip {
-      background: #003366; color: #fff;
-      font-weight: 900; font-size: 1.1rem;
-      width: 2.4rem; height: 2.4rem; border-radius: 10px;
+    #drawnLetters { display: flex; flex-wrap: wrap; gap: .4rem; min-height: 2.4rem; }
+    .chip {
+      background: #003366; color: #fff; font-weight: 900;
+      width: 2.3rem; height: 2.3rem; border-radius: 10px;
       display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem;
     }
-    #drawnEmpty { font-size: 0.88rem; color: #999; align-self: center; }
-
+    #drawnEmpty { font-size: .85rem; color: #999; align-self: center; }
     #btnCloseDrawer {
-      align-self: flex-end;
-      padding: 10px 20px; border-radius: 12px; border: none;
-      background: #003366; color: #fff;
-      font-weight: 700; font-size: 1rem;
-      cursor: pointer; touch-action: manipulation;
+      align-self: flex-end; padding: 10px 20px;
+      border-radius: 12px; border: none;
+      background: #003366; color: #fff; font-weight: 700; cursor: pointer;
     }
 
+    /* ALLE DONE */
     #alleDone {
-      position: fixed; inset: 0;
-      background: #003366; color: #fff;
-      font-size: clamp(1.6rem, 6vw, 3.2rem);
-      font-weight: 900;
+      position: fixed; inset: 0; background: #003366; color: #fff;
+      font-size: clamp(1.6rem,6vw,3.2rem); font-weight: 900;
       display: flex; align-items: center; justify-content: center;
       flex-direction: column; text-align: center; padding: 2rem;
       z-index: 8000;
     }
     #alleDone.hidden { display: none; }
-    #alleDone span { font-size: 0.55em; font-weight: 400; margin-top: 1rem; }
+    #alleDone span { font-size: .55em; font-weight: 400; margin-top: 1rem; }
   </style>
 </head>
 <body>
 
-  <div id="screenStart" class="screen">
-    <button id="btnStart" aria-label="Buchstaben würfeln"></button>
-    <h1>Bitte berühren</h1>
-    <p>Tippe, um einen Buchstaben zu würfeln</p>
-  </div>
+<div id="screenStart" class="screen">
+  <button id="btnStart"></button>
+  <h1>Bitte berühren</h1>
+  <p>Tippe, um einen Buchstaben zu würfeln</p>
+</div>
 
-  <div id="screenLetter" class="screen hidden" aria-live="polite">
-    <div id="bigLetter"></div>
-  </div>
+<div id="screenLetter" class="screen hidden">
+  <div id="bigLetter"></div>
+</div>
 
-  <div id="repeatHint">🔊 Nochmal</div>
+<div id="repeatHint">🔊 Nochmal</div>
 
-  <div id="alleDone" class="hidden">
-    Alle 26 Buchstaben wurden gezogen! 🎉
-    <span>Drücke „Weiter", um neu zu starten.</span>
-  </div>
+<div id="alleDone" class="hidden">
+  Alle 26 Buchstaben wurden gezogen! 🎉
+  <span>Drücke „Weiter", um neu zu starten.</span>
+</div>
 
-  <button id="btnWeiter" class="hidden" aria-label="Nächste Runde">Weiter</button>
-  <button id="btnSettings" aria-label="Einstellungen">⚙️</button>
+<button id="btnWeiter" class="hidden">Weiter</button>
+<button id="btnSettings">⚙️</button>
 
-  <div id="drawer" class="hidden" role="dialog" aria-modal="true">
-    <div id="drawerInner">
-      <button id="btnCloseDrawer">✕ Schließen</button>
-      <h2>⚙️ Einstellungen</h2>
-
-      <div class="setting-row">
-        <div class="drawn-header">
-          <label>🔤 Bisherige Buchstaben</label>
-          <button id="btnReset">↺ Zurücksetzen</button>
-        </div>
-        <div id="drawnLetters">
-          <span id="drawnEmpty">Noch keine Buchstaben gezogen.</span>
-        </div>
+<div id="drawer" class="hidden">
+  <div id="drawerInner">
+    <button id="btnCloseDrawer">✕ Schließen</button>
+    <h2>⚙️ Einstellungen</h2>
+    <div class="srow">
+      <div class="drawn-header">
+        <label>🔤 Bisherige Buchstaben</label>
+        <button id="btnReset">↺ Zurücksetzen</button>
       </div>
-
-      <div class="setting-row">
-        <label for="rateRange">🔊 Sprechrate</label>
-        <input id="rateRange" type="range" min="0.4" max="1.4" step="0.05" value="0.55"/>
-        <div class="tiny" id="rateVal">Rate: 0.55 (sehr langsam)</div>
+      <div id="drawnLetters">
+        <span id="drawnEmpty">Noch keine Buchstaben gezogen.</span>
       </div>
-
-      <div class="setting-row">
-        <label for="volRange">🔈 Lautstärke</label>
-        <input id="volRange" type="range" min="0.1" max="1.0" step="0.05" value="1.0"/>
-        <div class="tiny" id="volVal">Lautstärke: 100 %</div>
-      </div>
-
+    </div>
+    <div class="srow">
+      <label for="rateRange">🔊 Sprechrate</label>
+      <input id="rateRange" type="range" min="0.4" max="1.4" step="0.05" value="0.55"/>
+      <div class="tiny" id="rateVal">Rate: 0.55 (sehr langsam)</div>
+    </div>
+    <div class="srow">
+      <label for="volRange">🔈 Lautstärke</label>
+      <input id="volRange" type="range" min="0.1" max="1.0" step="0.05" value="1.0"/>
+      <div class="tiny" id="volVal">Lautstärke: 100 %</div>
     </div>
   </div>
+</div>
 
 <script>
 "use strict";
 
 const LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 const ROLL_MS = [28,54,82,112,144,178,214,252,292,334,378,424];
-
 const PHONEME = {
-  A:"aaa", B:"bbb", C:"zzz", D:"ddd", E:"eee",
-  F:"fff", G:"ggg", H:"hhh", I:"iii", J:"jjj",
-  K:"kkk", L:"lll", M:"mmm", N:"nnn", O:"ooo",
-  P:"ppp", Q:"kkuuu", R:"rrr", S:"sss", T:"ttt",
-  U:"uuu", V:"fff", W:"www", X:"ksss", Y:"üüü", Z:"zzz",
+  A:"aaa",B:"beh",C:"tseh",D:"deh",E:"eee",
+  F:"eff",G:"geh",H:"hah",I:"iii",J:"yot",
+  K:"kah",L:"ell",M:"emm",N:"enn",O:"ooo",
+  P:"peh",Q:"kuh",R:"err",S:"ess",T:"teh",
+  U:"uuu",V:"fau",W:"veh",X:"iks",Y:"üpsilon",Z:"tset"
 };
 
-let drawn         = new Set();
-let rolling       = false;
-let currentLetter = "";
-let speechRate    = 0.55;
-let speechVol     = 1.0;
-let hintTimer     = null;
-let isSpeaking    = false;
+let drawn = new Set();
+let rolling = false;
+let current = "";
+let spRate = 0.55;
+let spVol  = 1.0;
+let hintTm = null;
 
-const screenStart  = document.getElementById("screenStart");
-const screenLetter = document.getElementById("screenLetter");
-const bigLetter    = document.getElementById("bigLetter");
-const btnWeiter    = document.getElementById("btnWeiter");
-const btnSettings  = document.getElementById("btnSettings");
-const drawer       = document.getElementById("drawer");
-const alleDone     = document.getElementById("alleDone");
-const drawnLetters = document.getElementById("drawnLetters");
-const drawnEmpty   = document.getElementById("drawnEmpty");
-const repeatHint   = document.getElementById("repeatHint");
-
-/* ══ Bisherige Buchstaben rendern ══ */
-function renderDrawn() {
-  [...drawnLetters.querySelectorAll(".drawn-chip")].forEach(c => c.remove());
-  if (drawn.size === 0) {
-    drawnEmpty.style.display = "";
-  } else {
-    drawnEmpty.style.display = "none";
-    LETTERS.filter(l => drawn.has(l)).forEach(l => {
-      const chip = document.createElement("div");
-      chip.className = "drawn-chip";
-      chip.textContent = l;
-      drawnLetters.appendChild(chip);
-    });
-  }
+// ── Einzige Sprachfunktion ──────────────────────────────────────────
+// Wir erstellen ein NEUES Audio-Objekt pro Aufruf über die
+// SpeechSynthesis-API. Kein Flag, kein Token – stattdessen:
+// cancel() räumt die Queue komplett leer, dann sprechen wir genau einmal.
+function say(letter) {
+  if (!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();          // Queue leeren
+  const u = new SpeechSynthesisUtterance(PHONEME[letter] || letter);
+  u.lang   = "de-DE";
+  u.rate   = spRate;
+  u.volume = spVol;
+  u.pitch  = 1.1;
+  window.speechSynthesis.speak(u);          // genau einmal
 }
 
-/* ══ Reset ══ */
-document.getElementById("btnReset").addEventListener("click", () => {
-  if (drawn.size === 0) return;
-  if (!confirm("Alle bisherigen Buchstaben zurücksetzen?")) return;
-  drawn.clear();
-  currentLetter = "";
-  alleDone.classList.add("hidden");
-  renderDrawn();
-});
-
-/* ══ Sprachausgabe – genau einmal ══ */
-function speakOnce(letter) {
-  if (!("speechSynthesis" in window)) return;
-  if (isSpeaking) return;
-
-  window.speechSynthesis.cancel();
-  isSpeaking = true;
-
-  const sound = PHONEME[letter] || letter.toLowerCase();
-  const utt   = new SpeechSynthesisUtterance(sound);
-  utt.lang    = "de-DE";
-  utt.rate    = speechRate;
-  utt.volume  = speechVol;
-  utt.pitch   = 1.15;
-
-  utt.onend   = () => { isSpeaking = false; };
-  utt.onerror = () => { isSpeaking = false; };
-
-  window.speechSynthesis.speak(utt);
-}
-
-/* ══ Repeat-Hinweis ══ */
+// ── Hint ────────────────────────────────────────────────────────────
 function showHint() {
-  repeatHint.classList.add("show");
-  clearTimeout(hintTimer);
-  hintTimer = setTimeout(() => repeatHint.classList.remove("show"), 900);
+  const h = document.getElementById("repeatHint");
+  h.classList.add("show");
+  clearTimeout(hintTm);
+  hintTm = setTimeout(() => h.classList.remove("show"), 800);
 }
 
-/* ══ Screens ══ */
-function showScreen(name) {
-  screenStart .classList.toggle("hidden", name !== "start");
-  screenLetter.classList.toggle("hidden", name !== "letter");
+// ── Screen-Wechsel ───────────────────────────────────────────────────
+function show(name) {
+  document.getElementById("screenStart") .classList.toggle("hidden", name !== "start");
+  document.getElementById("screenLetter").classList.toggle("hidden", name !== "letter");
 }
 
-/* ══ Würfeln ══ */
+// ── Drawn-Chips rendern ──────────────────────────────────────────────
+function renderDrawn() {
+  const box   = document.getElementById("drawnLetters");
+  const empty = document.getElementById("drawnEmpty");
+  box.querySelectorAll(".chip").forEach(c => c.remove());
+  if (drawn.size === 0) { empty.style.display = ""; return; }
+  empty.style.display = "none";
+  LETTERS.filter(l => drawn.has(l)).forEach(l => {
+    const d = document.createElement("div");
+    d.className = "chip"; d.textContent = l;
+    box.appendChild(d);
+  });
+}
+
+// ── Würfeln ──────────────────────────────────────────────────────────
 document.getElementById("btnStart").addEventListener("click", () => {
   if (rolling) return;
-  if (drawn.size >= LETTERS.length) {
-    alleDone.classList.remove("hidden");
-    btnWeiter.classList.remove("hidden");
+  if (drawn.size >= 26) {
+    document.getElementById("alleDone").classList.remove("hidden");
+    document.getElementById("btnWeiter").classList.remove("hidden");
     return;
   }
 
   rolling = true;
-  isSpeaking = false;
   window.speechSynthesis.cancel();
+  show("letter");
+  const bl = document.getElementById("bigLetter");
+  const bw = document.getElementById("btnWeiter");
+  bw.classList.add("hidden");
+  bl.classList.add("rolling");
 
-  showScreen("letter");
-  btnWeiter.classList.add("hidden");
-  bigLetter.classList.add("rolling");
-
-  const frames = ROLL_MS.length;
-  let   idx    = 0;
-  const start  = performance.now();
-
-  function animate(now) {
-    if (idx < frames - 1) {
-      if (now - start >= ROLL_MS[idx]) {
-        bigLetter.textContent = LETTERS[Math.floor(Math.random() * LETTERS.length)];
+  let idx = 0;
+  const t0 = performance.now();
+  (function frame(now) {
+    if (idx < ROLL_MS.length - 1) {
+      if (now - t0 >= ROLL_MS[idx]) {
+        bl.textContent = LETTERS[Math.floor(Math.random() * 26)];
         idx++;
       }
-      requestAnimationFrame(animate);
+      requestAnimationFrame(frame);
     } else {
-      const remaining = LETTERS.filter(l => !drawn.has(l));
-      const final     = remaining[Math.floor(Math.random() * remaining.length)];
+      const pool  = LETTERS.filter(l => !drawn.has(l));
+      const final = pool[Math.floor(Math.random() * pool.length)];
       drawn.add(final);
-      currentLetter = final;
-
-      bigLetter.classList.remove("rolling");
-      bigLetter.textContent = final;
+      current = final;
+      bl.classList.remove("rolling");
+      bl.textContent = final;
       rolling = false;
-      btnWeiter.classList.remove("hidden");
-
-      speakOnce(final);
+      bw.classList.remove("hidden");
+      say(final);           // ← genau einmal
     }
-  }
-  requestAnimationFrame(animate);
+  })(performance.now());
 });
 
-/* ══ Repeat-Touch auf Buchstaben-Screen ══ */
-screenLetter.addEventListener("pointerdown", e => {
-  if (rolling) return;
-  if (!currentLetter) return;
-  if (isSpeaking) return;
-  if (btnWeiter.contains(e.target) || btnSettings.contains(e.target)) return;
+// ── Wiederholen bei Tippen auf Buchstaben-Screen ─────────────────────
+// Wir nutzen "touchend" statt pointerdown/click – damit feuert es
+// auf Touchscreens exakt einmal und nicht doppelt durch Ghost-Click.
+document.getElementById("screenLetter").addEventListener("touchend", e => {
+  if (rolling || !current) return;
+  const bw = document.getElementById("btnWeiter");
+  const bs = document.getElementById("btnSettings");
+  if (bw.contains(e.target) || bs.contains(e.target)) return;
+  e.preventDefault();
+  say(current);
+  showHint();
+}, { passive: false });
 
-  speakOnce(currentLetter);
+// Fallback für Nicht-Touch-Geräte
+document.getElementById("screenLetter").addEventListener("click", e => {
+  if (rolling || !current) return;
+  if (e.target === document.getElementById("btnWeiter")) return;
+  if (e.target === document.getElementById("btnSettings")) return;
+  // Auf Touch-Geräten wurde touchend bereits behandelt – prüfen:
+  if (e.sourceCapabilities && e.sourceCapabilities.firesTouchEvents) return;
+  say(current);
   showHint();
 });
 
-/* ══ Weiter ══ */
-btnWeiter.addEventListener("click", () => {
+// ── Weiter ───────────────────────────────────────────────────────────
+document.getElementById("btnWeiter").addEventListener("click", () => {
   if (rolling) return;
   window.speechSynthesis.cancel();
-  isSpeaking = false;
-  alleDone.classList.add("hidden");
-  showScreen("start");
-  btnWeiter.classList.add("hidden");
-  currentLetter = "";
+  document.getElementById("alleDone").classList.add("hidden");
+  show("start");
+  document.getElementById("btnWeiter").classList.add("hidden");
+  current = "";
 });
 
-/* ══ Einstellungen-Drawer ══ */
-btnSettings.addEventListener("click", () => {
+// ── Reset ────────────────────────────────────────────────────────────
+document.getElementById("btnReset").addEventListener("click", () => {
+  if (!drawn.size) return;
+  if (!confirm("Zurücksetzen?")) return;
+  drawn.clear(); current = "";
+  document.getElementById("alleDone").classList.add("hidden");
   renderDrawn();
-  drawer.classList.remove("hidden");
-});
-document.getElementById("btnCloseDrawer").addEventListener("click", () => {
-  drawer.classList.add("hidden");
-});
-drawer.addEventListener("click", e => {
-  if (e.target === drawer) drawer.classList.add("hidden");
 });
 
-/* ══ Schieberegler ══ */
+// ── Drawer ───────────────────────────────────────────────────────────
+document.getElementById("btnSettings").addEventListener("click", () => {
+  renderDrawn();
+  document.getElementById("drawer").classList.remove("hidden");
+});
+document.getElementById("btnCloseDrawer").addEventListener("click", () =>
+  document.getElementById("drawer").classList.add("hidden"));
+document.getElementById("drawer").addEventListener("click", e => {
+  if (e.target === document.getElementById("drawer"))
+    document.getElementById("drawer").classList.add("hidden");
+});
+
+// ── Regler ───────────────────────────────────────────────────────────
 document.getElementById("rateRange").addEventListener("input", e => {
-  speechRate = parseFloat(e.target.value);
-  const label = speechRate <= 0.55 ? "sehr langsam"
-              : speechRate <= 0.75 ? "langsam"
-              : speechRate <= 1.05 ? "normal" : "schnell";
-  document.getElementById("rateVal").textContent =
-    `Rate: ${speechRate.toFixed(2)} (${label})`;
+  spRate = parseFloat(e.target.value);
+  const lbl = spRate<=0.55?"sehr langsam":spRate<=0.75?"langsam":spRate<=1.05?"normal":"schnell";
+  document.getElementById("rateVal").textContent = `Rate: ${spRate.toFixed(2)} (${lbl})`;
 });
 document.getElementById("volRange").addEventListener("input", e => {
-  speechVol = parseFloat(e.target.value);
-  document.getElementById("volVal").textContent =
-    `Lautstärke: ${Math.round(speechVol * 100)} %`;
+  spVol = parseFloat(e.target.value);
+  document.getElementById("volVal").textContent = `Lautstärke: ${Math.round(spVol*100)} %`;
 });
 
-/* ══ Tastatur ══ */
-document.addEventListener("keydown", e => {
-  if (e.code === "Space" && !screenStart.classList.contains("hidden")) {
-    e.preventDefault();
-    document.getElementById("btnStart").click();
-  }
-  if ((e.key === "r" || e.key === "R") && !screenLetter.classList.contains("hidden")) {
-    btnWeiter.click();
-  }
-});
-
-/* ══ Init – Voices vorladen, aber KEIN onvoiceschanged-Handler ══ */
-window.addEventListener("load", () => {
-  showScreen("start");
-  if ("speechSynthesis" in window) window.speechSynthesis.getVoices();
-});
+// ── Init ─────────────────────────────────────────────────────────────
+show("start");
 </script>
 </body>
 </html>
