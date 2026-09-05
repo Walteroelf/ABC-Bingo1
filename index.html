@@ -49,7 +49,7 @@
       pointer-events: none; position: relative; z-index: 1;
     }
 
-    #screenLetter { background: #fff; cursor: pointer; }
+    #screenLetter { background: #fff; }
     #bigLetter {
       font-size: clamp(12rem, 48vw, 52rem);
       font-weight: 900; line-height: 1; color: #0b0b0b;
@@ -241,7 +241,7 @@ let currentLetter = "";
 let speechRate    = 0.55;
 let speechVol     = 1.0;
 let hintTimer     = null;
-let busy          = false; // globale Sperre – nur EIN speak() läuft je
+let isSpeaking    = false;
 
 const screenStart  = document.getElementById("screenStart");
 const screenLetter = document.getElementById("screenLetter");
@@ -280,13 +280,13 @@ document.getElementById("btnReset").addEventListener("click", () => {
   renderDrawn();
 });
 
-/* ══ Sprachausgabe – absolut einmalig ══ */
+/* ══ Sprachausgabe – genau einmal ══ */
 function speakOnce(letter) {
   if (!("speechSynthesis" in window)) return;
-  if (busy) return; // bereits am Sprechen → ignorieren
+  if (isSpeaking) return;
 
-  busy = true;
   window.speechSynthesis.cancel();
+  isSpeaking = true;
 
   const sound = PHONEME[letter] || letter.toLowerCase();
   const utt   = new SpeechSynthesisUtterance(sound);
@@ -295,25 +295,10 @@ function speakOnce(letter) {
   utt.volume  = speechVol;
   utt.pitch   = 1.15;
 
-  // Stimme setzen – aber NUR wenn Voices bereits geladen, sonst weglassen
-  const voices = window.speechSynthesis.getVoices();
-  if (voices.length > 0) {
-    const de = voices.find(v => /^de/i.test(v.lang));
-    if (de) utt.voice = de;
-  }
+  utt.onend   = () => { isSpeaking = false; };
+  utt.onerror = () => { isSpeaking = false; };
 
-  // Sperre nach Abschluss aufheben
-  const unlock = () => { busy = false; };
-  utt.onend   = unlock;
-  utt.onerror = unlock;
-
-  // Sicherheits-Fallback: nach 5 s entsperren
-  setTimeout(unlock, 5000);
-
-  // Kleines Delay nach cancel() – verhindert Browser-Bug bei sofortigem speak()
-  setTimeout(() => {
-    window.speechSynthesis.speak(utt);
-  }, 50);
+  window.speechSynthesis.speak(utt);
 }
 
 /* ══ Repeat-Hinweis ══ */
@@ -329,7 +314,7 @@ function showScreen(name) {
   screenLetter.classList.toggle("hidden", name !== "letter");
 }
 
-/* ══ Würfeln – NUR über click, kein pointerdown ══ */
+/* ══ Würfeln ══ */
 document.getElementById("btnStart").addEventListener("click", () => {
   if (rolling) return;
   if (drawn.size >= LETTERS.length) {
@@ -339,6 +324,9 @@ document.getElementById("btnStart").addEventListener("click", () => {
   }
 
   rolling = true;
+  isSpeaking = false;
+  window.speechSynthesis.cancel();
+
   showScreen("letter");
   btnWeiter.classList.add("hidden");
   bigLetter.classList.add("rolling");
@@ -365,18 +353,17 @@ document.getElementById("btnStart").addEventListener("click", () => {
       rolling = false;
       btnWeiter.classList.remove("hidden");
 
-      busy = false; // Reset vor neuem Buchstaben
       speakOnce(final);
     }
   }
   requestAnimationFrame(animate);
 });
 
-/* ══ Repeat-Touch auf Buchstaben-Screen – NUR click ══ */
-screenLetter.addEventListener("click", e => {
+/* ══ Repeat-Touch auf Buchstaben-Screen ══ */
+screenLetter.addEventListener("pointerdown", e => {
   if (rolling) return;
   if (!currentLetter) return;
-  if (busy) return;
+  if (isSpeaking) return;
   if (btnWeiter.contains(e.target) || btnSettings.contains(e.target)) return;
 
   speakOnce(currentLetter);
@@ -386,8 +373,8 @@ screenLetter.addEventListener("click", e => {
 /* ══ Weiter ══ */
 btnWeiter.addEventListener("click", () => {
   if (rolling) return;
-  if (window.speechSynthesis) window.speechSynthesis.cancel();
-  busy = false;
+  window.speechSynthesis.cancel();
+  isSpeaking = false;
   alleDone.classList.add("hidden");
   showScreen("start");
   btnWeiter.classList.add("hidden");
@@ -432,16 +419,10 @@ document.addEventListener("keydown", e => {
   }
 });
 
-/* ══ Init ══ */
+/* ══ Init – Voices vorladen, aber KEIN onvoiceschanged-Handler ══ */
 window.addEventListener("load", () => {
   showScreen("start");
-  // Voices vorladen
-  if ("speechSynthesis" in window) {
-    window.speechSynthesis.getVoices();
-    window.speechSynthesis.onvoiceschanged = () => {
-      window.speechSynthesis.getVoices();
-    };
-  }
+  if ("speechSynthesis" in window) window.speechSynthesis.getVoices();
 });
 </script>
 </body>
