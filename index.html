@@ -20,7 +20,6 @@
     }
     .screen.hidden { display: none; }
 
-    /* START */
     #screenStart { background: #c92b2b; }
     #screenStart h1 {
       color: #fff; font-size: clamp(2.8rem,11vw,7rem);
@@ -39,7 +38,6 @@
       -webkit-tap-highlight-color: transparent;
     }
 
-    /* LETTER */
     #screenLetter { background: #fff; }
     #bigLetter {
       font-size: clamp(12rem,48vw,52rem);
@@ -49,7 +47,6 @@
     }
     #bigLetter.rolling { opacity: 0.2; }
 
-    /* BUTTONS */
     #btnWeiter {
       position: fixed; right: 1rem; bottom: 1rem;
       width: clamp(80px,18vw,110px); height: clamp(80px,18vw,110px);
@@ -73,7 +70,6 @@
       -webkit-tap-highlight-color: transparent;
     }
 
-    /* HINT */
     #repeatHint {
       position: fixed; bottom: 7rem; left: 50%;
       transform: translateX(-50%);
@@ -85,7 +81,6 @@
     }
     #repeatHint.show { opacity: 1; }
 
-    /* DRAWER */
     #drawer {
       position: fixed; inset: 0; background: rgba(0,0,0,.5);
       z-index: 10000; display: flex; align-items: flex-end;
@@ -101,7 +96,6 @@
     #drawerInner h2 { font-size: 1.2rem; font-weight: 800; }
     .srow { display: flex; flex-direction: column; gap: .35rem; }
     .srow label { font-weight: 700; font-size: 1rem; }
-    .srow input[type=range] { width: 100%; height: 34px; accent-color: #003366; }
     .tiny { font-size: .85rem; color: #555; }
     .drawn-header { display: flex; align-items: center; justify-content: space-between; }
     #btnReset {
@@ -122,7 +116,6 @@
       background: #003366; color: #fff; font-weight: 700; cursor: pointer;
     }
 
-    /* ALLE DONE */
     #alleDone {
       position: fixed; inset: 0; background: #003366; color: #fff;
       font-size: clamp(1.6rem,6vw,3.2rem); font-weight: 900;
@@ -170,11 +163,6 @@
       </div>
     </div>
     <div class="srow">
-      <label for="rateRange">🔊 Sprechrate</label>
-      <input id="rateRange" type="range" min="0.4" max="1.4" step="0.05" value="0.55"/>
-      <div class="tiny" id="rateVal">Rate: 0.55 (sehr langsam)</div>
-    </div>
-    <div class="srow">
       <label for="volRange">🔈 Lautstärke</label>
       <input id="volRange" type="range" min="0.1" max="1.0" step="0.05" value="1.0"/>
       <div class="tiny" id="volVal">Lautstärke: 100 %</div>
@@ -187,37 +175,27 @@
 
 const LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 const ROLL_MS = [28,54,82,112,144,178,214,252,292,334,378,424];
-const PHONEME = {
-  A:"aaa",B:"beh",C:"tseh",D:"deh",E:"eee",
-  F:"eff",G:"geh",H:"hah",I:"iii",J:"yot",
-  K:"kah",L:"ell",M:"emm",N:"enn",O:"ooo",
-  P:"peh",Q:"kuh",R:"err",S:"ess",T:"teh",
-  U:"uuu",V:"fau",W:"veh",X:"iks",Y:"üpsilon",Z:"tset"
-};
 
-let drawn = new Set();
+let drawn   = new Set();
 let rolling = false;
 let current = "";
-let spRate = 0.55;
-let spVol  = 1.0;
-let hintTm = null;
+let volume  = 1.0;
+let hintTm  = null;
+let currentAudio = null;
 
-// ── Einzige Sprachfunktion ──────────────────────────────────────────
-// Wir erstellen ein NEUES Audio-Objekt pro Aufruf über die
-// SpeechSynthesis-API. Kein Flag, kein Token – stattdessen:
-// cancel() räumt die Queue komplett leer, dann sprechen wir genau einmal.
+// ── Audio abspielen ──────────────────────────────────────────────────
 function say(letter) {
-  if (!window.speechSynthesis) return;
-  window.speechSynthesis.cancel();          // Queue leeren
-  const u = new SpeechSynthesisUtterance(PHONEME[letter] || letter);
-  u.lang   = "de-DE";
-  u.rate   = spRate;
-  u.volume = spVol;
-  u.pitch  = 1.1;
-  window.speechSynthesis.speak(u);          // genau einmal
+  if (currentAudio) {
+    currentAudio.pause();
+    currentAudio.currentTime = 0;
+  }
+  const audio = new Audio(letter + ".mp3");
+  audio.volume = volume;
+  audio.play();
+  currentAudio = audio;
 }
 
-// ── Hint ────────────────────────────────────────────────────────────
+// ── Hint ─────────────────────────────────────────────────────────────
 function showHint() {
   const h = document.getElementById("repeatHint");
   h.classList.add("show");
@@ -255,8 +233,9 @@ document.getElementById("btnStart").addEventListener("click", () => {
   }
 
   rolling = true;
-  window.speechSynthesis.cancel();
+  if (currentAudio) { currentAudio.pause(); currentAudio = null; }
   show("letter");
+
   const bl = document.getElementById("bigLetter");
   const bw = document.getElementById("btnWeiter");
   bw.classList.add("hidden");
@@ -280,14 +259,12 @@ document.getElementById("btnStart").addEventListener("click", () => {
       bl.textContent = final;
       rolling = false;
       bw.classList.remove("hidden");
-      say(final);           // ← genau einmal
+      say(final);
     }
   })(performance.now());
 });
 
-// ── Wiederholen bei Tippen auf Buchstaben-Screen ─────────────────────
-// Wir nutzen "touchend" statt pointerdown/click – damit feuert es
-// auf Touchscreens exakt einmal und nicht doppelt durch Ghost-Click.
+// ── Wiederholen bei Tippen ───────────────────────────────────────────
 document.getElementById("screenLetter").addEventListener("touchend", e => {
   if (rolling || !current) return;
   const bw = document.getElementById("btnWeiter");
@@ -298,12 +275,11 @@ document.getElementById("screenLetter").addEventListener("touchend", e => {
   showHint();
 }, { passive: false });
 
-// Fallback für Nicht-Touch-Geräte
+// Fallback für Nicht-Touch-Geräte (z. B. Desktop)
 document.getElementById("screenLetter").addEventListener("click", e => {
   if (rolling || !current) return;
   if (e.target === document.getElementById("btnWeiter")) return;
   if (e.target === document.getElementById("btnSettings")) return;
-  // Auf Touch-Geräten wurde touchend bereits behandelt – prüfen:
   if (e.sourceCapabilities && e.sourceCapabilities.firesTouchEvents) return;
   say(current);
   showHint();
@@ -312,7 +288,7 @@ document.getElementById("screenLetter").addEventListener("click", e => {
 // ── Weiter ───────────────────────────────────────────────────────────
 document.getElementById("btnWeiter").addEventListener("click", () => {
   if (rolling) return;
-  window.speechSynthesis.cancel();
+  if (currentAudio) { currentAudio.pause(); currentAudio = null; }
   document.getElementById("alleDone").classList.add("hidden");
   show("start");
   document.getElementById("btnWeiter").classList.add("hidden");
@@ -340,15 +316,11 @@ document.getElementById("drawer").addEventListener("click", e => {
     document.getElementById("drawer").classList.add("hidden");
 });
 
-// ── Regler ───────────────────────────────────────────────────────────
-document.getElementById("rateRange").addEventListener("input", e => {
-  spRate = parseFloat(e.target.value);
-  const lbl = spRate<=0.55?"sehr langsam":spRate<=0.75?"langsam":spRate<=1.05?"normal":"schnell";
-  document.getElementById("rateVal").textContent = `Rate: ${spRate.toFixed(2)} (${lbl})`;
-});
+// ── Lautstärke ───────────────────────────────────────────────────────
 document.getElementById("volRange").addEventListener("input", e => {
-  spVol = parseFloat(e.target.value);
-  document.getElementById("volVal").textContent = `Lautstärke: ${Math.round(spVol*100)} %`;
+  volume = parseFloat(e.target.value);
+  document.getElementById("volVal").textContent =
+    `Lautstärke: ${Math.round(volume * 100)} %`;
 });
 
 // ── Init ─────────────────────────────────────────────────────────────
