@@ -227,34 +227,12 @@
 const LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 const ROLL_MS = [28,54,82,112,144,178,214,252,292,334,378,424];
 
-// Lautsprache-Tabelle: deutsche Phoneme, gedehnt für maximale Klarheit
 const PHONEME = {
-  A: "aaa",
-  B: "bbb",
-  C: "zzz",
-  D: "ddd",
-  E: "eee",
-  F: "fff",
-  G: "ggg",
-  H: "hhh",
-  I: "iii",
-  J: "jjj",
-  K: "kkk",
-  L: "lll",
-  M: "mmm",
-  N: "nnn",
-  O: "ooo",
-  P: "ppp",
-  Q: "kkuuu",
-  R: "rrr",
-  S: "sss",
-  T: "ttt",
-  U: "uuu",
-  V: "fff",
-  W: "www",
-  X: "ksss",
-  Y: "üüü",
-  Z: "zzz",
+  A:"aaa", B:"bbb", C:"zzz", D:"ddd", E:"eee",
+  F:"fff", G:"ggg", H:"hhh", I:"iii", J:"jjj",
+  K:"kkk", L:"lll", M:"mmm", N:"nnn", O:"ooo",
+  P:"ppp", Q:"kkuuu", R:"rrr", S:"sss", T:"ttt",
+  U:"uuu", V:"fff", W:"www", X:"ksss", Y:"üüü", Z:"zzz",
 };
 
 let drawn         = new Set();
@@ -262,8 +240,12 @@ let rolling       = false;
 let currentLetter = "";
 let speechRate    = 0.55;
 let speechVol     = 1.0;
-let isSpeaking    = false;
 let hintTimer     = null;
+
+// Token-System: jede neue Sprachanfrage bekommt eine neue ID.
+// Veraltete Callbacks erkennen, dass ihre Token-ID nicht mehr aktuell ist.
+let speakToken = 0;
+let speakCooldown = false; // Sperrt neue Anfragen während gesprochen wird
 
 const screenStart  = document.getElementById("screenStart");
 const screenLetter = document.getElementById("screenLetter");
@@ -303,29 +285,39 @@ document.getElementById("btnReset").addEventListener("click", () => {
   renderDrawn();
 });
 
-/* ══ Einzelne TTS-Äußerung ══ */
-function utterance(text) {
-  const utt  = new SpeechSynthesisUtterance(text);
-  utt.lang   = "de-DE";
-  utt.rate   = speechRate;
-  utt.volume = speechVol;
-  utt.pitch  = 1.15;
+/* ══ Sprachausgabe – einmal, sicher, mit Token-Schutz ══ */
+function speakOnce(letter) {
+  if (!("speechSynthesis" in window)) return;
+
+  // Alle laufenden Ausgaben sofort stoppen
+  window.speechSynthesis.cancel();
+
+  // Neues Token – alte onend-Callbacks werden ignoriert
+  speakToken++;
+  const myToken = speakToken;
+  speakCooldown = true;
+
+  const sound = PHONEME[letter] || letter.toLowerCase();
+  const utt   = new SpeechSynthesisUtterance(sound);
+  utt.lang    = "de-DE";
+  utt.rate    = speechRate;
+  utt.volume  = speechVol;
+  utt.pitch   = 1.15;
+
   const voices = window.speechSynthesis.getVoices();
   const de     = voices.find(v => /^de/i.test(v.lang));
   if (de) utt.voice = de;
-  return utt;
-}
 
-/* ══ Einmal sprechen ══ */
-function speakOnce(letter) {
-  if (!("speechSynthesis" in window)) return;
-  window.speechSynthesis.cancel();
+  utt.onend = () => {
+    if (myToken !== speakToken) return; // veralteter Callback → ignorieren
+    speakCooldown = false;
+  };
 
-  const sound = PHONEME[letter] || letter.toLowerCase();
-  isSpeaking  = true;
+  // Fallback: falls onend nie feuert, nach 4 s entsperren
+  setTimeout(() => {
+    if (myToken === speakToken) speakCooldown = false;
+  }, 4000);
 
-  const utt = utterance(sound);
-  utt.onend = () => { isSpeaking = false; };
   window.speechSynthesis.speak(utt);
 }
 
@@ -340,7 +332,7 @@ function showHint() {
 screenLetter.addEventListener("pointerdown", e => {
   if (rolling) return;
   if (!currentLetter) return;
-  if (isSpeaking) return;
+  if (speakCooldown) return;
   if (btnWeiter.contains(e.target) || btnSettings.contains(e.target)) return;
 
   speakOnce(currentLetter);
@@ -399,7 +391,8 @@ btnStart.addEventListener("click", () => {
 btnWeiter.addEventListener("click", () => {
   if (rolling) return;
   if (window.speechSynthesis) window.speechSynthesis.cancel();
-  isSpeaking    = false;
+  speakToken++;          // invalidiert alle laufenden Callbacks
+  speakCooldown = false;
   alleDone.classList.add("hidden");
   showScreen("start");
   btnWeiter.classList.add("hidden");
