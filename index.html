@@ -32,6 +32,11 @@
       margin-top: 1rem; text-align: center;
       pointer-events: none;
     }
+    #startCount {
+      position: absolute; top: 1.2rem; left: 0; right: 0;
+      margin-top: 0; font-size: clamp(.9rem,2.8vw,1.4rem);
+    }
+    #startCount.hidden { display: none; }
     #btnStart {
       position: absolute; inset: 0;
       background: transparent; border: none; cursor: pointer;
@@ -95,7 +100,7 @@
     }
     #drawerInner h2 { font-size: 1.2rem; font-weight: 800; }
     .srow { display: flex; flex-direction: column; gap: .35rem; }
-    .srow label { font-weight: 700; font-size: 1rem; }
+    .srow label, .srow .lbl { font-weight: 700; font-size: 1rem; }
     .tiny { font-size: .85rem; color: #555; }
     .drawn-header { display: flex; align-items: center; justify-content: space-between; }
     #btnReset {
@@ -130,24 +135,25 @@
 <body>
 
 <div id="screenStart" class="screen">
-  <button id="btnStart"></button>
+  <button id="btnStart" aria-label="Buchstaben würfeln"></button>
   <h1>Bitte berühren</h1>
   <p>Tippe, um einen Buchstaben zu würfeln</p>
+  <p id="startCount" class="hidden"></p>
 </div>
 
 <div id="screenLetter" class="screen hidden">
-  <div id="bigLetter"></div>
+  <div id="bigLetter" aria-live="polite"></div>
 </div>
 
 <div id="repeatHint">🔊 Nochmal</div>
 
 <div id="alleDone" class="hidden">
-  Alle 26 Buchstaben wurden gezogen! 🎉
+  Alle Buchstaben wurden gezogen! 🎉
   <span>Drücke „Weiter", um neu zu starten.</span>
 </div>
 
 <button id="btnWeiter" class="hidden">Weiter</button>
-<button id="btnSettings">⚙️</button>
+<button id="btnSettings" aria-label="Einstellungen">⚙️</button>
 
 <div id="drawer" class="hidden">
   <div id="drawerInner">
@@ -155,7 +161,7 @@
     <h2>⚙️ Einstellungen</h2>
     <div class="srow">
       <div class="drawn-header">
-        <label>🔤 Bisherige Buchstaben</label>
+        <span class="lbl">🔤 Bisherige Buchstaben</span>
         <button id="btnReset">↺ Zurücksetzen</button>
       </div>
       <div id="drawnLetters">
@@ -173,26 +179,89 @@
 <script>
 "use strict";
 
-const LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
-const ROLL_MS = [28,54,82,112,144,178,214,252,292,334,378,424];
+const LETTERS   = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+const ROLL_MS   = [28,54,82,112,144,178,214,252,292,334,378,424];
+const STORE_KEY = "abcBingo.v1";
 
-let drawn        = new Set();
-let rolling      = false;
-let current      = "";
-let volume       = 1.0;
-let hintTm       = null;
-let currentAudio = null;
+let drawn   = new Set();
+let rolling = false;
+let current = "";
+let volume  = 1.0;
+let hintTm  = null;
 
-// ── Audio abspielen ──────────────────────────────────────────────────
-function say(letter) {
-  if (currentAudio) {
-    currentAudio.pause();
-    currentAudio.currentTime = 0;
+// ── Speichern / Laden ────────────────────────────────────────────────
+function save() {
+  try {
+    localStorage.setItem(STORE_KEY, JSON.stringify({ drawn: [...drawn], volume }));
+  } catch (e) {}
+}
+
+function load() {
+  try {
+    const s = JSON.parse(localStorage.getItem(STORE_KEY) || "null");
+    if (!s) return;
+    if (Array.isArray(s.drawn)) drawn = new Set(s.drawn.filter(l => LETTERS.includes(l)));
+    if (typeof s.volume === "number") volume = Math.min(1, Math.max(0.1, s.volume));
+  } catch (e) {}
+}
+
+// ── Audio ────────────────────────────────────────────────────────────
+// Web Audio statt <audio>: Lautstärke funktioniert auch auf iOS, die Töne
+// sind vorgeladen, und der Kontext wird direkt beim Tippen entsperrt,
+// sodass der Ton nach der Würfel-Animation nicht blockiert wird.
+let ctx           = null;
+let gain          = null;
+let source        = null;
+let fallbackAudio = null;
+const buffers     = {};
+
+function initAudio() {
+  if (ctx) {
+    if (ctx.state !== "running") ctx.resume().catch(() => {});
+    return;
   }
+  const AC = window.AudioContext || window.webkitAudioContext;
+  if (!AC) return;
+  // iOS 16.4+: auch bei Stummschalter abspielen, wie zuvor mit <audio>
+  try { if (navigator.audioSession) navigator.audioSession.type = "playback"; } catch (e) {}
+  ctx  = new AC();
+  gain = ctx.createGain();
+  gain.gain.value = volume;
+  gain.connect(ctx.destination);
+  // Stiller Puffer im Tipp-Handler entsperrt die Ausgabe auf iOS
+  const unlock = ctx.createBufferSource();
+  unlock.buffer = ctx.createBuffer(1, 1, 22050);
+  unlock.connect(ctx.destination);
+  unlock.start(0);
+  if (ctx.state !== "running") ctx.resume().catch(() => {});
+  LETTERS.forEach(l => {
+    fetch(l + ".mp3")
+      .then(r => { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); })
+      .then(data => new Promise((res, rej) => ctx.decodeAudioData(data, res, rej)))
+      .then(buf => { buffers[l] = buf; })
+      .catch(() => {});
+  });
+}
+
+function stopAudio() {
+  if (source) { try { source.stop(); } catch (e) {} source = null; }
+  if (fallbackAudio) { fallbackAudio.pause(); fallbackAudio = null; }
+}
+
+function say(letter) {
+  stopAudio();
+  if (ctx && buffers[letter]) {
+    source = ctx.createBufferSource();
+    source.buffer = buffers[letter];
+    source.connect(gain);
+    source.start(0);
+    return;
+  }
+  // Fallback: Datei noch nicht geladen oder kein Web Audio
   const audio = new Audio(letter + ".mp3");
   audio.volume = volume;
-  audio.play();
-  currentAudio = audio;
+  audio.play().catch(() => {});
+  fallbackAudio = audio;
 }
 
 // ── Hint ─────────────────────────────────────────────────────────────
@@ -209,6 +278,13 @@ function show(name) {
   document.getElementById("screenLetter").classList.toggle("hidden", name !== "letter");
 }
 
+// ── Zähler auf dem Startbildschirm ───────────────────────────────────
+function renderCount() {
+  const el = document.getElementById("startCount");
+  el.textContent = `Bereits gezogen: ${drawn.size} von ${LETTERS.length}`;
+  el.classList.toggle("hidden", drawn.size === 0);
+}
+
 // ── Drawn-Chips rendern ──────────────────────────────────────────────
 function renderDrawn() {
   const box   = document.getElementById("drawnLetters");
@@ -223,17 +299,30 @@ function renderDrawn() {
   });
 }
 
+// ── Neues Spiel ──────────────────────────────────────────────────────
+function resetGame() {
+  stopAudio();
+  drawn.clear(); current = "";
+  save();
+  document.getElementById("alleDone").classList.add("hidden");
+  document.getElementById("btnWeiter").classList.add("hidden");
+  show("start");
+  renderDrawn();
+  renderCount();
+}
+
 // ── Würfeln ──────────────────────────────────────────────────────────
 document.getElementById("btnStart").addEventListener("click", () => {
   if (rolling) return;
-  if (drawn.size >= 26) {
+  initAudio();
+  if (drawn.size >= LETTERS.length) {
     document.getElementById("alleDone").classList.remove("hidden");
     document.getElementById("btnWeiter").classList.remove("hidden");
     return;
   }
 
   rolling = true;
-  if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+  stopAudio();
   show("letter");
 
   const bl = document.getElementById("bigLetter");
@@ -244,9 +333,9 @@ document.getElementById("btnStart").addEventListener("click", () => {
   let idx = 0;
   const t0 = performance.now();
   (function frame(now) {
-    if (idx < ROLL_MS.length - 1) {
+    if (idx < ROLL_MS.length) {
       if (now - t0 >= ROLL_MS[idx]) {
-        bl.textContent = LETTERS[Math.floor(Math.random() * 26)];
+        bl.textContent = LETTERS[Math.floor(Math.random() * LETTERS.length)];
         idx++;
       }
       requestAnimationFrame(frame);
@@ -254,6 +343,8 @@ document.getElementById("btnStart").addEventListener("click", () => {
       const pool  = LETTERS.filter(l => !drawn.has(l));
       const final = pool[Math.floor(Math.random() * pool.length)];
       drawn.add(final);
+      save();
+      renderCount();
       current = final;
       bl.classList.remove("rolling");
       bl.textContent = final;
@@ -267,19 +358,16 @@ document.getElementById("btnStart").addEventListener("click", () => {
 // ── Wiederholen bei Tippen ───────────────────────────────────────────
 document.getElementById("screenLetter").addEventListener("touchend", e => {
   if (rolling || !current) return;
-  const bw = document.getElementById("btnWeiter");
-  const bs = document.getElementById("btnSettings");
-  if (bw.contains(e.target) || bs.contains(e.target)) return;
   e.preventDefault();
+  initAudio();
   say(current);
   showHint();
 }, { passive: false });
 
 document.getElementById("screenLetter").addEventListener("click", e => {
   if (rolling || !current) return;
-  if (e.target === document.getElementById("btnWeiter")) return;
-  if (e.target === document.getElementById("btnSettings")) return;
   if (e.sourceCapabilities && e.sourceCapabilities.firesTouchEvents) return;
+  initAudio();
   say(current);
   showHint();
 });
@@ -287,8 +375,11 @@ document.getElementById("screenLetter").addEventListener("click", e => {
 // ── Weiter ───────────────────────────────────────────────────────────
 document.getElementById("btnWeiter").addEventListener("click", () => {
   if (rolling) return;
-  if (currentAudio) { currentAudio.pause(); currentAudio = null; }
-  document.getElementById("alleDone").classList.add("hidden");
+  if (!document.getElementById("alleDone").classList.contains("hidden")) {
+    resetGame();
+    return;
+  }
+  stopAudio();
   show("start");
   document.getElementById("btnWeiter").classList.add("hidden");
   current = "";
@@ -296,11 +387,9 @@ document.getElementById("btnWeiter").addEventListener("click", () => {
 
 // ── Reset ────────────────────────────────────────────────────────────
 document.getElementById("btnReset").addEventListener("click", () => {
-  if (!drawn.size) return;
+  if (rolling || !drawn.size) return;
   if (!confirm("Zurücksetzen?")) return;
-  drawn.clear(); current = "";
-  document.getElementById("alleDone").classList.add("hidden");
-  renderDrawn();
+  resetGame();
 });
 
 // ── Drawer ───────────────────────────────────────────────────────────
@@ -316,13 +405,24 @@ document.getElementById("drawer").addEventListener("click", e => {
 });
 
 // ── Lautstärke ───────────────────────────────────────────────────────
-document.getElementById("volRange").addEventListener("input", e => {
-  volume = parseFloat(e.target.value);
+function renderVolume() {
+  document.getElementById("volRange").value = volume;
   document.getElementById("volVal").textContent =
     `Lautstärke: ${Math.round(volume * 100)} %`;
+}
+
+document.getElementById("volRange").addEventListener("input", e => {
+  volume = parseFloat(e.target.value);
+  if (gain) gain.gain.value = volume;
+  if (fallbackAudio) fallbackAudio.volume = volume;
+  renderVolume();
+  save();
 });
 
 // ── Init ─────────────────────────────────────────────────────────────
+load();
+renderVolume();
+renderCount();
 show("start");
 </script>
 </body>
