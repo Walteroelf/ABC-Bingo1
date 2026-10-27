@@ -5,6 +5,15 @@
   <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
   <title>Buchstaben-Bingo</title>
   <style>
+    /* Andika: Leselern-Schrift von SIL (OFL), unterscheidet I und l deutlich */
+    @font-face {
+      font-family: "Andika"; font-weight: 400; font-display: block;
+      src: url("fonts/andika-latin-400.woff2") format("woff2");
+    }
+    @font-face {
+      font-family: "Andika"; font-weight: 700; font-display: block;
+      src: url("fonts/andika-latin-700.woff2") format("woff2");
+    }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html, body {
       width: 100%; height: 100%;
@@ -44,13 +53,34 @@
     }
 
     #screenLetter { background: #2a7d2e; }
+    .schrift { font-family: "Andika", system-ui, sans-serif; font-weight: 700; }
     #bigLetter {
       font-size: clamp(12rem,48vw,52rem);
-      font-weight: 900; line-height: 1; color: #fff;
+      line-height: 1; color: #fff; white-space: nowrap;
       pointer-events: none;
       transition: opacity 0.1s;
     }
+    body.case-both #bigLetter { font-size: clamp(8rem,30vw,34rem); }
     #bigLetter.rolling { opacity: 0.2; }
+
+    #screenBoard { background: #1d3f6e; color: #fff; justify-content: flex-start; padding: 1.2rem 1rem 6rem; }
+    #boardCount { font-size: clamp(1rem,2.4vw,1.8rem); opacity: .8; align-self: flex-start; }
+    #boardLast {
+      flex: 1; display: flex; align-items: center; justify-content: center;
+      font-size: clamp(8rem,30vh,26rem); line-height: 1; white-space: nowrap;
+    }
+    #boardLast.pop { animation: pop .5s ease-out; }
+    @keyframes pop { from { transform: scale(.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    #boardList {
+      display: flex; flex-wrap: wrap; justify-content: center; gap: .6rem;
+      max-width: 100%;
+    }
+    #boardList div {
+      background: rgba(255,255,255,.15); border-radius: 12px;
+      min-width: clamp(2.6rem,6vw,4.6rem); padding: .2rem .5rem;
+      font-size: clamp(1.6rem,4vw,3rem); text-align: center;
+    }
+    #boardList div.last { background: #f0c020; color: #1d3f6e; }
 
     #btnWeiter {
       position: fixed; right: 1rem; bottom: 1rem;
@@ -109,11 +139,28 @@
     }
     #drawnLetters { display: flex; flex-wrap: wrap; gap: .4rem; min-height: 2.4rem; }
     .chip {
-      background: #2a7d2e; color: #fff; font-weight: 900;
-      width: 2.3rem; height: 2.3rem; border-radius: 10px;
+      background: #2a7d2e; color: #fff;
+      min-width: 2.3rem; height: 2.3rem; padding: 0 .4rem; border-radius: 10px;
       display: flex; align-items: center; justify-content: center;
-      font-size: 1.1rem;
+      font-size: 1.2rem;
     }
+    #poolGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(2.8rem, 1fr)); gap: .4rem; }
+    #poolGrid button {
+      height: 2.8rem; border-radius: 10px; border: 2px solid #2a7d2e;
+      background: #2a7d2e; color: #fff; font-size: 1.3rem; cursor: pointer;
+    }
+    #poolGrid button.off {
+      background: #fff; color: #aaa; border-color: #ccc; text-decoration: line-through;
+    }
+    .btnrow { display: flex; flex-wrap: wrap; gap: .5rem; }
+    .seg { display: flex; gap: .4rem; }
+    .seg button {
+      flex: 1; padding: 10px 0; border-radius: 10px; border: 2px solid #1f5fa8;
+      background: #fff; color: #1f5fa8; font-size: 1.3rem; cursor: pointer;
+    }
+    .seg button.on { background: #1f5fa8; color: #fff; }
+    #boardLink { word-break: break-all; user-select: text; -webkit-user-select: text; }
+    .tiny.hidden { display: none; }
     #drawnEmpty { font-size: .85rem; color: #999; align-self: center; }
     #btnCloseDrawer {
       align-self: flex-end; padding: 10px 20px;
@@ -162,13 +209,19 @@
 </div>
 
 <div id="screenLetter" class="screen hidden">
-  <div id="bigLetter" aria-live="polite"></div>
+  <div id="bigLetter" class="schrift" aria-live="polite"></div>
+</div>
+
+<div id="screenBoard" class="screen hidden">
+  <div id="boardCount"></div>
+  <div id="boardLast" class="schrift" aria-live="polite"></div>
+  <div id="boardList" class="schrift"></div>
 </div>
 
 <div id="repeatHint">🔊 Nochmal</div>
 
 <div id="alleDone" class="hidden">
-  Alle Buchstaben wurden gezogen! 🎉
+  <div id="alleDoneTitle">Alle Buchstaben wurden gezogen! 🎉</div>
   <span id="alleDoneHint">Drücke „Weiter", um neu zu starten.</span>
 </div>
 
@@ -185,8 +238,26 @@
         <span class="lbl">🔤 Bisherige Buchstaben</span>
         <button id="btnReset">↺ Zurücksetzen</button>
       </div>
-      <div id="drawnLetters">
+      <div id="drawnLetters" class="schrift">
         <span id="drawnEmpty">Noch keine Buchstaben gezogen.</span>
+      </div>
+    </div>
+    <div class="srow">
+      <span class="lbl">🎲 Buchstaben im Topf</span>
+      <div class="tiny" id="poolInfo">Antippen, um einen Buchstaben heraus- oder hineinzunehmen.</div>
+      <div id="poolGrid" class="schrift"></div>
+      <div class="btnrow">
+        <button id="btnPoolAll" class="sbtn light">Alle</button>
+        <button id="btnPoolNone" class="sbtn light">Keine</button>
+        <button id="btnPoolRare" class="sbtn light">Ohne Q, X, Y</button>
+      </div>
+    </div>
+    <div class="srow">
+      <span class="lbl">🔠 Schreibweise auf diesem Gerät</span>
+      <div class="seg schrift" id="caseSeg">
+        <button data-case="upper">A</button>
+        <button data-case="both">A a</button>
+        <button data-case="lower">a</button>
       </div>
     </div>
     <div class="srow">
@@ -203,6 +274,15 @@
         <div class="tiny">Mit der Kamera eines anderen iPads scannen.</div>
       </div>
       <button id="btnLeave" class="sbtn light hidden">Verbindung trennen</button>
+    </div>
+    <div class="srow" id="boardRow">
+      <span class="lbl">🖥️ Tafel-Ansicht (Beamer)</span>
+      <div class="tiny" id="boardInfo">Erst „Weitere iPads verbinden“ tippen, dann gibt es hier den Link für den Beamer.</div>
+      <div class="tiny hidden" id="boardLinkBox">Auf dem Beamer-Rechner öffnen: <b id="boardLink"></b></div>
+      <div class="btnrow">
+        <button id="btnCopyBoard" class="sbtn light hidden">Link kopieren</button>
+        <button id="btnBoardMode" class="sbtn light hidden">Dieses Gerät als Tafel</button>
+      </div>
     </div>
   </div>
 </div>
@@ -226,7 +306,29 @@ let gen     = "";
 let genTs   = 0;
 let code    = "";   // Spielcode für mehrere iPads, leer = nur dieses iPad
 
+// Buchstaben im Topf; wird mit allen verbundenen iPads abgeglichen,
+// die jüngste Änderung (poolTs) gewinnt.
+let pool    = new Set(LETTERS);
+let poolTs  = 0;
+
+// Nur auf diesem Gerät
+let letterCase = "upper";   // "upper" | "both" | "lower"
+let boardMode  = false;     // Tafel-Ansicht für den Beamer
+
 const CODE_RE = /^[a-z0-9]{6,20}$/;
+
+function fmt(l) {
+  if (letterCase === "lower") return l.toLowerCase();
+  if (letterCase === "both")  return l + " " + l.toLowerCase();
+  return l;
+}
+
+function poolLeft() { return LETTERS.filter(l => pool.has(l) && !drawn.has(l)); }
+function poolDrawn() { return LETTERS.filter(l => pool.has(l) && drawn.has(l)).length; }
+
+function parsePool(s) {
+  return typeof s === "string" ? new Set(s.split("").filter(l => LETTERS.includes(l))) : null;
+}
 
 function randomId(n) {
   const abc = "abcdefghjkmnpqrstuvwxyz23456789";
@@ -238,7 +340,10 @@ function randomId(n) {
 // ── Speichern / Laden ────────────────────────────────────────────────
 function save() {
   try {
-    localStorage.setItem(STORE_KEY, JSON.stringify({ drawn: [...drawn], volume, code, gen, genTs, server: brokerIdx }));
+    localStorage.setItem(STORE_KEY, JSON.stringify({
+      drawn: [...drawn], volume, code, gen, genTs, server: brokerIdx,
+      pool: [...pool].join(""), poolTs, letterCase, boardMode,
+    }));
   } catch (e) {}
 }
 
@@ -252,6 +357,11 @@ function load() {
     if (typeof s.gen === "string") gen = s.gen;
     if (typeof s.genTs === "number") genTs = s.genTs;
     if (BROKERS[s.server]) brokerIdx = s.server;
+    const p = parsePool(s.pool);
+    if (p) pool = p;
+    if (typeof s.poolTs === "number") poolTs = s.poolTs;
+    if (["upper", "both", "lower"].includes(s.letterCase)) letterCase = s.letterCase;
+    boardMode = s.boardMode === true;
   } catch (e) {}
 }
 
@@ -416,7 +526,7 @@ function connect() {
 
 function publish() {
   if (!isOnline() || !code) return;
-  const msg = { gen, genTs, drawn: [...drawn], by: DEVICE };
+  const msg = { gen, genTs, drawn: [...drawn], pool: [...pool].join(""), poolTs, by: DEVICE };
   client.publish(TOPIC_PREFIX + code, JSON.stringify(msg), { qos: 1, retain: true });
 }
 
@@ -447,16 +557,22 @@ function receive(raw) {
     remote.forEach(l => drawn.add(l));
     if (missing) publish();
   }
+
+  // Topf: die jüngste Änderung gewinnt
+  const rp = parsePool(m.pool);
+  if (rp && typeof m.poolTs === "number") {
+    if (m.poolTs > poolTs) { pool = rp; poolTs = m.poolTs; }
+    else if (m.poolTs < poolTs) publish();
+  }
   save();
-  renderCount();
-  renderDrawn();
+  renderAll();
 }
 
 // ── Buchstaben ziehen ────────────────────────────────────────────────
 function pickLetter() {
-  const pool = LETTERS.filter(l => !drawn.has(l));
-  if (!pool.length) return null;
-  const l = pool[Math.floor(Math.random() * pool.length)];
+  const left = poolLeft();
+  if (!left.length) return null;
+  const l = left[Math.floor(Math.random() * left.length)];
   drawn.add(l);
   return l;
 }
@@ -483,6 +599,8 @@ function shareUrl() {
   return location.origin + location.pathname + "?spiel=" + code + "&server=" + brokerIdx;
 }
 
+function boardUrl() { return shareUrl() + "&tafel=1"; }
+
 function renderSync() {
   const status = document.getElementById("syncStatus");
   const dot    = document.getElementById("syncDot");
@@ -502,6 +620,15 @@ function renderSync() {
   if (!code) status.textContent = "Nur dieses iPad.";
   else if (isOnline()) status.textContent = `Verbunden über ${BROKERS[brokerIdx].name} · Spiel ${code}`;
   else status.textContent = `Keine Verbindung (Spiel ${code}). Dieses iPad zieht vorerst allein weiter.`;
+
+  document.getElementById("boardInfo").classList.toggle("hidden", !!code || boardMode);
+  document.getElementById("boardLinkBox").classList.toggle("hidden", !code);
+  document.getElementById("boardLink").textContent = code ? boardUrl() : "";
+  document.getElementById("btnCopyBoard").classList.toggle("hidden", !code);
+  document.getElementById("btnBoardMode").classList.toggle("hidden", !code && !boardMode);
+  document.getElementById("btnBoardMode").textContent =
+    boardMode ? "Tafel-Ansicht beenden" : "Dieses Gerät als Tafel";
+  renderBoard();
 
   box.classList.toggle("hidden", !(code && qrVisible));
   if (code && qrVisible && window.qrcode) {
@@ -524,12 +651,17 @@ function showHint() {
 function show(name) {
   document.getElementById("screenStart") .classList.toggle("hidden", name !== "start");
   document.getElementById("screenLetter").classList.toggle("hidden", name !== "letter");
+  document.getElementById("screenBoard") .classList.toggle("hidden", name !== "board");
 }
 
 // ── Zähler auf dem Startbildschirm ───────────────────────────────────
+function countText() {
+  return `Bereits gezogen: ${poolDrawn()} von ${pool.size}`;
+}
+
 function renderCount() {
   const el = document.getElementById("startCount");
-  el.textContent = `Bereits gezogen: ${drawn.size} von ${LETTERS.length}`;
+  el.textContent = countText();
   el.classList.toggle("hidden", drawn.size === 0);
 }
 
@@ -542,9 +674,78 @@ function renderDrawn() {
   empty.style.display = "none";
   LETTERS.filter(l => drawn.has(l)).forEach(l => {
     const d = document.createElement("div");
-    d.className = "chip"; d.textContent = l;
+    d.className = "chip"; d.textContent = fmt(l);
     box.appendChild(d);
   });
+}
+
+// ── Topf-Auswahl ─────────────────────────────────────────────────────
+function renderPool() {
+  const grid = document.getElementById("poolGrid");
+  if (!grid.children.length) {
+    LETTERS.forEach(l => {
+      const b = document.createElement("button");
+      b.dataset.letter = l;
+      b.addEventListener("click", () => {
+        const next = new Set(pool);
+        if (next.has(l)) next.delete(l); else next.add(l);
+        setPool(next);
+      });
+      grid.appendChild(b);
+    });
+  }
+  [...grid.children].forEach(b => {
+    const l = b.dataset.letter;
+    b.textContent = fmt(l);
+    b.classList.toggle("off", !pool.has(l));
+    b.setAttribute("aria-pressed", pool.has(l));
+  });
+  document.getElementById("poolInfo").textContent =
+    `${pool.size} von ${LETTERS.length} Buchstaben im Topf. Antippen, um einen heraus- oder hineinzunehmen.`;
+}
+
+function setPool(next) {
+  pool = next;
+  poolTs = Date.now();
+  save();
+  publish();
+  renderAll();
+}
+
+// ── Tafel-Ansicht ────────────────────────────────────────────────────
+let boardShownLast = "";
+
+function renderBoard() {
+  const order = [...drawn].filter(l => pool.has(l));
+  const last  = order[order.length - 1] || "";
+  document.getElementById("boardCount").textContent =
+    code ? countText() : "Nicht verbunden: ⚙️ → Weitere iPads verbinden";
+  const lastEl = document.getElementById("boardLast");
+  lastEl.textContent = last ? fmt(last) : "";
+  if (last && last !== boardShownLast) {
+    lastEl.classList.remove("pop");
+    void lastEl.offsetWidth;   // Animation neu starten
+    lastEl.classList.add("pop");
+  }
+  boardShownLast = last;
+  const list = document.getElementById("boardList");
+  list.textContent = "";
+  order.forEach(l => {
+    const d = document.createElement("div");
+    d.textContent = fmt(l);
+    if (l === last) d.className = "last";
+    list.appendChild(d);
+  });
+}
+
+function renderAll() {
+  document.body.classList.toggle("case-both", letterCase === "both");
+  renderCount();
+  renderDrawn();
+  renderPool();
+  renderBoard();
+  document.querySelectorAll("#caseSeg button").forEach(b =>
+    b.classList.toggle("on", b.dataset.case === letterCase));
 }
 
 // ── Neues Spiel ──────────────────────────────────────────────────────
@@ -553,7 +754,7 @@ function resetScreens() {
   current = "";
   document.getElementById("alleDone").classList.add("hidden");
   document.getElementById("btnWeiter").classList.add("hidden");
-  show("start");
+  show(boardMode ? "board" : "start");
 }
 
 function resetGame() {
@@ -562,19 +763,22 @@ function resetGame() {
   save();
   publish();
   resetScreens();
-  renderDrawn();
-  renderCount();
+  renderAll();
 }
 
 // ── Würfeln ──────────────────────────────────────────────────────────
+function showDone() {
+  document.getElementById("alleDoneTitle").textContent = pool.size
+    ? "Alle Buchstaben wurden gezogen! 🎉"
+    : "Keine Buchstaben im Topf.";
+  document.getElementById("alleDone").classList.remove("hidden");
+  document.getElementById("btnWeiter").classList.remove("hidden");
+}
+
 document.getElementById("btnStart").addEventListener("click", () => {
-  if (rolling) return;
+  if (rolling || boardMode) return;
   initAudio();
-  if (drawn.size >= LETTERS.length) {
-    document.getElementById("alleDone").classList.remove("hidden");
-    document.getElementById("btnWeiter").classList.remove("hidden");
-    return;
-  }
+  if (!poolLeft().length) { showDone(); return; }
 
   rolling = true;
   stopAudio();
@@ -589,13 +793,15 @@ document.getElementById("btnStart").addEventListener("click", () => {
   // Server die Reservierung bestätigt hat (oder CONFIRM_MS vorbei sind).
   makeClaim();
 
+  // Animation zeigt nur Buchstaben aus dem Topf (bei sehr kleinem Topf alle)
+  const spin   = pool.size >= 3 ? [...pool] : LETTERS;
   let idx    = 0;
   let nextAt = ROLL_MS[0];
   const t0   = performance.now();
   (function frame(now) {
     const elapsed = now - t0;
     if (elapsed >= nextAt) {
-      bl.textContent = LETTERS[Math.floor(Math.random() * LETTERS.length)];
+      bl.textContent = fmt(spin[Math.floor(Math.random() * spin.length)]);
       idx++;
       nextAt = idx < ROLL_MS.length ? ROLL_MS[idx] : elapsed + 120;
     }
@@ -609,12 +815,11 @@ document.getElementById("btnStart").addEventListener("click", () => {
     renderCount();
     if (!final) {
       // Andere iPads haben inzwischen die letzten Buchstaben gezogen
-      document.getElementById("alleDone").classList.remove("hidden");
-      bw.classList.remove("hidden");
+      showDone();
       return;
     }
     current = final;
-    bl.textContent = final;
+    bl.textContent = fmt(final);
     bw.classList.remove("hidden");
     say(final);
   })(performance.now());
@@ -683,9 +888,43 @@ document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible" && code && client && !connected) client.reconnect();
 });
 
+// ── Topf-Knöpfe ──────────────────────────────────────────────────────
+document.getElementById("btnPoolAll").addEventListener("click", () => setPool(new Set(LETTERS)));
+document.getElementById("btnPoolNone").addEventListener("click", () => setPool(new Set()));
+document.getElementById("btnPoolRare").addEventListener("click", () =>
+  setPool(new Set(LETTERS.filter(l => !"QXY".includes(l)))));
+
+// ── Schreibweise ─────────────────────────────────────────────────────
+document.querySelectorAll("#caseSeg button").forEach(b => b.addEventListener("click", () => {
+  letterCase = b.dataset.case;
+  save();
+  renderAll();
+  if (current && !rolling) document.getElementById("bigLetter").textContent = fmt(current);
+}));
+
+// ── Tafel-Ansicht ────────────────────────────────────────────────────
+document.getElementById("btnCopyBoard").addEventListener("click", e => {
+  const btn = e.currentTarget;
+  const done = ok => {
+    btn.textContent = ok ? "Kopiert ✓" : "Bitte Link markieren";
+    setTimeout(() => { btn.textContent = "Link kopieren"; }, 1500);
+  };
+  if (navigator.clipboard) navigator.clipboard.writeText(boardUrl()).then(() => done(true), () => done(false));
+  else done(false);
+});
+
+document.getElementById("btnBoardMode").addEventListener("click", () => {
+  if (rolling) return;
+  boardMode = !boardMode;
+  save();
+  resetScreens();
+  renderSync();
+  document.getElementById("drawer").classList.add("hidden");
+});
+
 // ── Drawer ───────────────────────────────────────────────────────────
 document.getElementById("btnSettings").addEventListener("click", () => {
-  renderDrawn();
+  renderAll();
   document.getElementById("drawer").classList.remove("hidden");
 });
 document.getElementById("btnCloseDrawer").addEventListener("click", () =>
@@ -720,12 +959,14 @@ if (joinCode && CODE_RE.test(joinCode) && joinCode !== code) {
   brokerIdx = BROKERS[params.get("server")] ? Number(params.get("server")) : 0;
   gen = ""; genTs = 0;
   drawn.clear();
+  pool = new Set(LETTERS); poolTs = 0;
   save();
 }
+if (joinCode && params.get("tafel") === "1") { boardMode = true; save(); }
 if (joinCode !== null) history.replaceState(null, "", location.pathname);
 renderVolume();
-renderCount();
-show("start");
+renderAll();
+show(boardMode ? "board" : "start");
 connect();
 </script>
 </body>
