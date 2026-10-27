@@ -69,6 +69,10 @@
       flex: 1; display: flex; align-items: center; justify-content: center;
       font-size: clamp(8rem,30vh,26rem); line-height: 1; white-space: nowrap;
     }
+    #boardLast span {
+      border-radius: .12em; padding: .02em .14em;
+      background: rgba(255,255,255,.12);
+    }
     #boardLast.pop { animation: pop .5s ease-out; }
     @keyframes pop { from { transform: scale(.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
     #boardList {
@@ -80,7 +84,10 @@
       min-width: clamp(2.6rem,6vw,4.6rem); padding: .2rem .5rem;
       font-size: clamp(1.6rem,4vw,3rem); text-align: center;
     }
-    #boardList div.last { background: #f0c020; color: #1d3f6e; }
+    #boardList div.last { box-shadow: 0 0 0 4px #f0c020; }
+
+    #confetti { position: fixed; inset: 0; pointer-events: none; z-index: 8500; }
+    #confetti.hidden { display: none; }
 
     #btnWeiter {
       position: fixed; right: 1rem; bottom: 1rem;
@@ -144,6 +151,20 @@
       display: flex; align-items: center; justify-content: center;
       font-size: 1.2rem;
     }
+    .chip.last { box-shadow: 0 0 0 3px #f0c020; }
+    #btnUndo {
+      padding: 8px 14px; border-radius: 10px; border: none;
+      background: #ddd; color: #333; font-weight: 700; cursor: pointer;
+    }
+    .drawn-header .btnrow { gap: .4rem; }
+    #colorRow { display: flex; flex-wrap: wrap; gap: .5rem; }
+    #colorRow button {
+      width: 3rem; height: 3rem; border-radius: 50%; cursor: pointer;
+      border: 4px solid #fff; box-shadow: 0 0 0 2px #ccc;
+    }
+    #colorRow button.on { box-shadow: 0 0 0 4px #333; }
+    .check { display: flex; align-items: center; gap: .5rem; font-size: 1rem; }
+    .check input { width: 1.4rem; height: 1.4rem; }
     #poolGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(2.8rem, 1fr)); gap: .4rem; }
     #poolGrid button {
       height: 2.8rem; border-radius: 10px; border: 2px solid #2a7d2e;
@@ -225,6 +246,7 @@
   <span id="alleDoneHint">Drücke „Weiter", um neu zu starten.</span>
 </div>
 
+<canvas id="confetti" class="hidden"></canvas>
 <div id="syncDot" class="hidden"></div>
 <button id="btnWeiter" class="hidden">Weiter</button>
 <button id="btnSettings" aria-label="Einstellungen">⚙️</button>
@@ -236,11 +258,25 @@
     <div class="srow">
       <div class="drawn-header">
         <span class="lbl">🔤 Bisherige Buchstaben</span>
-        <button id="btnReset">↺ Zurücksetzen</button>
+        <div class="btnrow">
+          <button id="btnUndo">↶ Letzten zurücknehmen</button>
+          <button id="btnReset">↺ Zurücksetzen</button>
+        </div>
       </div>
+      <div class="tiny">In der Reihenfolge, in der sie gezogen wurden.</div>
       <div id="drawnLetters" class="schrift">
         <span id="drawnEmpty">Noch keine Buchstaben gezogen.</span>
       </div>
+    </div>
+    <div class="srow">
+      <span class="lbl">🎨 Farbe dieses iPads</span>
+      <div class="tiny">Gezogene Buchstaben erscheinen in dieser Farbe, auch auf der Tafel.</div>
+      <div id="colorRow"></div>
+    </div>
+    <div class="srow">
+      <span class="lbl">✨ Effekte auf diesem Gerät</span>
+      <label class="check"><input type="checkbox" id="fxDrum"/> Trommelwirbel beim Würfeln</label>
+      <label class="check"><input type="checkbox" id="fxConfetti"/> Konfetti beim Ergebnis</label>
     </div>
     <div class="srow">
       <span class="lbl">🎲 Buchstaben im Topf</span>
@@ -319,6 +355,40 @@ let poolTs  = 0;
 // Nur auf diesem Gerät
 let letterCase = "upper";   // "upper" | "both" | "lower"
 let boardMode  = false;     // Tafel-Ansicht für den Beamer
+let colorKey   = "gruen";   // Farbe dieses iPads
+let fxDrum     = true;
+let fxConfetti = true;
+
+// Wer welchen Buchstaben gezogen hat (Buchstabe → Farbe / Gerät), wird abgeglichen
+let colors = {};
+let owners = {};
+
+const COLORS = {
+  gruen:   "#2a7d2e",
+  blau:    "#1f5fa8",
+  orange:  "#d9731a",
+  lila:    "#7b3fa0",
+  tuerkis: "#12857f",
+  pink:    "#c2357a",
+};
+
+function colorOf(l) { return COLORS[colors[l]] || COLORS.gruen; }
+
+function parseColors(o) {
+  const out = {};
+  if (o && typeof o === "object") {
+    for (const [l, k] of Object.entries(o)) if (LETTERS.includes(l) && COLORS[k]) out[l] = k;
+  }
+  return out;
+}
+
+function parseOwners(o) {
+  const out = {};
+  if (o && typeof o === "object") {
+    for (const [l, d] of Object.entries(o)) if (LETTERS.includes(l) && typeof d === "string") out[l] = d;
+  }
+  return out;
+}
 
 const CODE_RE = /^[a-z0-9]{6,20}$/;
 
@@ -348,6 +418,7 @@ function save() {
     localStorage.setItem(STORE_KEY, JSON.stringify({
       drawn: [...drawn], volume, code, gen, genTs, server: brokerIdx,
       pool: [...pool].join(""), poolTs, letterCase, boardMode,
+      colorKey, colors, owners, fxDrum, fxConfetti,
     }));
   } catch (e) {}
 }
@@ -367,6 +438,11 @@ function load() {
     if (typeof s.poolTs === "number") poolTs = s.poolTs;
     if (["upper", "both", "lower"].includes(s.letterCase)) letterCase = s.letterCase;
     boardMode = s.boardMode === true;
+    if (COLORS[s.colorKey]) colorKey = s.colorKey;
+    colors = parseColors(s.colors);
+    owners = parseOwners(s.owners);
+    if (typeof s.fxDrum === "boolean") fxDrum = s.fxDrum;
+    if (typeof s.fxConfetti === "boolean") fxConfetti = s.fxConfetti;
   } catch (e) {}
 }
 
@@ -429,13 +505,87 @@ function say(letter) {
   fallbackAudio = audio;
 }
 
+// ── Effekte ──────────────────────────────────────────────────────────
+// Trommelschlag aus Rauschen + tiefem Ton, im Browser erzeugt (keine Datei)
+let noiseBuf = null;
+
+function drumTick(strength) {
+  if (!fxDrum || !ctx || ctx.state !== "running") return;
+  if (!noiseBuf) {
+    noiseBuf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.15), ctx.sampleRate);
+    const d = noiseBuf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+  }
+  const t = ctx.currentTime;
+  const src = ctx.createBufferSource();
+  src.buffer = noiseBuf;
+  const bp = ctx.createBiquadFilter();
+  bp.type = "bandpass"; bp.frequency.value = 1800; bp.Q.value = 0.8;
+  const env = ctx.createGain();
+  env.gain.setValueAtTime(0.0001, t);
+  env.gain.exponentialRampToValueAtTime(0.5 * strength, t + 0.005);
+  env.gain.exponentialRampToValueAtTime(0.0001, t + 0.12);
+  src.connect(bp); bp.connect(env); env.connect(gain);
+  src.start(t); src.stop(t + 0.15);
+
+  const osc = ctx.createOscillator();
+  osc.frequency.setValueAtTime(140, t);
+  osc.frequency.exponentialRampToValueAtTime(60, t + 0.1);
+  const og = ctx.createGain();
+  og.gain.setValueAtTime(0.4 * strength, t);
+  og.gain.exponentialRampToValueAtTime(0.0001, t + 0.12);
+  osc.connect(og); og.connect(gain);
+  osc.start(t); osc.stop(t + 0.13);
+}
+
+let confettiRun = 0;
+
+function stopConfetti() {
+  confettiRun++;
+  document.getElementById("confetti").classList.add("hidden");
+}
+
+function confetti(mainColor) {
+  if (!fxConfetti) return;
+  if (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const cv = document.getElementById("confetti");
+  const w = cv.width = innerWidth, h = cv.height = innerHeight;
+  const g = cv.getContext("2d");
+  const palette = [mainColor, "#f0c020", "#ffffff", "#ff6b6b", "#4dabf7"];
+  const parts = Array.from({ length: 90 }, () => ({
+    x: w / 2 + (Math.random() - 0.5) * w * 0.3, y: h * 0.45,
+    vx: (Math.random() - 0.5) * 14, vy: -Math.random() * 14 - 4,
+    s: 6 + Math.random() * 8, r: Math.random() * 6, vr: (Math.random() - 0.5) * 0.4,
+    c: palette[Math.floor(Math.random() * palette.length)],
+  }));
+  const id = ++confettiRun;
+  const t0 = performance.now();
+  cv.classList.remove("hidden");
+  (function step(now) {
+    if (id !== confettiRun) return;
+    g.clearRect(0, 0, w, h);
+    parts.forEach(p => {
+      p.vy += 0.45; p.vx *= 0.99;
+      p.x += p.vx; p.y += p.vy; p.r += p.vr;
+      g.save(); g.translate(p.x, p.y); g.rotate(p.r);
+      g.fillStyle = p.c; g.fillRect(-p.s / 2, -p.s / 4, p.s, p.s / 2);
+      g.restore();
+    });
+    if (now - t0 < 2200) requestAnimationFrame(step);
+    else stopConfetti();
+  })(t0);
+}
+
 // ── Mehrere iPads ────────────────────────────────────────────────────
 // Alle iPads mit demselben Spielcode tauschen über einen öffentlichen
 // MQTT-Server ihren Stand aus (nur Buchstaben, keine Namen). Der Server
 // merkt sich die letzte Nachricht, so sehen neu verbundene iPads sofort
-// den aktuellen Stand. Er stellt alle Nachrichten eines Kanals in derselben
-// Reihenfolge zu: Ziehen zwei iPads gleichzeitig denselben Buchstaben,
-// gewinnt das iPad, dessen Nachricht zuerst ankam, das andere zieht neu.
+// den aktuellen Stand. Ziehen zwei iPads gleichzeitig denselben Buchstaben,
+// gewinnt das iPad mit der kleineren Gerätekennung, das andere zieht neu.
+// (Die Reihenfolge der Nachrichten taugt dafür nicht: Der Server besteht aus
+// mehreren Rechnern, die Nachrichten unterschiedlich sortiert zustellen.)
+// Damit der Verlierer die Nachricht des Gewinners sicher noch vor der
+// Anzeige sieht, wartet jedes iPad nach dem eigenen Echo noch GRACE_MS.
 // Der Server wird beim Erstellen festgelegt und steht im QR-Code, damit
 // alle iPads eines Spiels immer denselben Server nutzen.
 const BROKERS = [
@@ -445,6 +595,7 @@ const BROKERS = [
 const TOPIC_PREFIX = "abcbingo-walteroelf/v1/";
 const DEVICE       = randomId(8);
 const CONFIRM_MS   = 2500;   // so lange wartet das Würfeln höchstens auf den Server
+const GRACE_MS     = 600;    // Wartezeit nach dem eigenen Echo (siehe oben)
 const FAILOVER_MS  = 10000;  // beim Erstellen: danach wird der andere Server probiert
 
 let client    = null;
@@ -453,7 +604,7 @@ let brokerIdx = 0;
 let creating  = false;  // neues Spiel, noch nie verbunden: Serverwechsel erlaubt
 let failTm    = null;
 let sawMsg    = false;
-let claim     = null;   // { letter, confirmed, ts } während des Würfelns
+let claim     = null;   // { letter, confirmed, ts, echoTs } während des Würfelns
 
 function isOnline() { return !!(client && connected); }
 
@@ -531,7 +682,7 @@ function connect() {
 
 function publish() {
   if (!isOnline() || !code) return;
-  const msg = { gen, genTs, drawn: [...drawn], pool: [...pool].join(""), poolTs, by: DEVICE };
+  const msg = { gen, genTs, drawn: [...drawn], colors, owners, pool: [...pool].join(""), poolTs, by: DEVICE };
   client.publish(TOPIC_PREFIX + code, JSON.stringify(msg), { qos: 1, retain: true });
 }
 
@@ -540,27 +691,56 @@ function receive(raw) {
   try { m = JSON.parse(raw); } catch (e) { return; }
   if (!m || typeof m.gen !== "string" || typeof m.genTs !== "number" || !Array.isArray(m.drawn)) return;
   sawMsg = true;
-  const remote = m.drawn.filter(l => LETTERS.includes(l));
+  const remote       = m.drawn.filter(l => LETTERS.includes(l));
+  const remoteColors = parseColors(m.colors);
+  const remoteOwners = parseOwners(m.owners);
 
   if (m.gen !== gen) {
     const newer = m.genTs > genTs || (m.genTs === genTs && m.gen > gen);
     if (!newer) { publish(); return; }
-    // Neue Runde (anderes iPad hat zurückgesetzt) oder erstes Verbinden
+    // Neue Runde (zurückgesetzt, zurückgenommen) oder erstes Verbinden
     gen = m.gen; genTs = m.genTs;
-    drawn = new Set(remote);
+    drawn  = new Set(remote);
+    colors = remoteColors;
+    owners = remoteOwners;
     if (claim && claim.letter) {
       if (drawn.has(claim.letter)) repick();
-      else { drawn.add(claim.letter); claim.confirmed = false; claim.ts = performance.now(); publish(); }
+      else {
+        drawn.add(claim.letter);
+        colors[claim.letter] = colorKey;
+        owners[claim.letter] = DEVICE;
+        claim.confirmed = false; claim.ts = performance.now(); claim.echoTs = 0;
+        publish();
+      }
     }
     if (!rolling) resetScreens();
   } else {
     if (claim && claim.letter && !claim.confirmed && remote.includes(claim.letter)) {
-      if (m.by === DEVICE) claim.confirmed = true;   // unsere Nachricht kam zuerst an
-      else repick();                                 // ein anderes iPad war schneller
+      const other = remoteOwners[claim.letter];
+      if (m.by === DEVICE) {
+        if (!claim.echoTs) claim.echoTs = performance.now();   // Server hat unsere Wahl
+      } else if (other && other !== DEVICE && other < DEVICE) {
+        // Gleichzeitig gezogen, das andere iPad gewinnt: neu ziehen
+        colors[claim.letter] = remoteColors[claim.letter] || colors[claim.letter];
+        owners[claim.letter] = other;
+        repick();
+      }
     }
-    const missing = [...drawn].some(l => !remote.includes(l));
+    let differs = [...drawn].some(l => !remote.includes(l));
     remote.forEach(l => drawn.add(l));
-    if (missing) publish();
+    // Wer hat den Buchstaben? Bei Uneinigkeit gilt die kleinere Gerätekennung.
+    // Die Farbe bestimmt das iPad, dem der Buchstabe gehört.
+    for (const [l, d] of Object.entries(remoteOwners)) {
+      if (!owners[l] || d < owners[l]) {
+        owners[l] = d;
+        if (remoteColors[l]) colors[l] = remoteColors[l];
+      } else if (d === owners[l] && d === m.by && remoteColors[l]) {
+        colors[l] = remoteColors[l];
+      }
+    }
+    for (const [l, k] of Object.entries(remoteColors)) if (!colors[l]) colors[l] = k;
+    differs = differs || Object.keys(owners).some(l => owners[l] !== remoteOwners[l]);
+    if (differs) publish();
   }
 
   // Topf: die jüngste Änderung gewinnt
@@ -579,12 +759,14 @@ function pickLetter() {
   if (!left.length) return null;
   const l = left[Math.floor(Math.random() * left.length)];
   drawn.add(l);
+  colors[l] = colorKey;
+  owners[l] = DEVICE;
   return l;
 }
 
 function makeClaim() {
   const letter = pickLetter();
-  claim = { letter, confirmed: !letter || !code, ts: performance.now() };
+  claim = { letter, confirmed: !letter || !code, ts: performance.now(), echoTs: 0 };
   save();
   publish();
 }
@@ -593,8 +775,16 @@ function repick() {
   claim.letter    = pickLetter();
   claim.confirmed = !claim.letter || !code;
   claim.ts        = performance.now();
+  claim.echoTs    = 0;
   save();
   publish();
+}
+
+// Darf der reservierte Buchstabe angezeigt werden?
+function claimSettled(now) {
+  if (!claim.letter || claim.confirmed) return true;
+  if (claim.echoTs && now - claim.echoTs >= GRACE_MS) return true;
+  return now - claim.ts >= CONFIRM_MS;
 }
 
 // ── Verbinden-Bereich ────────────────────────────────────────────────
@@ -680,17 +870,43 @@ function renderCount() {
 }
 
 // ── Drawn-Chips rendern ──────────────────────────────────────────────
+// Gezogene Buchstaben aus dem Topf in Zieh-Reihenfolge
+function drawnOrder() { return [...drawn].filter(l => pool.has(l)); }
+
 function renderDrawn() {
   const box   = document.getElementById("drawnLetters");
   const empty = document.getElementById("drawnEmpty");
+  const order = drawnOrder();
   box.querySelectorAll(".chip").forEach(c => c.remove());
-  if (drawn.size === 0) { empty.style.display = ""; return; }
+  document.getElementById("btnUndo").disabled = !order.length;
+  if (!order.length) { empty.style.display = ""; return; }
   empty.style.display = "none";
-  LETTERS.filter(l => drawn.has(l)).forEach(l => {
+  order.forEach((l, i) => {
     const d = document.createElement("div");
-    d.className = "chip"; d.textContent = fmt(l);
+    d.className = "chip" + (i === order.length - 1 ? " last" : "");
+    d.textContent = fmt(l);
+    d.style.background = colorOf(l);
     box.appendChild(d);
   });
+}
+
+// ── Farbe dieses iPads ───────────────────────────────────────────────
+function renderColors() {
+  const row = document.getElementById("colorRow");
+  if (!row.children.length) {
+    Object.entries(COLORS).forEach(([k, hex]) => {
+      const b = document.createElement("button");
+      b.dataset.color = k;
+      b.style.background = hex;
+      b.setAttribute("aria-label", "Farbe " + k);
+      b.addEventListener("click", () => { colorKey = k; save(); renderAll(); });
+      row.appendChild(b);
+    });
+  }
+  [...row.children].forEach(b => b.classList.toggle("on", b.dataset.color === colorKey));
+  document.getElementById("screenLetter").style.background = COLORS[colorKey];
+  document.getElementById("fxDrum").checked = fxDrum;
+  document.getElementById("fxConfetti").checked = fxConfetti;
 }
 
 // ── Topf-Auswahl ─────────────────────────────────────────────────────
@@ -730,12 +946,18 @@ function setPool(next) {
 let boardShownLast = "";
 
 function renderBoard() {
-  const order = [...drawn].filter(l => pool.has(l));
+  const order = drawnOrder();
   const last  = order[order.length - 1] || "";
   document.getElementById("boardCount").textContent =
     code ? countText() : "Nicht verbunden: ⚙️ → Weitere iPads verbinden";
   const lastEl = document.getElementById("boardLast");
-  lastEl.textContent = last ? fmt(last) : "";
+  lastEl.textContent = "";
+  if (last) {
+    const s = document.createElement("span");
+    s.textContent = fmt(last);
+    s.style.background = colorOf(last);
+    lastEl.appendChild(s);
+  }
   if (last && last !== boardShownLast) {
     lastEl.classList.remove("pop");
     void lastEl.offsetWidth;   // Animation neu starten
@@ -747,6 +969,7 @@ function renderBoard() {
   order.forEach(l => {
     const d = document.createElement("div");
     d.textContent = fmt(l);
+    d.style.background = colorOf(l);
     if (l === last) d.className = "last";
     list.appendChild(d);
   });
@@ -758,6 +981,7 @@ function renderAll() {
   renderDrawn();
   renderPool();
   renderBoard();
+  renderColors();
   document.querySelectorAll("#caseSeg button").forEach(b =>
     b.classList.toggle("on", b.dataset.case === letterCase));
 }
@@ -765,6 +989,7 @@ function renderAll() {
 // ── Neues Spiel ──────────────────────────────────────────────────────
 function resetScreens() {
   stopAudio();
+  stopConfetti();
   current = "";
   document.getElementById("alleDone").classList.add("hidden");
   document.getElementById("btnWeiter").classList.add("hidden");
@@ -773,6 +998,25 @@ function resetScreens() {
 
 function resetGame() {
   drawn.clear();
+  colors = {};
+  owners = {};
+  gen = randomId(10); genTs = Date.now();
+  save();
+  publish();
+  resetScreens();
+  renderAll();
+}
+
+// Letzten Buchstaben zurücknehmen. Wie beim Zurücksetzen beginnt eine neue
+// Runde (gen), nur ohne diesen Buchstaben: So übernehmen alle iPads den
+// Stand, statt den Buchstaben beim Abgleich wieder hinzuzufügen.
+function undoLast() {
+  const order = drawnOrder();
+  const last  = order[order.length - 1];
+  if (!last) return;
+  drawn.delete(last);
+  delete colors[last];
+  delete owners[last];
   gen = randomId(10); genTs = Date.now();
   save();
   publish();
@@ -816,11 +1060,11 @@ document.getElementById("btnStart").addEventListener("click", () => {
     const elapsed = now - t0;
     if (elapsed >= nextAt) {
       bl.textContent = fmt(spin[Math.floor(Math.random() * spin.length)]);
+      drumTick(0.5 + 0.5 * Math.min(idx, ROLL_MS.length) / ROLL_MS.length);
       idx++;
       nextAt = idx < ROLL_MS.length ? ROLL_MS[idx] : elapsed + 120;
     }
-    const settled = !claim.letter || claim.confirmed || now - claim.ts >= CONFIRM_MS;
-    if (idx < ROLL_MS.length || !settled) { requestAnimationFrame(frame); return; }
+    if (idx < ROLL_MS.length || !claimSettled(now)) { requestAnimationFrame(frame); return; }
 
     const final = claim.letter;
     claim   = null;
@@ -836,6 +1080,7 @@ document.getElementById("btnStart").addEventListener("click", () => {
     bl.textContent = fmt(final);
     bw.classList.remove("hidden");
     say(final);
+    confetti(COLORS[colorKey]);
   })(performance.now());
 });
 
@@ -901,6 +1146,21 @@ document.getElementById("btnLeave").addEventListener("click", () => {
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible" && code && client && !connected) client.reconnect();
 });
+
+// ── Zurücknehmen ─────────────────────────────────────────────────────
+document.getElementById("btnUndo").addEventListener("click", () => {
+  const order = drawnOrder();
+  const last  = order[order.length - 1];
+  if (rolling || !last) return;
+  const msg = code ? `„${fmt(last)}“ für alle verbundenen iPads zurücknehmen?`
+                   : `„${fmt(last)}“ zurücknehmen?`;
+  if (!confirm(msg)) return;
+  undoLast();
+});
+
+// ── Effekte ein/aus ──────────────────────────────────────────────────
+document.getElementById("fxDrum").addEventListener("change", e => { fxDrum = e.target.checked; save(); });
+document.getElementById("fxConfetti").addEventListener("change", e => { fxConfetti = e.target.checked; save(); });
 
 // ── Topf-Knöpfe ──────────────────────────────────────────────────────
 document.getElementById("btnPoolAll").addEventListener("click", () => setPool(new Set(LETTERS)));
