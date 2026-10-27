@@ -130,6 +130,26 @@
     }
     #alleDone.hidden { display: none; }
     #alleDone span { font-size: .55em; font-weight: 400; margin-top: 1rem; }
+
+    #syncDot {
+      position: fixed; top: 1rem; right: 1rem;
+      width: 14px; height: 14px; border-radius: 50%;
+      border: 2px solid rgba(255,255,255,.8);
+      background: #f0a020; pointer-events: none; z-index: 9000;
+    }
+    #syncDot.on { background: #3ddc5a; }
+    #syncDot.hidden { display: none; }
+    .sbtn {
+      padding: 10px 16px; border-radius: 10px; border: none;
+      background: #1f5fa8; color: #fff; font-weight: 700; cursor: pointer;
+      align-self: flex-start;
+    }
+    .sbtn.light { background: #ddd; color: #333; }
+    .sbtn.hidden { display: none; }
+    #qrBox { display: flex; flex-direction: column; align-items: center; gap: .4rem; }
+    #qrBox.hidden { display: none; }
+    #qr { width: min(260px, 70vw); background: #fff; padding: 6px; border-radius: 10px; }
+    #qr svg { display: block; width: 100%; height: auto; }
   </style>
 </head>
 <body>
@@ -149,9 +169,10 @@
 
 <div id="alleDone" class="hidden">
   Alle Buchstaben wurden gezogen! 🎉
-  <span>Drücke „Weiter", um neu zu starten.</span>
+  <span id="alleDoneHint">Drücke „Weiter", um neu zu starten.</span>
 </div>
 
+<div id="syncDot" class="hidden"></div>
 <button id="btnWeiter" class="hidden">Weiter</button>
 <button id="btnSettings" aria-label="Einstellungen">⚙️</button>
 
@@ -173,6 +194,16 @@
       <input id="volRange" type="range" min="0.1" max="1.0" step="0.05" value="1.0"/>
       <div class="tiny" id="volVal">Lautstärke: 100 %</div>
     </div>
+    <div class="srow">
+      <span class="lbl">📡 Mehrere iPads</span>
+      <div class="tiny" id="syncStatus">Nur dieses iPad.</div>
+      <button id="btnShare" class="sbtn">Weitere iPads verbinden</button>
+      <div id="qrBox" class="hidden">
+        <div id="qr"></div>
+        <div class="tiny">Mit der Kamera eines anderen iPads scannen.</div>
+      </div>
+      <button id="btnLeave" class="sbtn light hidden">Verbindung trennen</button>
+    </div>
   </div>
 </div>
 
@@ -189,10 +220,25 @@ let current = "";
 let volume  = 1.0;
 let hintTm  = null;
 
+// Spielrunde: wird bei jedem Zurücksetzen neu vergeben, damit alle
+// verbundenen iPads erkennen, welcher Stand der neueste ist.
+let gen     = "";
+let genTs   = 0;
+let code    = "";   // Spielcode für mehrere iPads, leer = nur dieses iPad
+
+const CODE_RE = /^[a-z0-9]{6,20}$/;
+
+function randomId(n) {
+  const abc = "abcdefghjkmnpqrstuvwxyz23456789";
+  const buf = new Uint8Array(n);
+  crypto.getRandomValues(buf);
+  return Array.from(buf, b => abc[b % abc.length]).join("");
+}
+
 // ── Speichern / Laden ────────────────────────────────────────────────
 function save() {
   try {
-    localStorage.setItem(STORE_KEY, JSON.stringify({ drawn: [...drawn], volume }));
+    localStorage.setItem(STORE_KEY, JSON.stringify({ drawn: [...drawn], volume, code, gen, genTs, server: brokerIdx }));
   } catch (e) {}
 }
 
@@ -202,6 +248,10 @@ function load() {
     if (!s) return;
     if (Array.isArray(s.drawn)) drawn = new Set(s.drawn.filter(l => LETTERS.includes(l)));
     if (typeof s.volume === "number") volume = Math.min(1, Math.max(0.1, s.volume));
+    if (typeof s.code === "string" && CODE_RE.test(s.code)) code = s.code;
+    if (typeof s.gen === "string") gen = s.gen;
+    if (typeof s.genTs === "number") genTs = s.genTs;
+    if (BROKERS[s.server]) brokerIdx = s.server;
   } catch (e) {}
 }
 
@@ -264,6 +314,204 @@ function say(letter) {
   fallbackAudio = audio;
 }
 
+// ── Mehrere iPads ────────────────────────────────────────────────────
+// Alle iPads mit demselben Spielcode tauschen über einen öffentlichen
+// MQTT-Server ihren Stand aus (nur Buchstaben, keine Namen). Der Server
+// merkt sich die letzte Nachricht, so sehen neu verbundene iPads sofort
+// den aktuellen Stand. Er stellt alle Nachrichten eines Kanals in derselben
+// Reihenfolge zu: Ziehen zwei iPads gleichzeitig denselben Buchstaben,
+// gewinnt das iPad, dessen Nachricht zuerst ankam, das andere zieht neu.
+// Der Server wird beim Erstellen festgelegt und steht im QR-Code, damit
+// alle iPads eines Spiels immer denselben Server nutzen.
+const BROKERS = [
+  { name: "HiveMQ", url: "wss://broker.hivemq.com:8884/mqtt" },
+  { name: "EMQX",   url: "wss://broker.emqx.io:8084/mqtt" },
+];
+const TOPIC_PREFIX = "abcbingo-walteroelf/v1/";
+const DEVICE       = randomId(8);
+const CONFIRM_MS   = 2500;   // so lange wartet das Würfeln höchstens auf den Server
+const FAILOVER_MS  = 10000;  // beim Erstellen: danach wird der andere Server probiert
+
+let client    = null;
+let connected = false;
+let brokerIdx = 0;
+let creating  = false;  // neues Spiel, noch nie verbunden: Serverwechsel erlaubt
+let failTm    = null;
+let sawMsg    = false;
+let claim     = null;   // { letter, confirmed, ts } während des Würfelns
+
+function isOnline() { return !!(client && connected); }
+
+function loadScript(src) {
+  return new Promise((res, rej) => {
+    const s = document.createElement("script");
+    s.src = src; s.onload = res; s.onerror = rej;
+    document.head.appendChild(s);
+  });
+}
+
+let libsPromise = null;
+function loadLibs() {
+  if (!libsPromise) {
+    libsPromise = Promise.all([loadScript("lib/mqtt.min.js"), loadScript("lib/qrcode.js")])
+      .catch(e => { libsPromise = null; throw e; });
+  }
+  return libsPromise;
+}
+
+function disconnect() {
+  clearTimeout(failTm);
+  if (client) { const c = client; client = null; c.end(true); }
+  connected = false;
+}
+
+function armFailover() {
+  clearTimeout(failTm);
+  if (!creating) return;
+  failTm = setTimeout(() => {
+    if (isOnline() || !code || !creating) return;
+    brokerIdx = (brokerIdx + 1) % BROKERS.length;
+    connect();
+  }, FAILOVER_MS);
+}
+
+function connect() {
+  disconnect();
+  if (!code) { renderSync(); return; }
+  renderSync();
+  loadLibs().then(() => {
+    if (!code || client) return;
+    const b = BROKERS[brokerIdx];
+    const c = mqtt.connect(b.url, {
+      clientId: "abcb_" + DEVICE + "_" + randomId(4),
+      clean: true, keepalive: 30,
+      connectTimeout: 8000, reconnectPeriod: 4000,
+    });
+    client = c;
+    renderSync();
+    c.on("connect", () => {
+      if (c !== client) return;
+      connected = true;
+      creating  = false;
+      clearTimeout(failTm);
+      save();
+      sawMsg = false;
+      c.subscribe(TOPIC_PREFIX + code, { qos: 1 }, () => {
+        // Kein gespeicherter Stand auf dem Server? Dann ist unserer der erste.
+        setTimeout(() => { if (c === client && !sawMsg) publish(); }, 1500);
+      });
+      renderSync();
+    });
+    c.on("message", (t, m) => { if (c === client) receive(m.toString()); });
+    c.on("close", () => {
+      if (c !== client) return;
+      connected = false;
+      renderSync();
+      armFailover();
+    });
+    c.on("error", () => {});
+    armFailover();
+  }).catch(() => renderSync());
+}
+
+function publish() {
+  if (!isOnline() || !code) return;
+  const msg = { gen, genTs, drawn: [...drawn], by: DEVICE };
+  client.publish(TOPIC_PREFIX + code, JSON.stringify(msg), { qos: 1, retain: true });
+}
+
+function receive(raw) {
+  let m;
+  try { m = JSON.parse(raw); } catch (e) { return; }
+  if (!m || typeof m.gen !== "string" || typeof m.genTs !== "number" || !Array.isArray(m.drawn)) return;
+  sawMsg = true;
+  const remote = m.drawn.filter(l => LETTERS.includes(l));
+
+  if (m.gen !== gen) {
+    const newer = m.genTs > genTs || (m.genTs === genTs && m.gen > gen);
+    if (!newer) { publish(); return; }
+    // Neue Runde (anderes iPad hat zurückgesetzt) oder erstes Verbinden
+    gen = m.gen; genTs = m.genTs;
+    drawn = new Set(remote);
+    if (claim && claim.letter) {
+      if (drawn.has(claim.letter)) repick();
+      else { drawn.add(claim.letter); claim.confirmed = false; claim.ts = performance.now(); publish(); }
+    }
+    if (!rolling) resetScreens();
+  } else {
+    if (claim && claim.letter && !claim.confirmed && remote.includes(claim.letter)) {
+      if (m.by === DEVICE) claim.confirmed = true;   // unsere Nachricht kam zuerst an
+      else repick();                                 // ein anderes iPad war schneller
+    }
+    const missing = [...drawn].some(l => !remote.includes(l));
+    remote.forEach(l => drawn.add(l));
+    if (missing) publish();
+  }
+  save();
+  renderCount();
+  renderDrawn();
+}
+
+// ── Buchstaben ziehen ────────────────────────────────────────────────
+function pickLetter() {
+  const pool = LETTERS.filter(l => !drawn.has(l));
+  if (!pool.length) return null;
+  const l = pool[Math.floor(Math.random() * pool.length)];
+  drawn.add(l);
+  return l;
+}
+
+function makeClaim() {
+  const letter = pickLetter();
+  claim = { letter, confirmed: !letter || !code, ts: performance.now() };
+  save();
+  publish();
+}
+
+function repick() {
+  claim.letter    = pickLetter();
+  claim.confirmed = !claim.letter || !code;
+  claim.ts        = performance.now();
+  save();
+  publish();
+}
+
+// ── Verbinden-Bereich ────────────────────────────────────────────────
+let qrVisible = false;
+
+function shareUrl() {
+  return location.origin + location.pathname + "?spiel=" + code + "&server=" + brokerIdx;
+}
+
+function renderSync() {
+  const status = document.getElementById("syncStatus");
+  const dot    = document.getElementById("syncDot");
+  const share  = document.getElementById("btnShare");
+  const leave  = document.getElementById("btnLeave");
+  const box    = document.getElementById("qrBox");
+
+  dot.classList.toggle("hidden", !code);
+  dot.classList.toggle("on", isOnline());
+  leave.classList.toggle("hidden", !code);
+  share.textContent = !code ? "Weitere iPads verbinden"
+                    : qrVisible ? "QR-Code ausblenden" : "QR-Code zeigen";
+  document.getElementById("alleDoneHint").textContent = code
+    ? "Neues Spiel über ⚙️ → Zurücksetzen."
+    : "Drücke „Weiter\", um neu zu starten.";
+
+  if (!code) status.textContent = "Nur dieses iPad.";
+  else if (isOnline()) status.textContent = `Verbunden über ${BROKERS[brokerIdx].name} · Spiel ${code}`;
+  else status.textContent = `Keine Verbindung (Spiel ${code}). Dieses iPad zieht vorerst allein weiter.`;
+
+  box.classList.toggle("hidden", !(code && qrVisible));
+  if (code && qrVisible && window.qrcode) {
+    const qr = qrcode(0, "M");
+    qr.addData(shareUrl());
+    qr.make();
+    document.getElementById("qr").innerHTML = qr.createSvgTag({ cellSize: 6, margin: 2, scalable: true });
+  }
+}
+
 // ── Hint ─────────────────────────────────────────────────────────────
 function showHint() {
   const h = document.getElementById("repeatHint");
@@ -300,13 +548,20 @@ function renderDrawn() {
 }
 
 // ── Neues Spiel ──────────────────────────────────────────────────────
-function resetGame() {
+function resetScreens() {
   stopAudio();
-  drawn.clear(); current = "";
-  save();
+  current = "";
   document.getElementById("alleDone").classList.add("hidden");
   document.getElementById("btnWeiter").classList.add("hidden");
   show("start");
+}
+
+function resetGame() {
+  drawn.clear();
+  gen = randomId(10); genTs = Date.now();
+  save();
+  publish();
+  resetScreens();
   renderDrawn();
   renderCount();
 }
@@ -330,28 +585,38 @@ document.getElementById("btnStart").addEventListener("click", () => {
   bw.classList.add("hidden");
   bl.classList.add("rolling");
 
-  let idx = 0;
-  const t0 = performance.now();
+  // Buchstabe wird sofort reserviert; die Animation läuft weiter, bis der
+  // Server die Reservierung bestätigt hat (oder CONFIRM_MS vorbei sind).
+  makeClaim();
+
+  let idx    = 0;
+  let nextAt = ROLL_MS[0];
+  const t0   = performance.now();
   (function frame(now) {
-    if (idx < ROLL_MS.length) {
-      if (now - t0 >= ROLL_MS[idx]) {
-        bl.textContent = LETTERS[Math.floor(Math.random() * LETTERS.length)];
-        idx++;
-      }
-      requestAnimationFrame(frame);
-    } else {
-      const pool  = LETTERS.filter(l => !drawn.has(l));
-      const final = pool[Math.floor(Math.random() * pool.length)];
-      drawn.add(final);
-      save();
-      renderCount();
-      current = final;
-      bl.classList.remove("rolling");
-      bl.textContent = final;
-      rolling = false;
-      bw.classList.remove("hidden");
-      say(final);
+    const elapsed = now - t0;
+    if (elapsed >= nextAt) {
+      bl.textContent = LETTERS[Math.floor(Math.random() * LETTERS.length)];
+      idx++;
+      nextAt = idx < ROLL_MS.length ? ROLL_MS[idx] : elapsed + 120;
     }
+    const settled = !claim.letter || claim.confirmed || now - claim.ts >= CONFIRM_MS;
+    if (idx < ROLL_MS.length || !settled) { requestAnimationFrame(frame); return; }
+
+    const final = claim.letter;
+    claim   = null;
+    rolling = false;
+    bl.classList.remove("rolling");
+    renderCount();
+    if (!final) {
+      // Andere iPads haben inzwischen die letzten Buchstaben gezogen
+      document.getElementById("alleDone").classList.remove("hidden");
+      bw.classList.remove("hidden");
+      return;
+    }
+    current = final;
+    bl.textContent = final;
+    bw.classList.remove("hidden");
+    say(final);
   })(performance.now());
 });
 
@@ -375,21 +640,47 @@ document.getElementById("screenLetter").addEventListener("click", e => {
 // ── Weiter ───────────────────────────────────────────────────────────
 document.getElementById("btnWeiter").addEventListener("click", () => {
   if (rolling) return;
-  if (!document.getElementById("alleDone").classList.contains("hidden")) {
-    resetGame();
-    return;
-  }
-  stopAudio();
-  show("start");
-  document.getElementById("btnWeiter").classList.add("hidden");
-  current = "";
+  // Alle gezogen: allein startet „Weiter“ neu. Mit mehreren iPads setzt
+  // nur die Lehrkraft über ⚙️ zurück, damit keine Fee das Spiel aller beendet.
+  const done = !document.getElementById("alleDone").classList.contains("hidden");
+  if (done && !code) { resetGame(); return; }
+  resetScreens();
 });
 
 // ── Reset ────────────────────────────────────────────────────────────
 document.getElementById("btnReset").addEventListener("click", () => {
   if (rolling || !drawn.size) return;
-  if (!confirm("Zurücksetzen?")) return;
+  if (!confirm(code ? "Für alle verbundenen iPads zurücksetzen?" : "Zurücksetzen?")) return;
   resetGame();
+});
+
+// ── Mehrere iPads verbinden / trennen ────────────────────────────────
+document.getElementById("btnShare").addEventListener("click", () => {
+  if (!code) {
+    code = randomId(10);
+    brokerIdx = 0;
+    creating  = true;
+    if (!gen) { gen = randomId(10); genTs = Date.now(); }
+    save();
+    qrVisible = true;
+    connect();
+    return;
+  }
+  qrVisible = !qrVisible;
+  loadLibs().then(renderSync, renderSync);
+});
+
+document.getElementById("btnLeave").addEventListener("click", () => {
+  if (!confirm("Verbindung zu den anderen iPads trennen?")) return;
+  disconnect();
+  code = ""; qrVisible = false;
+  save();
+  renderSync();
+});
+
+// iPad aus dem Ruhezustand: sofort neu verbinden statt auf den Timer zu warten
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible" && code && client && !connected) client.reconnect();
 });
 
 // ── Drawer ───────────────────────────────────────────────────────────
@@ -421,9 +712,21 @@ document.getElementById("volRange").addEventListener("input", e => {
 
 // ── Init ─────────────────────────────────────────────────────────────
 load();
+// Per QR-Code geöffnet? Dann diesem Spiel beitreten und den Stand übernehmen.
+const params   = new URLSearchParams(location.search);
+const joinCode = params.get("spiel");
+if (joinCode && CODE_RE.test(joinCode) && joinCode !== code) {
+  code = joinCode;
+  brokerIdx = BROKERS[params.get("server")] ? Number(params.get("server")) : 0;
+  gen = ""; genTs = 0;
+  drawn.clear();
+  save();
+}
+if (joinCode !== null) history.replaceState(null, "", location.pathname);
 renderVolume();
 renderCount();
 show("start");
+connect();
 </script>
 </body>
 </html>
