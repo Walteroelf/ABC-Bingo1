@@ -193,10 +193,10 @@
     }
     .sbtn.light { background: #ddd; color: #333; }
     .sbtn.hidden { display: none; }
-    #qrBox { display: flex; flex-direction: column; align-items: center; gap: .4rem; }
-    #qrBox.hidden { display: none; }
-    #qr { width: min(260px, 70vw); background: #fff; padding: 6px; border-radius: 10px; }
-    #qr svg { display: block; width: 100%; height: auto; }
+    #qrBox, #qrBoardBox { display: flex; flex-direction: column; align-items: center; gap: .4rem; }
+    #qrBox.hidden, #qrBoardBox.hidden { display: none; }
+    #qr, #qrBoard { width: min(260px, 70vw); background: #fff; padding: 6px; border-radius: 10px; }
+    #qr svg, #qrBoard svg { display: block; width: 100%; height: auto; }
   </style>
 </head>
 <body>
@@ -280,8 +280,13 @@
       <div class="tiny" id="boardInfo">Erst „Weitere iPads verbinden“ tippen, dann gibt es hier den Link für den Beamer.</div>
       <div class="tiny hidden" id="boardLinkBox">Auf dem Beamer-Rechner öffnen: <b id="boardLink"></b></div>
       <div class="btnrow">
+        <button id="btnBoardQr" class="sbtn hidden">QR-Code für die Tafel</button>
         <button id="btnCopyBoard" class="sbtn light hidden">Link kopieren</button>
         <button id="btnBoardMode" class="sbtn light hidden">Dieses Gerät als Tafel</button>
+      </div>
+      <div id="qrBoardBox" class="hidden">
+        <div id="qrBoard"></div>
+        <div class="tiny">Mit der Kamera der Tafel scannen. Sie öffnet dann die Tafel-Ansicht.</div>
       </div>
     </div>
   </div>
@@ -593,7 +598,15 @@ function repick() {
 }
 
 // ── Verbinden-Bereich ────────────────────────────────────────────────
-let qrVisible = false;
+let qrVisible      = false;
+let qrBoardVisible = false;
+
+function renderQr(el, url) {
+  const qr = qrcode(0, "M");
+  qr.addData(url);
+  qr.make();
+  el.innerHTML = qr.createSvgTag({ cellSize: 6, margin: 2, scalable: true });
+}
 
 function shareUrl() {
   return location.origin + location.pathname + "?spiel=" + code + "&server=" + brokerIdx;
@@ -631,12 +644,13 @@ function renderSync() {
   renderBoard();
 
   box.classList.toggle("hidden", !(code && qrVisible));
-  if (code && qrVisible && window.qrcode) {
-    const qr = qrcode(0, "M");
-    qr.addData(shareUrl());
-    qr.make();
-    document.getElementById("qr").innerHTML = qr.createSvgTag({ cellSize: 6, margin: 2, scalable: true });
-  }
+  if (code && qrVisible && window.qrcode) renderQr(document.getElementById("qr"), shareUrl());
+
+  const boardQrBtn = document.getElementById("btnBoardQr");
+  boardQrBtn.classList.toggle("hidden", !code);
+  boardQrBtn.textContent = qrBoardVisible ? "QR-Code ausblenden" : "QR-Code für die Tafel";
+  document.getElementById("qrBoardBox").classList.toggle("hidden", !(code && qrBoardVisible));
+  if (code && qrBoardVisible && window.qrcode) renderQr(document.getElementById("qrBoard"), boardUrl());
 }
 
 // ── Hint ─────────────────────────────────────────────────────────────
@@ -878,7 +892,7 @@ document.getElementById("btnShare").addEventListener("click", () => {
 document.getElementById("btnLeave").addEventListener("click", () => {
   if (!confirm("Verbindung zu den anderen iPads trennen?")) return;
   disconnect();
-  code = ""; qrVisible = false;
+  code = ""; qrVisible = false; qrBoardVisible = false;
   save();
   renderSync();
 });
@@ -911,6 +925,11 @@ document.getElementById("btnCopyBoard").addEventListener("click", e => {
   };
   if (navigator.clipboard) navigator.clipboard.writeText(boardUrl()).then(() => done(true), () => done(false));
   else done(false);
+});
+
+document.getElementById("btnBoardQr").addEventListener("click", () => {
+  qrBoardVisible = !qrBoardVisible;
+  loadLibs().then(renderSync, renderSync);
 });
 
 document.getElementById("btnBoardMode").addEventListener("click", () => {
