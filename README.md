@@ -21,17 +21,14 @@ Wer zuerst alle Wörter voll hat, ruft „Bingo!“.
 
 ## Einstellungen (⚙️ unten links)
 
-| Bereich | Was es tut |
+Das Menü hat vier Reiter. Es öffnet sich mit dem Reiter, der zuletzt offen war.
+
+| Reiter | Was es dort gibt |
 |---|---|
-| Bisherige Buchstaben | Liste in Zieh-Reihenfolge, der neueste ist gelb umrandet. **Letzten zurücknehmen** (z. B. nach versehentlichem Doppeltippen) und **Zurücksetzen** (neues Spiel). |
-| Farbe dieses iPads | Gezogene Buchstaben erscheinen in dieser Farbe, auch auf der Tafel. So sieht man, welche Fee gezogen hat. |
-| Effekte | Trommelwirbel beim Würfeln und Konfetti beim Ergebnis, einzeln abschaltbar. |
-| Buchstaben im Topf | Buchstaben antippen, um sie heraus- oder hineinzunehmen. Schnellknöpfe: Alle, Keine, Ohne Q, X, Y. |
-| Schreibweise | „A“, „A a“ oder „a“, für jedes Gerät einzeln. |
-| Lautstärke | Gilt auch auf iPhone und iPad. |
-| Mehrere iPads | Siehe unten. |
-| Tafel-Ansicht | Siehe unten. |
-| Wortkarten | Öffnet den Wortkarten-Generator. |
+| 🎲 **Spiel** | Gezogene Buchstaben in Zieh-Reihenfolge (der neueste gelb umrandet), **Letzten zurücknehmen** (z. B. nach versehentlichem Doppeltippen), **Neues Spiel**. Darunter **Buchstaben im Topf**: antippen, um Buchstaben heraus- oder hineinzunehmen; Schnellknöpfe Alle, Keine, Ohne Q, X, Y. |
+| 📱 **Dieses iPad** | Gilt nur für dieses Gerät: **Farbe** (gezogene Buchstaben erscheinen in dieser Farbe, auch auf der Tafel), **Schreibweise** „A“, „A a“ oder „a“, **Lautstärke**, **Trommelwirbel** und **Konfetti** ein/aus. |
+| 📡 **Verbinden** | Mehrere iPads und die Tafel, siehe unten. Ein Punkt am Reiter zeigt den Verbindungsstatus. |
+| ➕ **Mehr** | Wortkarten-Generator und diese Anleitung. |
 
 Gezogene Buchstaben und Einstellungen bleiben beim Neuladen erhalten.
 
@@ -40,14 +37,15 @@ Gezogene Buchstaben und Einstellungen bleiben beim Neuladen erhalten.
 Mehrere Glücksfeen können gleichzeitig ziehen, ohne dass ein Buchstabe
 doppelt kommt.
 
-1. Auf einem iPad: ⚙️ → **Weitere iPads verbinden**. Es erscheint ein
-   QR-Code und ein Spielcode (z. B. `4gux pjs9 78`).
+1. Auf einem iPad: ⚙️ → Verbinden → **Gemeinsames Spiel starten**. Es
+   erscheinen groß der Spielcode (z. B. `4gux pjs9 78`) und ein QR-Code.
 2. Auf jedem weiteren iPad den QR-Code mit der Kamera scannen, **oder**
-   unter ⚙️ → Mehrere iPads den Spielcode eintippen und **Beitreten**.
+   dort unter ⚙️ → Verbinden → **Einem Spiel beitreten** den Spielcode
+   eintippen.
 3. Ein grüner Punkt oben rechts heißt „verbunden“, ein oranger
    „gerade keine Verbindung“.
 
-Gezogene Buchstaben, Topf, Farben, Zurücknehmen und Zurücksetzen gelten
+Gezogene Buchstaben, Topf, Farben, Zurücknehmen und Neues Spiel gelten
 dann für alle verbundenen Geräte. Ziehen zwei iPads im selben Moment
 denselben Buchstaben, zieht eines davon unbemerkt neu.
 
@@ -57,7 +55,7 @@ Gut zu wissen:
   Schul-WLAN testen: Wird der Punkt grün, klappt es.
 - Mit mehreren iPads setzt „Weiter“ nach dem letzten Buchstaben das Spiel
   **nicht** zurück, damit keine Fee das Spiel aller beendet. Neues Spiel
-  über ⚙️ → Zurücksetzen.
+  über ⚙️ → Spiel → **Neues Spiel**.
 - Ohne Verbindung zieht ein iPad allein weiter. Nur in diesem Fall kann
   ein Buchstabe doppelt kommen.
 
@@ -65,9 +63,10 @@ Gut zu wissen:
 
 Zeigt den zuletzt gezogenen Buchstaben ganz groß und darunter alle
 bisherigen, in der Farbe der jeweiligen Fee. Auf der Tafel wird nicht
-gewürfelt, aber man kann dort zurücksetzen und den Topf ändern.
+gewürfelt, aber man kann dort ein neues Spiel starten und den Topf ändern.
 
-Erst „Weitere iPads verbinden“ tippen, dann unter ⚙️ → Tafel-Ansicht:
+Erst ein gemeinsames Spiel starten oder beitreten, dann unter ⚙️ →
+Verbinden → Tafel-Ansicht:
 
 - **QR-Code für die Tafel** mit der Kamera der Tafel scannen, oder
 - **Link kopieren** und auf dem Beamer-Rechner öffnen, oder
@@ -92,7 +91,7 @@ festsetzen.
 
 ## Wortkarten drucken
 
-⚙️ → **Wortkarten-Generator öffnen** (oder direkt `karten.html`).
+⚙️ → Mehr → **Wortkarten-Generator öffnen** (oder direkt `karten.html`).
 
 1. Oben eine Liste wählen: fertige Wörter mit **3 bis 10 Buchstaben**,
    **Silben** (Silbenteppich MA ME MI MO MU … sowie häufige Silben und Laute
