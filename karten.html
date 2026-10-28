@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
+  <title>Wortkarten – Buchstaben-Bingo</title>
+  <link rel="manifest" href="manifest.webmanifest"/>
+  <link rel="apple-touch-icon" href="icons/icon-180.png"/>
+  <meta name="theme-color" content="#c92b2b"/>
+  <style>
+    @font-face {
+      font-family: "Andika"; font-weight: 400;
+      src: url("fonts/andika-latin-400.woff2") format("woff2");
+    }
+    @font-face {
+      font-family: "Andika"; font-weight: 700;
+      src: url("fonts/andika-latin-700.woff2") format("woff2");
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, sans-serif; background: #f6f8fa; color: #222;
+      padding: calc(1rem + env(safe-area-inset-top)) 1rem 3rem;
+    }
+    .schrift { font-family: "Andika", system-ui, sans-serif; }
+
+    /* ── Eingabe ─────────────────────────────────────────── */
+    #controls { max-width: 960px; margin: 0 auto 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
+    header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+    h1 { font-size: 1.5rem; }
+    a.back { color: #1f5fa8; font-weight: 700; text-decoration: none; }
+    .row { display: flex; flex-wrap: wrap; gap: 1rem; }
+    .box { background: #fff; border-radius: 14px; padding: 1rem; flex: 1 1 280px; display: flex; flex-direction: column; gap: .6rem; }
+    label.lbl, .lbl { font-weight: 700; }
+    textarea {
+      width: 100%; min-height: 12rem; padding: .7rem; border-radius: 10px;
+      border: 2px solid #ccc; font-size: 1.1rem; line-height: 1.5; resize: vertical;
+    }
+    .tiny { font-size: .85rem; color: #555; }
+    .warn { color: #b22222; }
+    .ok { color: #2a7d2e; }
+    .opt { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+    .opt input[type=number] { width: 4.5rem; padding: 6px 8px; border-radius: 8px; border: 2px solid #ccc; font-size: 1rem; }
+    .opt input[type=checkbox] { width: 1.3rem; height: 1.3rem; }
+    .btnrow { display: flex; flex-wrap: wrap; gap: .5rem; }
+    button {
+      padding: 10px 16px; border-radius: 10px; border: none; cursor: pointer;
+      background: #1f5fa8; color: #fff; font-weight: 700; font-size: 1rem;
+    }
+    button.light { background: #ddd; color: #333; }
+    button.print { background: #c92b2b; }
+    #letters { display: flex; flex-wrap: wrap; gap: .3rem; }
+    #letters span {
+      min-width: 1.9rem; height: 1.9rem; border-radius: 8px; display: flex;
+      align-items: center; justify-content: center; font-weight: 700;
+      background: #2a7d2e; color: #fff;
+    }
+    #letters span.off { background: #eee; color: #bbb; }
+
+    /* ── Karten ──────────────────────────────────────────── */
+    #sheet { max-width: 190mm; margin: 0 auto; background: #fff; padding: 8mm; border-radius: 6px; }
+    #cards { display: flex; flex-wrap: wrap; gap: 6mm 5mm; }
+    .card {
+      position: relative; border: 0.6mm solid #111; border-radius: 1.5mm;
+      padding: 3mm 2.5mm 2.5mm; break-inside: avoid; page-break-inside: avoid;
+    }
+    .card .word, .card .dots { display: grid; grid-auto-flow: column; grid-auto-columns: 14mm; gap: 1mm; }
+    .card .word span {
+      text-align: center; font-size: 15mm; line-height: 1.05; font-weight: 400; color: #111;
+    }
+    .card .dots span {
+      width: 13mm; height: 13mm; margin: 0 auto; border: 0.5mm solid #111; border-radius: 50%;
+    }
+    .card .tag {
+      position: absolute; top: 1mm; right: 1.8mm; font-size: 3mm; color: #777; font-family: system-ui, sans-serif;
+    }
+    #empty { color: #999; text-align: center; padding: 2rem; }
+
+    @page { size: A4; margin: 12mm; }
+    @media print {
+      body { background: #fff; padding: 0; }
+      #controls { display: none; }
+      #sheet { max-width: none; padding: 0; border-radius: 0; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="controls">
+  <header>
+    <h1>🖨️ Wortkarten für das Buchstaben-Bingo</h1>
+    <a class="back" href="./">← Zurück zum Spiel</a>
+  </header>
+
+  <div class="row">
+    <div class="box">
+      <label class="lbl" for="words">Wörter (eins pro Zeile oder mit Komma getrennt)</label>
+      <textarea id="words" class="schrift" spellcheck="false" autocapitalize="characters"></textarea>
+      <div class="tiny" id="wordInfo"></div>
+      <div class="tiny warn" id="wordWarn"></div>
+    </div>
+
+    <div class="box">
+      <span class="lbl">Einstellungen</span>
+      <div class="opt">
+        <label for="perChild">Wörter pro Kind:</label>
+        <input id="perChild" type="number" min="1" max="10" value="3"/>
+      </div>
+      <div class="opt">
+        <input id="tags" type="checkbox" checked/>
+        <label for="tags">Kartensatz-Nummer klein auf jede Karte drucken (Satz 1, Satz 2 …)</label>
+      </div>
+      <div class="opt">
+        <input id="shuffle" type="checkbox"/>
+        <label for="shuffle">Wörter zufällig auf die Kartensätze verteilen</label>
+      </div>
+      <div class="tiny" id="setInfo"></div>
+
+      <span class="lbl">Buchstaben in diesen Wörtern</span>
+      <div id="letters" class="schrift"></div>
+      <div class="tiny" id="letterInfo"></div>
+      <div class="btnrow">
+        <button id="btnPool" class="light">Nur diese Buchstaben in den Topf</button>
+      </div>
+      <div class="tiny" id="poolMsg"></div>
+
+      <div class="btnrow" style="margin-top:.4rem">
+        <button id="btnPrint" class="print">Drucken / als PDF sichern</button>
+        <button id="btnExample" class="light">Beispielwörter</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="sheet">
+  <div id="cards" class="schrift"></div>
+  <div id="empty">Noch keine Wörter eingegeben.</div>
+</div>
+
+<script>
+"use strict";
+
+const LETTERS   = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+const STORE_KEY = "abcBingo.v1";        // Spielstand der App (für den Topf)
+const KARTEN_KEY = "abcBingo.karten";   // Eingaben dieser Seite
+
+const EXAMPLE = [
+  "Apfel", "Katze", "Sonne", "Blume", "Wolke", "Handy",
+  "Stuhl", "Tisch", "Lampe", "Jacke", "Pizza", "Milch",
+].join("\n");
+
+const $ = id => document.getElementById(id);
+
+// ── Wörter lesen ─────────────────────────────────────────────────────
+function readWords() {
+  return $("words").value
+    .split(/[\n,;]+/)
+    .map(w => w.trim().replace(/\s+/g, "").toUpperCase())
+    .filter(Boolean);
+}
+
+// ── Speichern der Eingaben ───────────────────────────────────────────
+function saveInputs() {
+  try {
+    localStorage.setItem(KARTEN_KEY, JSON.stringify({
+      words: $("words").value, perChild: $("perChild").value,
+      tags: $("tags").checked, shuffle: $("shuffle").checked,
+    }));
+  } catch (e) {}
+}
+
+function loadInputs() {
+  try {
+    const s = JSON.parse(localStorage.getItem(KARTEN_KEY) || "null");
+    if (!s) { $("words").value = EXAMPLE; return; }
+    $("words").value = typeof s.words === "string" ? s.words : "";
+    if (s.perChild) $("perChild").value = s.perChild;
+    $("tags").checked = s.tags !== false;
+    $("shuffle").checked = s.shuffle === true;
+  } catch (e) { $("words").value = EXAMPLE; }
+}
+
+// ── Karten erzeugen ──────────────────────────────────────────────────
+let shuffleSeed = Math.random();
+
+function seededShuffle(arr, seed) {
+  const a = arr.slice();
+  let s = Math.floor(seed * 2 ** 31) || 1;
+  for (let i = a.length - 1; i > 0; i--) {
+    s = (s * 48271) % 2147483647;
+    const j = s % (i + 1);
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function render() {
+  const words    = readWords();
+  const perChild = Math.max(1, Math.min(10, parseInt($("perChild").value, 10) || 3));
+  const ordered  = $("shuffle").checked ? seededShuffle(words, shuffleSeed) : words;
+
+  // Hinweise zu den Wörtern
+  const lengths = [...new Set(words.map(w => w.length))].sort((a, b) => a - b);
+  const lenText = lengths.length > 1
+    ? lengths.slice(0, -1).join(", ") + " und " + lengths[lengths.length - 1]
+    : String(lengths[0]);
+  $("wordInfo").textContent = words.length
+    ? `${words.length} ${words.length === 1 ? "Wort" : "Wörter"} mit ${lenText} Buchstaben.`
+    : "";
+  const odd = words.filter(w => [...w].some(ch => !LETTERS.includes(ch)));
+  $("wordWarn").textContent = odd.length
+    ? `Achtung: ${odd.join(", ")} enthält Zeichen, die in der App nicht gezogen werden (z. B. Ä, Ö, Ü, ß). Am besten anders schreiben (AE, OE, UE, SS) oder ein anderes Wort nehmen.`
+    : "";
+
+  const sets = Math.ceil(ordered.length / perChild);
+  $("setInfo").textContent = words.length
+    ? `Das ergibt ${sets} ${sets === 1 ? "Kartensatz" : "Kartensätze"} mit je ${perChild} ${perChild === 1 ? "Wort" : "Wörtern"}` +
+      (ordered.length % perChild ? ` (der letzte hat nur ${ordered.length % perChild}).` : ".")
+    : "";
+
+  // Buchstaben-Übersicht
+  const used = new Set(words.join("").split("").filter(ch => LETTERS.includes(ch)));
+  const box = $("letters");
+  box.textContent = "";
+  LETTERS.forEach(l => {
+    const s = document.createElement("span");
+    s.textContent = l;
+    if (!used.has(l)) s.className = "off";
+    box.appendChild(s);
+  });
+  const missing = LETTERS.filter(l => !used.has(l));
+  $("letterInfo").textContent = missing.length
+    ? `${used.size} Buchstaben kommen vor. Nie gebraucht: ${missing.join(", ")}.`
+    : "Alle 26 Buchstaben kommen vor.";
+  $("btnPool").disabled = !used.size;
+
+  // Karten
+  const cards = $("cards");
+  cards.textContent = "";
+  ordered.forEach((w, i) => {
+    const card = document.createElement("div");
+    card.className = "card";
+    const word = document.createElement("div");
+    word.className = "word";
+    const dots = document.createElement("div");
+    dots.className = "dots";
+    [...w].forEach(ch => {
+      const s = document.createElement("span");
+      s.textContent = ch;
+      word.appendChild(s);
+      dots.appendChild(document.createElement("span"));
+    });
+    card.append(word, dots);
+    if ($("tags").checked) {
+      const t = document.createElement("div");
+      t.className = "tag";
+      t.textContent = "Satz " + (Math.floor(i / perChild) + 1);
+      card.appendChild(t);
+    }
+    cards.appendChild(card);
+  });
+  $("empty").style.display = ordered.length ? "none" : "";
+  saveInputs();
+}
+
+// ── Buchstaben in den Topf der App übernehmen ────────────────────────
+// Schreibt direkt in den Spielstand dieses Geräts. Ist das Gerät mit
+// anderen iPads verbunden, übernehmen diese den Topf beim nächsten Start.
+$("btnPool").addEventListener("click", () => {
+  const used = [...new Set(readWords().join("").split("").filter(ch => LETTERS.includes(ch)))];
+  try {
+    const s = JSON.parse(localStorage.getItem(STORE_KEY) || "{}") || {};
+    s.pool = LETTERS.filter(l => used.includes(l)).join("");
+    s.poolTs = Date.now();
+    localStorage.setItem(STORE_KEY, JSON.stringify(s));
+    $("poolMsg").className = "tiny ok";
+    $("poolMsg").textContent = `Erledigt: ${used.length} Buchstaben sind jetzt im Topf. Beim nächsten Öffnen des Spiels auf diesem Gerät gilt der neue Topf, auch für verbundene iPads.`;
+  } catch (e) {
+    $("poolMsg").className = "tiny warn";
+    $("poolMsg").textContent = "Das hat nicht geklappt. Bitte im Spiel unter ⚙️ → Buchstaben im Topf einstellen.";
+  }
+});
+
+$("btnPrint").addEventListener("click", () => window.print());
+$("btnExample").addEventListener("click", () => {
+  if ($("words").value.trim() && !confirm("Eingegebene Wörter durch die Beispielwörter ersetzen?")) return;
+  $("words").value = EXAMPLE;
+  render();
+});
+["words", "perChild", "tags"].forEach(id => $(id).addEventListener("input", render));
+$("tags").addEventListener("change", render);
+$("shuffle").addEventListener("change", () => { shuffleSeed = Math.random(); render(); });
+
+loadInputs();
+render();
+
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
+</script>
+</body>
+</html>

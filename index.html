@@ -4,6 +4,13 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
   <title>Buchstaben-Bingo</title>
+  <link rel="manifest" href="manifest.webmanifest"/>
+  <link rel="apple-touch-icon" href="icons/icon-180.png"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-title" content="ABC-Bingo"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="theme-color" content="#c92b2b"/>
   <style>
     /* Andika: Leselern-Schrift von SIL (OFL), unterscheidet I und l deutlich */
     @font-face {
@@ -42,7 +49,7 @@
       pointer-events: none;
     }
     #startCount {
-      position: absolute; top: 1.2rem; left: 0; right: 0;
+      position: absolute; top: calc(1.2rem + env(safe-area-inset-top)); left: 0; right: 0;
       margin-top: 0; font-size: clamp(.9rem,2.8vw,1.4rem);
     }
     #startCount.hidden { display: none; }
@@ -63,7 +70,7 @@
     body.case-both #bigLetter { font-size: clamp(8rem,30vw,34rem); }
     #bigLetter.rolling { opacity: 0.2; }
 
-    #screenBoard { background: #1d3f6e; color: #fff; justify-content: flex-start; padding: 1.2rem 1rem 6rem; }
+    #screenBoard { background: #1d3f6e; color: #fff; justify-content: flex-start; padding: calc(1.2rem + env(safe-area-inset-top)) 1rem 6rem; }
     #boardCount { font-size: clamp(1rem,2.4vw,1.8rem); opacity: .8; align-self: flex-start; }
     #boardLast {
       flex: 1; display: flex; align-items: center; justify-content: center;
@@ -90,7 +97,7 @@
     #confetti.hidden { display: none; }
 
     #btnWeiter {
-      position: fixed; right: 1rem; bottom: 1rem;
+      position: fixed; right: calc(1rem + env(safe-area-inset-right)); bottom: calc(1rem + env(safe-area-inset-bottom));
       width: clamp(80px,18vw,110px); height: clamp(80px,18vw,110px);
       border-radius: 20px;
       background: linear-gradient(180deg,#c92b2b,#8b0000);
@@ -103,7 +110,7 @@
     #btnWeiter.hidden { display: none; }
 
     #btnSettings {
-      position: fixed; left: 1rem; bottom: 1rem;
+      position: fixed; left: calc(1rem + env(safe-area-inset-left)); bottom: calc(1rem + env(safe-area-inset-bottom));
       width: clamp(64px,14vw,84px); height: clamp(64px,14vw,84px);
       border-radius: 16px; background: rgba(0,0,0,.3);
       color: #fff; border: 3px solid rgba(255,255,255,.3);
@@ -131,7 +138,7 @@
     #drawerInner {
       width: 100%; background: #f6f8fa;
       border-radius: 22px 22px 0 0;
-      padding: 1.4rem 1.4rem 2.6rem;
+      padding: 1.4rem 1.4rem calc(2.6rem + env(safe-area-inset-bottom));
       display: flex; flex-direction: column; gap: 1.2rem;
       max-height: 82vh; overflow-y: auto;
     }
@@ -200,7 +207,7 @@
     #alleDone span { font-size: .55em; font-weight: 400; margin-top: 1rem; }
 
     #syncDot {
-      position: fixed; top: 1rem; right: 1rem;
+      position: fixed; top: calc(1rem + env(safe-area-inset-top)); right: calc(1rem + env(safe-area-inset-right));
       width: 14px; height: 14px; border-radius: 50%;
       border: 2px solid rgba(255,255,255,.8);
       background: #f0a020; pointer-events: none; z-index: 9000;
@@ -214,6 +221,15 @@
     }
     .sbtn.light { background: #ddd; color: #333; }
     .sbtn.hidden { display: none; }
+    a.sbtn { text-decoration: none; display: inline-block; }
+    #joinBox { display: flex; flex-direction: column; gap: .4rem; }
+    #joinBox.hidden { display: none; }
+    #joinInput {
+      flex: 1; min-width: 10rem; padding: 10px 12px; border-radius: 10px;
+      border: 2px solid #ccc; font-size: 1.1rem; letter-spacing: .08em;
+      -webkit-user-select: text; user-select: text;
+    }
+    #joinError { color: #b22222; }
     #qrBox, #qrBoardBox { display: flex; flex-direction: column; align-items: center; gap: .4rem; }
     #qrBox.hidden, #qrBoardBox.hidden { display: none; }
     #qr, #qrBoard { width: min(260px, 70vw); background: #fff; padding: 6px; border-radius: 10px; }
@@ -310,6 +326,19 @@
         <div class="tiny">Mit der Kamera eines anderen iPads scannen.</div>
       </div>
       <button id="btnLeave" class="sbtn light hidden">Verbindung trennen</button>
+      <div id="joinBox">
+        <div class="tiny">Oder den Spielcode eines anderen iPads eingeben. Das ist nötig, wenn die App vom Home-Bildschirm läuft, denn die Kamera öffnet QR-Codes in Safari.</div>
+        <div class="btnrow">
+          <input id="joinInput" type="text" inputmode="latin" autocapitalize="off" autocomplete="off" spellcheck="false" placeholder="Spielcode"/>
+          <button id="btnJoin" class="sbtn">Beitreten</button>
+        </div>
+        <div class="tiny hidden" id="joinError">Diesen Code kenne ich nicht. Er steht auf dem anderen iPad unter ⚙️ → Mehrere iPads.</div>
+      </div>
+    </div>
+    <div class="srow">
+      <span class="lbl">🖨️ Wortkarten</span>
+      <div class="tiny">Bingo-Karten aus eigenen Wörtern erstellen und drucken.</div>
+      <a class="sbtn light" href="karten.html">Wortkarten-Generator öffnen</a>
     </div>
     <div class="srow" id="boardRow">
       <span class="lbl">🖥️ Tafel-Ansicht (Beamer)</span>
@@ -804,6 +833,43 @@ function shareUrl() {
 
 function boardUrl() { return shareUrl() + "&tafel=1"; }
 
+// Spielcode zum Abtippen: in Vierergruppen, Server 2 mit „-2“ am Ende
+function displayCode() {
+  return code.replace(/(.{4})(?=.)/g, "$1 ") + (brokerIdx ? "-" + (brokerIdx + 1) : "");
+}
+
+// Liest einen abgetippten Code oder einen eingefügten Link → { code, server, board }
+function parseJoin(text) {
+  const t = text.trim();
+  if (t.includes("spiel=")) {
+    try {
+      const p = new URL(t, location.href).searchParams;
+      const c = p.get("spiel");
+      if (c && CODE_RE.test(c)) {
+        return { code: c, server: BROKERS[p.get("server")] ? Number(p.get("server")) : 0, board: p.get("tafel") === "1" };
+      }
+    } catch (e) {}
+    return null;
+  }
+  const m = t.toLowerCase().replace(/\s+/g, "").match(/^([a-z0-9]{6,20})(?:-([1-9]))?$/);
+  if (!m) return null;
+  const server = m[2] ? Number(m[2]) - 1 : 0;
+  return BROKERS[server] ? { code: m[1], server, board: false } : null;
+}
+
+function joinGame(j) {
+  if (j.code !== code) {
+    disconnect();
+    code = j.code;
+    brokerIdx = j.server;
+    gen = ""; genTs = 0;
+    drawn.clear(); colors = {}; owners = {};
+    pool = new Set(LETTERS); poolTs = 0;
+  }
+  if (j.board) boardMode = true;
+  save();
+}
+
 function renderSync() {
   const status = document.getElementById("syncStatus");
   const dot    = document.getElementById("syncDot");
@@ -821,8 +887,9 @@ function renderSync() {
     : "Drücke „Weiter\", um neu zu starten.";
 
   if (!code) status.textContent = "Nur dieses iPad.";
-  else if (isOnline()) status.textContent = `Verbunden über ${BROKERS[brokerIdx].name} · Spiel ${code}`;
-  else status.textContent = `Keine Verbindung (Spiel ${code}). Dieses iPad zieht vorerst allein weiter.`;
+  else if (isOnline()) status.textContent = `Verbunden über ${BROKERS[brokerIdx].name} · Spielcode: ${displayCode()}`;
+  else status.textContent = `Keine Verbindung (Spielcode: ${displayCode()}). Dieses iPad zieht vorerst allein weiter.`;
+  document.getElementById("joinBox").classList.toggle("hidden", !!code);
 
   document.getElementById("boardInfo").classList.toggle("hidden", !!code || boardMode);
   document.getElementById("boardLinkBox").classList.toggle("hidden", !code);
@@ -1142,6 +1209,22 @@ document.getElementById("btnLeave").addEventListener("click", () => {
   renderSync();
 });
 
+document.getElementById("btnJoin").addEventListener("click", () => {
+  const input = document.getElementById("joinInput");
+  const j = parseJoin(input.value);
+  document.getElementById("joinError").classList.toggle("hidden", !!j);
+  if (!j) return;
+  input.value = "";
+  joinGame(j);
+  resetScreens();
+  renderAll();
+  connect();
+});
+
+document.getElementById("joinInput").addEventListener("keydown", e => {
+  if (e.key === "Enter") document.getElementById("btnJoin").click();
+});
+
 // iPad aus dem Ruhezustand: sofort neu verbinden statt auf den Timer zu warten
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible" && code && client && !connected) client.reconnect();
@@ -1231,22 +1314,18 @@ document.getElementById("volRange").addEventListener("input", e => {
 // ── Init ─────────────────────────────────────────────────────────────
 load();
 // Per QR-Code geöffnet? Dann diesem Spiel beitreten und den Stand übernehmen.
-const params   = new URLSearchParams(location.search);
-const joinCode = params.get("spiel");
-if (joinCode && CODE_RE.test(joinCode) && joinCode !== code) {
-  code = joinCode;
-  brokerIdx = BROKERS[params.get("server")] ? Number(params.get("server")) : 0;
-  gen = ""; genTs = 0;
-  drawn.clear();
-  pool = new Set(LETTERS); poolTs = 0;
-  save();
+if (location.search.includes("spiel=")) {
+  const j = parseJoin(location.href);
+  if (j) joinGame(j);
+  history.replaceState(null, "", location.pathname);
 }
-if (joinCode && params.get("tafel") === "1") { boardMode = true; save(); }
-if (joinCode !== null) history.replaceState(null, "", location.pathname);
 renderVolume();
 renderAll();
 show(boardMode ? "board" : "start");
 connect();
+
+// Offline-Speicher für die App auf dem Home-Bildschirm
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
 </script>
 </body>
 </html>
