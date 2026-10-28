@@ -23,31 +23,53 @@
     }
     .schrift { font-family: "Andika", system-ui, sans-serif; }
 
-    /* ── Eingabe ─────────────────────────────────────────── */
+    /* ── Auswahl ─────────────────────────────────────────── */
     #controls { max-width: 960px; margin: 0 auto 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
     header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
     h1 { font-size: 1.5rem; }
     a.back { color: #1f5fa8; font-weight: 700; text-decoration: none; }
-    .row { display: flex; flex-wrap: wrap; gap: 1rem; }
-    .box { background: #fff; border-radius: 14px; padding: 1rem; flex: 1 1 280px; display: flex; flex-direction: column; gap: .6rem; }
-    label.lbl, .lbl { font-weight: 700; }
-    textarea {
-      width: 100%; min-height: 12rem; padding: .7rem; border-radius: 10px;
-      border: 2px solid #ccc; font-size: 1.1rem; line-height: 1.5; resize: vertical;
-    }
+    .box { background: #fff; border-radius: 14px; padding: 1rem; display: flex; flex-direction: column; gap: .7rem; }
+    .lbl { font-weight: 700; }
     .tiny { font-size: .85rem; color: #555; }
     .warn { color: #b22222; }
     .ok { color: #2a7d2e; }
-    .opt { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
-    .opt input[type=number] { width: 4.5rem; padding: 6px 8px; border-radius: 8px; border: 2px solid #ccc; font-size: 1rem; }
-    .opt input[type=checkbox] { width: 1.3rem; height: 1.3rem; }
-    .btnrow { display: flex; flex-wrap: wrap; gap: .5rem; }
-    button {
+
+    #tabs { display: flex; flex-wrap: wrap; gap: .4rem; }
+    #tabs button {
+      padding: 8px 12px; border-radius: 10px; border: 2px solid #1f5fa8;
+      background: #fff; color: #1f5fa8; font-weight: 700; font-size: 1rem; cursor: pointer;
+    }
+    #tabs button.on { background: #1f5fa8; color: #fff; }
+    #tabs button .n {
+      display: inline-block; min-width: 1.4em; margin-left: .35em; padding: 0 .3em;
+      border-radius: 6px; background: #f0c020; color: #222; font-size: .8em;
+    }
+    #tabs button .n:empty { display: none; }
+
+    .chips { display: flex; flex-wrap: wrap; gap: .4rem; }
+    .chips button {
+      padding: 6px 10px; border-radius: 9px; border: 2px solid #ccc;
+      background: #fff; color: #555; font-size: 1.05rem; cursor: pointer; letter-spacing: .04em;
+    }
+    .chips button.on { background: #2a7d2e; border-color: #2a7d2e; color: #fff; }
+    .group { display: flex; flex-direction: column; gap: .3rem; }
+    #panel.sylgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: .7rem 1rem; }
+    #panel.sylgrid .group.wide { grid-column: 1 / -1; }
+    .group .tiny { font-weight: 700; }
+
+    .btnrow { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+    button.act {
       padding: 10px 16px; border-radius: 10px; border: none; cursor: pointer;
       background: #1f5fa8; color: #fff; font-weight: 700; font-size: 1rem;
     }
-    button.light { background: #ddd; color: #333; }
-    button.print { background: #c92b2b; }
+    button.act.light { background: #ddd; color: #333; }
+    button.act.print { background: #c92b2b; }
+    input[type=number] { width: 4.5rem; padding: 7px 8px; border-radius: 8px; border: 2px solid #ccc; font-size: 1rem; }
+    textarea {
+      width: 100%; min-height: 9rem; padding: .7rem; border-radius: 10px;
+      border: 2px solid #ccc; font-size: 1.1rem; line-height: 1.5; resize: vertical;
+    }
+
     #letters { display: flex; flex-wrap: wrap; gap: .3rem; }
     #letters span {
       min-width: 1.9rem; height: 1.9rem; border-radius: 8px; display: flex;
@@ -60,18 +82,13 @@
     #sheet { max-width: 190mm; margin: 0 auto; background: #fff; padding: 8mm; border-radius: 6px; }
     #cards { display: flex; flex-wrap: wrap; gap: 6mm 5mm; }
     .card {
-      position: relative; border: 0.6mm solid #111; border-radius: 1.5mm;
+      border: 0.6mm solid #111; border-radius: 1.5mm;
       padding: 3mm 2.5mm 2.5mm; break-inside: avoid; page-break-inside: avoid;
     }
     .card .word, .card .dots { display: grid; grid-auto-flow: column; grid-auto-columns: 14mm; gap: 1mm; }
-    .card .word span {
-      text-align: center; font-size: 15mm; line-height: 1.05; font-weight: 400; color: #111;
-    }
+    .card .word span { text-align: center; font-size: 15mm; line-height: 1.05; color: #111; }
     .card .dots span {
       width: 13mm; height: 13mm; margin: 0 auto; border: 0.5mm solid #111; border-radius: 50%;
-    }
-    .card .tag {
-      position: absolute; top: 1mm; right: 1.8mm; font-size: 3mm; color: #777; font-family: system-ui, sans-serif;
     }
     #empty { color: #999; text-align: center; padding: 2rem; }
 
@@ -91,133 +108,261 @@
     <a class="back" href="./">← Zurück zum Spiel</a>
   </header>
 
-  <div class="row">
-    <div class="box">
-      <label class="lbl" for="words">Wörter (eins pro Zeile oder mit Komma getrennt)</label>
-      <textarea id="words" class="schrift" spellcheck="false" autocapitalize="characters"></textarea>
-      <div class="tiny" id="wordInfo"></div>
-      <div class="tiny warn" id="wordWarn"></div>
+  <div class="box">
+    <span class="lbl">1. Wörter und Silben auswählen</span>
+    <div class="tiny">Antippen wählt ein Wort aus oder ab. „Zufällig“ zieht jedes Mal eine neue Auswahl, so wechseln die Karten von Spiel zu Spiel.</div>
+    <div id="tabs"></div>
+    <div id="panel"></div>
+    <div class="btnrow" id="panelBtns">
+      <button class="act" id="btnRandom">Zufällig</button>
+      <input id="randomN" type="number" min="1" max="40" value="6" aria-label="Anzahl"/>
+      <span class="tiny" id="randomLbl">aus dieser Liste</span>
+      <button class="act light" id="btnAll">Alle</button>
+      <button class="act light" id="btnNone">Keine</button>
+    </div>
+  </div>
+
+  <div class="box">
+    <span class="lbl">2. Drucken</span>
+    <div class="tiny" id="summary"></div>
+    <div class="tiny warn" id="wordWarn"></div>
+    <div class="btnrow">
+      <label for="copies">Jede Karte</label>
+      <input id="copies" type="number" min="1" max="10" value="1"/>
+      <label for="copies">× drucken</label>
+    </div>
+    <div class="btnrow">
+      <button class="act print" id="btnPrint">Drucken / als PDF sichern</button>
+      <button class="act light" id="btnShuffle">Reihenfolge neu mischen</button>
+      <button class="act light" id="btnClear">Ganze Auswahl leeren</button>
     </div>
 
-    <div class="box">
-      <span class="lbl">Einstellungen</span>
-      <div class="opt">
-        <label for="perChild">Wörter pro Kind:</label>
-        <input id="perChild" type="number" min="1" max="10" value="3"/>
-      </div>
-      <div class="opt">
-        <input id="tags" type="checkbox" checked/>
-        <label for="tags">Kartensatz-Nummer klein auf jede Karte drucken (Satz 1, Satz 2 …)</label>
-      </div>
-      <div class="opt">
-        <input id="shuffle" type="checkbox"/>
-        <label for="shuffle">Wörter zufällig auf die Kartensätze verteilen</label>
-      </div>
-      <div class="tiny" id="setInfo"></div>
-
-      <span class="lbl">Buchstaben in diesen Wörtern</span>
-      <div id="letters" class="schrift"></div>
-      <div class="tiny" id="letterInfo"></div>
-      <div class="btnrow">
-        <button id="btnPool" class="light">Nur diese Buchstaben in den Topf</button>
-      </div>
-      <div class="tiny" id="poolMsg"></div>
-
-      <div class="btnrow" style="margin-top:.4rem">
-        <button id="btnPrint" class="print">Drucken / als PDF sichern</button>
-        <button id="btnExample" class="light">Beispielwörter</button>
-      </div>
+    <span class="lbl" style="margin-top:.4rem">Buchstaben auf diesen Karten</span>
+    <div id="letters" class="schrift"></div>
+    <div class="tiny" id="letterInfo"></div>
+    <div class="btnrow">
+      <button class="act light" id="btnPool">Nur diese Buchstaben in den Topf</button>
     </div>
+    <div class="tiny" id="poolMsg"></div>
   </div>
 </div>
 
 <div id="sheet">
   <div id="cards" class="schrift"></div>
-  <div id="empty">Noch keine Wörter eingegeben.</div>
+  <div id="empty">Noch nichts ausgewählt.</div>
 </div>
 
 <script>
 "use strict";
 
-const LETTERS   = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
-const STORE_KEY = "abcBingo.v1";        // Spielstand der App (für den Topf)
-const KARTEN_KEY = "abcBingo.karten";   // Eingaben dieser Seite
+const LETTERS    = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+const STORE_KEY  = "abcBingo.v1";        // Spielstand der App (für den Topf)
+const KARTEN_KEY = "abcBingo.karten2";   // Auswahl auf dieser Seite
 
-const EXAMPLE = [
-  "Apfel", "Katze", "Sonne", "Blume", "Wolke", "Handy",
-  "Stuhl", "Tisch", "Lampe", "Jacke", "Pizza", "Milch",
-].join("\n");
+// ── Wortlisten (ohne Ä, Ö, Ü, ß, weil die App diese nicht zieht) ──────
+const WORDS = {
+  3: "OMA OPA EIS ARM BUS HUT TOR ZOO AST BAD OHR REH KUH ZUG TAG TEE SEE HAI HOF RAD TAL UHU EMU FEE",
+  4: "AUTO BALL BAUM BOOT BROT BUCH DACH ENTE ESEL HAUS HUND IGEL KIND LAMM MAUS MOND NASE NEST OFEN RABE " +
+     "ROSE SAND SOFA TOPF WURM ZAUN HAND KOPF BETT EULE HOSE GANS RING ZAHN",
+  5: "APFEL KATZE SONNE BLUME WOLKE HANDY STUHL TISCH LAMPE JACKE PIZZA MILCH SALAT MARKT PFERD VOGEL " +
+     "ZEBRA RATTE FLUSS BLATT WIESE AUGEN HAARE BAUCH RADIO PUPPE KREIS GABEL MONAT FISCH BIRNE TIGER SCHAF NUDEL",
+  6: "BANANE TOMATE KUCHEN GARTEN HIMMEL SCHULE ZIMMER PINSEL BRILLE FLIEGE HUMMEL SCHIFF ROLLER KISSEN " +
+     "MANTEL SPINNE TASCHE HAMMER RAKETE KAMERA SCHERE LEITER WINTER SOMMER BAGGER DRACHE",
+  7: "FENSTER SCHRANK GIRAFFE STIEFEL PFLANZE LATERNE SCHLOSS TEPPICH STRASSE ELEFANT MONSTER PAPAGEI " +
+     "TELEFON SPIEGEL DRUCKER ZEITUNG KAROTTE ZWIEBEL PAPRIKA JOGHURT KETCHUP POPCORN LEOPARD HAMSTER " +
+     "LIBELLE BAHNHOF AUFGABE ANTWORT FLASCHE TABELLE ZITRONE PINGUIN",
+  8: "SCHNECKE KROKODIL DINOSAUR ERDBEERE FLUGZEUG TROMPETE SCHAUKEL FUSSBALL HANDTUCH ZAHNARZT SCHAUFEL " +
+     "KASTANIE EICHHORN POLIZIST SCHLANGE KRAWATTE GESCHENK ZAUBERER SEESTERN MITTWOCH SANDBURG SCHULHOF",
+  9: "KARTOFFEL BLEISTIFT FEUERWEHR MANDARINE REGENWURM SCHLITTEN SPIELZEUG DACHBODEN PANTOFFEL ROLLSCHUH " +
+     "APFELBAUM SONNENHUT OSTERHASE KUGELBAHN GOLDFISCH ZAHNPASTA BUNTSTIFT MARMELADE SCHWESTER BAUERNHOF FEUERWERK",
+  10: "REGENBOGEN TANNENBAUM LUFTBALLON SCHOKOLADE PRINZESSIN FLEDERMAUS SCHNEEMANN BRIEFMARKE KIRSCHBAUM " +
+      "WASSERHAHN SCHWIMMBAD KAULQUAPPE GEBURTSTAG STRANDKORB BILDERBUCH RITTERBURG SPIELPLATZ",
+};
+for (const k in WORDS) WORDS[k] = WORDS[k].split(" ");
+
+// Silben: Silbenteppich (Mitlaut + Selbstlaut) und häufige Silben/Laute
+const VOWELS = ["A", "E", "I", "O", "U"];
+const SYL_CONSONANTS = "M L S R N T B D F H K P W Z G".split(" ");
+const SYL_OPEN   = SYL_CONSONANTS.map(c => VOWELS.map(v => c + v));
+const SYL_COMMON = "EN ER EL AN IN UN EI AU EU IE SCH CH ST SP PF QU".split(" ");
+const SYLLABLES  = [...SYL_OPEN.flat(), ...SYL_COMMON];
+
+const TABS = [
+  ...Object.keys(WORDS).map(n => ({ id: "w" + n, label: n + " Buchst.", items: WORDS[n] })),
+  { id: "syl", label: "Silben", items: SYLLABLES },
+  { id: "own", label: "Eigene", items: null },
+];
 
 const $ = id => document.getElementById(id);
 
-// ── Wörter lesen ─────────────────────────────────────────────────────
-function readWords() {
-  return $("words").value
-    .split(/[\n,;]+/)
-    .map(w => w.trim().replace(/\s+/g, "").toUpperCase())
-    .filter(Boolean);
+// ── Zustand ──────────────────────────────────────────────────────────
+let selected = new Set();   // ausgewählte Wörter/Silben aus den Listen
+let ownText  = "";          // eigene Wörter (Textfeld)
+let tabId    = "w5";
+let copies   = 1;
+let order    = {};          // Karte → Zufallszahl für die Reihenfolge
+
+function ownWords() {
+  return ownText.split(/[\n,;]+/).map(w => w.trim().replace(/\s+/g, "").toUpperCase()).filter(Boolean);
 }
 
-// ── Speichern der Eingaben ───────────────────────────────────────────
-function saveInputs() {
+function allCards() {
+  const lists = TABS.filter(t => t.items).flatMap(t => t.items.filter(w => selected.has(w)));
+  return [...new Set([...lists, ...ownWords()])];
+}
+
+function save() {
   try {
-    localStorage.setItem(KARTEN_KEY, JSON.stringify({
-      words: $("words").value, perChild: $("perChild").value,
-      tags: $("tags").checked, shuffle: $("shuffle").checked,
-    }));
+    localStorage.setItem(KARTEN_KEY, JSON.stringify({ selected: [...selected], ownText, tabId, copies }));
   } catch (e) {}
 }
 
-function loadInputs() {
+function load() {
   try {
     const s = JSON.parse(localStorage.getItem(KARTEN_KEY) || "null");
-    if (!s) { $("words").value = EXAMPLE; return; }
-    $("words").value = typeof s.words === "string" ? s.words : "";
-    if (s.perChild) $("perChild").value = s.perChild;
-    $("tags").checked = s.tags !== false;
-    $("shuffle").checked = s.shuffle === true;
-  } catch (e) { $("words").value = EXAMPLE; }
+    if (!s) {
+      // Beim ersten Öffnen: sechs zufällige Wörter mit 5 Buchstaben
+      pickRandom(WORDS[5], 6);
+      return;
+    }
+    if (Array.isArray(s.selected)) selected = new Set(s.selected.filter(w => typeof w === "string"));
+    if (typeof s.ownText === "string") ownText = s.ownText;
+    if (TABS.some(t => t.id === s.tabId)) tabId = s.tabId;
+    if (s.copies >= 1 && s.copies <= 10) copies = s.copies;
+  } catch (e) {}
 }
 
-// ── Karten erzeugen ──────────────────────────────────────────────────
-let shuffleSeed = Math.random();
+function shuffleOrder() {
+  order = {};
+}
 
-function seededShuffle(arr, seed) {
-  const a = arr.slice();
-  let s = Math.floor(seed * 2 ** 31) || 1;
-  for (let i = a.length - 1; i > 0; i--) {
-    s = (s * 48271) % 2147483647;
-    const j = s % (i + 1);
-    [a[i], a[j]] = [a[j], a[i]];
+function rank(w) {
+  if (!(w in order)) order[w] = Math.random();
+  return order[w];
+}
+
+function pickRandom(items, n) {
+  items.forEach(w => selected.delete(w));
+  const pool = items.slice();
+  for (let i = 0; i < Math.min(n, pool.length); i++) {
+    const j = i + Math.floor(Math.random() * (pool.length - i));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+    selected.add(pool[i]);
   }
-  return a;
 }
 
-function render() {
-  const words    = readWords();
-  const perChild = Math.max(1, Math.min(10, parseInt($("perChild").value, 10) || 3));
-  const ordered  = $("shuffle").checked ? seededShuffle(words, shuffleSeed) : words;
+// ── Anzeige: Reiter und Liste ────────────────────────────────────────
+function currentTab() { return TABS.find(t => t.id === tabId); }
 
-  // Hinweise zu den Wörtern
-  const lengths = [...new Set(words.map(w => w.length))].sort((a, b) => a - b);
-  const lenText = lengths.length > 1
-    ? lengths.slice(0, -1).join(", ") + " und " + lengths[lengths.length - 1]
-    : String(lengths[0]);
-  $("wordInfo").textContent = words.length
-    ? `${words.length} ${words.length === 1 ? "Wort" : "Wörter"} mit ${lenText} Buchstaben.`
-    : "";
+function renderTabs() {
+  const box = $("tabs");
+  box.textContent = "";
+  TABS.forEach(t => {
+    const b = document.createElement("button");
+    b.className = t.id === tabId ? "on" : "";
+    b.textContent = t.label;
+    const n = document.createElement("span");
+    n.className = "n";
+    const count = t.items ? t.items.filter(w => selected.has(w)).length : ownWords().length;
+    n.textContent = count || "";
+    b.appendChild(n);
+    b.addEventListener("click", () => { tabId = t.id; save(); renderAll(); });
+    box.appendChild(b);
+  });
+}
+
+function chip(w) {
+  const b = document.createElement("button");
+  b.textContent = w;
+  b.className = selected.has(w) ? "on" : "";
+  b.addEventListener("click", () => {
+    if (selected.has(w)) selected.delete(w); else selected.add(w);
+    save(); renderAll();
+  });
+  return b;
+}
+
+function renderPanel() {
+  const panel = $("panel");
+  const t = currentTab();
+  panel.textContent = "";
+  $("panelBtns").style.display = t.items ? "" : "none";
+
+  if (!t.items) {
+    const ta = document.createElement("textarea");
+    ta.className = "schrift";
+    ta.spellcheck = false;
+    ta.placeholder = "Eigene Wörter, eins pro Zeile oder mit Komma getrennt";
+    ta.value = ownText;
+    ta.addEventListener("input", () => { ownText = ta.value; save(); renderCardsAndInfo(); renderTabs(); });
+    panel.appendChild(ta);
+    return;
+  }
+
+  panel.className = t.id === "syl" ? "sylgrid" : "";
+  if (t.id === "syl") {
+    const mk = (title, items, wide) => {
+      const g = document.createElement("div");
+      g.className = "group" + (wide ? " wide" : "");
+      const h = document.createElement("div");
+      h.className = "tiny"; h.textContent = title;
+      const c = document.createElement("div");
+      c.className = "chips schrift";
+      items.forEach(w => c.appendChild(chip(w)));
+      g.append(h, c);
+      panel.appendChild(g);
+    };
+    SYL_OPEN.forEach((row, i) => mk(`Mit ${SYL_CONSONANTS[i]}`, row));
+    mk("Häufige Silben und Laute", SYL_COMMON, true);
+  } else {
+    const c = document.createElement("div");
+    c.className = "chips schrift";
+    t.items.forEach(w => c.appendChild(chip(w)));
+    panel.appendChild(c);
+  }
+  $("randomN").max = t.items.length;
+}
+
+// ── Anzeige: Karten und Hinweise ─────────────────────────────────────
+function renderCardsAndInfo() {
+  const words = allCards();
+
+  // Sortiert nach Länge (so passen kurze Karten dicht nebeneinander),
+  // innerhalb einer Länge zufällig gemischt.
+  const sorted = words.slice().sort((a, b) => a.length - b.length || rank(a) - rank(b));
+  const cards = $("cards");
+  cards.textContent = "";
+  sorted.forEach(w => {
+    for (let k = 0; k < copies; k++) {
+      const card = document.createElement("div");
+      card.className = "card";
+      const word = document.createElement("div");
+      word.className = "word";
+      const dots = document.createElement("div");
+      dots.className = "dots";
+      [...w].forEach(ch => {
+        const s = document.createElement("span");
+        s.textContent = ch;
+        word.appendChild(s);
+        dots.appendChild(document.createElement("span"));
+      });
+      card.append(word, dots);
+      cards.appendChild(card);
+    }
+  });
+  $("empty").style.display = words.length ? "none" : "";
+
+  const total = words.length * copies;
+  $("summary").textContent = words.length
+    ? `${words.length} verschiedene ${words.length === 1 ? "Karte" : "Karten"}` +
+      (copies > 1 ? `, je ${copies}× gedruckt = ${total} Karten.` : ".")
+    : "Noch nichts ausgewählt.";
+
   const odd = words.filter(w => [...w].some(ch => !LETTERS.includes(ch)));
   $("wordWarn").textContent = odd.length
     ? `Achtung: ${odd.join(", ")} enthält Zeichen, die in der App nicht gezogen werden (z. B. Ä, Ö, Ü, ß). Am besten anders schreiben (AE, OE, UE, SS) oder ein anderes Wort nehmen.`
     : "";
 
-  const sets = Math.ceil(ordered.length / perChild);
-  $("setInfo").textContent = words.length
-    ? `Das ergibt ${sets} ${sets === 1 ? "Kartensatz" : "Kartensätze"} mit je ${perChild} ${perChild === 1 ? "Wort" : "Wörtern"}` +
-      (ordered.length % perChild ? ` (der letzte hat nur ${ordered.length % perChild}).` : ".")
-    : "";
-
-  // Buchstaben-Übersicht
   const used = new Set(words.join("").split("").filter(ch => LETTERS.includes(ch)));
   const box = $("letters");
   box.textContent = "";
@@ -228,45 +373,45 @@ function render() {
     box.appendChild(s);
   });
   const missing = LETTERS.filter(l => !used.has(l));
-  $("letterInfo").textContent = missing.length
-    ? `${used.size} Buchstaben kommen vor. Nie gebraucht: ${missing.join(", ")}.`
+  $("letterInfo").textContent = !used.size ? ""
+    : missing.length ? `${used.size} Buchstaben kommen vor. Nie gebraucht: ${missing.join(", ")}.`
     : "Alle 26 Buchstaben kommen vor.";
   $("btnPool").disabled = !used.size;
-
-  // Karten
-  const cards = $("cards");
-  cards.textContent = "";
-  ordered.forEach((w, i) => {
-    const card = document.createElement("div");
-    card.className = "card";
-    const word = document.createElement("div");
-    word.className = "word";
-    const dots = document.createElement("div");
-    dots.className = "dots";
-    [...w].forEach(ch => {
-      const s = document.createElement("span");
-      s.textContent = ch;
-      word.appendChild(s);
-      dots.appendChild(document.createElement("span"));
-    });
-    card.append(word, dots);
-    if ($("tags").checked) {
-      const t = document.createElement("div");
-      t.className = "tag";
-      t.textContent = "Satz " + (Math.floor(i / perChild) + 1);
-      card.appendChild(t);
-    }
-    cards.appendChild(card);
-  });
-  $("empty").style.display = ordered.length ? "none" : "";
-  saveInputs();
+  $("copies").value = copies;
 }
 
-// ── Buchstaben in den Topf der App übernehmen ────────────────────────
-// Schreibt direkt in den Spielstand dieses Geräts. Ist das Gerät mit
-// anderen iPads verbunden, übernehmen diese den Topf beim nächsten Start.
+function renderAll() {
+  renderTabs();
+  renderPanel();
+  renderCardsAndInfo();
+}
+
+// ── Knöpfe ───────────────────────────────────────────────────────────
+$("btnRandom").addEventListener("click", () => {
+  const t = currentTab();
+  const n = Math.max(1, Math.min(t.items.length, parseInt($("randomN").value, 10) || 6));
+  pickRandom(t.items, n);
+  shuffleOrder();
+  save(); renderAll();
+});
+$("btnAll").addEventListener("click", () => { currentTab().items.forEach(w => selected.add(w)); save(); renderAll(); });
+$("btnNone").addEventListener("click", () => { currentTab().items.forEach(w => selected.delete(w)); save(); renderAll(); });
+$("btnShuffle").addEventListener("click", () => { shuffleOrder(); renderCardsAndInfo(); });
+$("btnClear").addEventListener("click", () => {
+  if (!confirm("Alle ausgewählten Wörter und Silben abwählen und eigene Wörter löschen?")) return;
+  selected.clear(); ownText = ""; save(); renderAll();
+});
+$("copies").addEventListener("input", e => {
+  const v = parseInt(e.target.value, 10);
+  if (v >= 1 && v <= 10) { copies = v; save(); renderCardsAndInfo(); }
+});
+$("btnPrint").addEventListener("click", () => window.print());
+
+// Buchstaben in den Topf der App übernehmen. Schreibt direkt in den
+// Spielstand dieses Geräts; verbundene iPads übernehmen den Topf beim
+// nächsten Öffnen des Spiels.
 $("btnPool").addEventListener("click", () => {
-  const used = [...new Set(readWords().join("").split("").filter(ch => LETTERS.includes(ch)))];
+  const used = [...new Set(allCards().join("").split("").filter(ch => LETTERS.includes(ch)))];
   try {
     const s = JSON.parse(localStorage.getItem(STORE_KEY) || "{}") || {};
     s.pool = LETTERS.filter(l => used.includes(l)).join("");
@@ -280,18 +425,9 @@ $("btnPool").addEventListener("click", () => {
   }
 });
 
-$("btnPrint").addEventListener("click", () => window.print());
-$("btnExample").addEventListener("click", () => {
-  if ($("words").value.trim() && !confirm("Eingegebene Wörter durch die Beispielwörter ersetzen?")) return;
-  $("words").value = EXAMPLE;
-  render();
-});
-["words", "perChild", "tags"].forEach(id => $(id).addEventListener("input", render));
-$("tags").addEventListener("change", render);
-$("shuffle").addEventListener("change", () => { shuffleSeed = Math.random(); render(); });
-
-loadInputs();
-render();
+load();
+save();
+renderAll();
 
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
 </script>

@@ -94,12 +94,17 @@ festsetzen.
 
 ⚙️ → **Wortkarten-Generator öffnen** (oder direkt `karten.html`).
 
-1. Wörter eingeben, eins pro Zeile oder mit Komma getrennt.
-2. Einstellen, wie viele Wörter ein Kind bekommt (Standard: 3). Auf jede
-   Karte kann klein die Satz-Nummer gedruckt werden, das erleichtert das
-   Austeilen. Die Wörter lassen sich auch zufällig auf die Sätze verteilen.
-3. **Drucken / als PDF sichern.** Karten mit bis zu 5 Buchstaben passen zu
-   zweit nebeneinander, längere Wörter stehen einzeln.
+1. Oben eine Liste wählen: fertige Wörter mit **3 bis 10 Buchstaben**,
+   **Silben** (Silbenteppich MA ME MI MO MU … sowie häufige Silben und Laute
+   wie EN, ER, EI, AU, SCH, CH, ST) oder **Eigene** Wörter zum Eintippen.
+2. Wörter antippen, um sie aus- oder abzuwählen, oder **Zufällig** drücken:
+   Dann wird aus der Liste jedes Mal eine neue Auswahl gezogen, so wechseln
+   die Karten von Spiel zu Spiel. Die Zahlen an den Reitern zeigen, wie viele
+   aus jeder Liste gewählt sind.
+3. Bei Bedarf einstellen, wie oft jede Karte gedruckt wird.
+4. **Drucken / als PDF sichern.** Die Karten stehen nach Länge sortiert, so
+   passen kurze dicht nebeneinander; innerhalb einer Länge ist die
+   Reihenfolge gemischt.
 
 Der Generator zeigt, welche Buchstaben in den Wörtern vorkommen. Mit **Nur
 diese Buchstaben in den Topf** werden genau diese ins Spiel übernommen, so
