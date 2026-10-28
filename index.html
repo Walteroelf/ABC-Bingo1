@@ -530,7 +530,10 @@ function fmt(l) {
 }
 
 function poolLeft() { return LETTERS.filter(l => pool.has(l) && !drawn.has(l)); }
-function poolDrawn() { return LETTERS.filter(l => pool.has(l) && drawn.has(l)).length; }
+function poolDrawn() {
+  const hidden = hiddenLetters();
+  return LETTERS.filter(l => pool.has(l) && drawn.has(l) && !hidden.has(l)).length;
+}
 
 function parsePool(s) {
   return typeof s === "string" ? new Set(s.split("").filter(l => LETTERS.includes(l))) : null;
@@ -814,8 +817,24 @@ function connect() {
 
 function publish() {
   if (!isOnline() || !code) return;
-  const msg = { gen, genTs, drawn: [...drawn], colors, owners, pool: [...pool].join(""), poolTs, by: DEVICE };
+  // pending: Buchstabe, den dieses iPad gerade noch würfelt. Andere Geräte
+  // zählen ihn schon als vergeben, zeigen ihn aber erst nach dem Aufdecken.
+  const pending = claim && claim.letter ? [claim.letter] : [];
+  const msg = { gen, genTs, drawn: [...drawn], colors, owners, pending, pool: [...pool].join(""), poolTs, by: DEVICE };
   client.publish(TOPIC_PREFIX + code, JSON.stringify(msg), { qos: 1, retain: true });
+}
+
+// Noch verdeckte Buchstaben anderer iPads (Gerät → { letters, ts })
+const PENDING_MAX_MS = 5000;   // danach trotzdem zeigen (z. B. Verbindung weg)
+const pendingBy = {};
+
+function hiddenLetters() {
+  const now = performance.now();
+  const out = new Set();
+  for (const p of Object.values(pendingBy)) {
+    if (now - p.ts < PENDING_MAX_MS) p.letters.forEach(l => out.add(l));
+  }
+  return out;
 }
 
 function receive(raw) {
@@ -823,6 +842,11 @@ function receive(raw) {
   try { m = JSON.parse(raw); } catch (e) { return; }
   if (!m || typeof m.gen !== "string" || typeof m.genTs !== "number" || !Array.isArray(m.drawn)) return;
   sawMsg = true;
+  if (typeof m.by === "string" && m.by !== DEVICE) {
+    const p = Array.isArray(m.pending) ? m.pending.filter(l => LETTERS.includes(l)) : [];
+    pendingBy[m.by] = { letters: p, ts: performance.now() };
+    if (p.length) setTimeout(renderAll, PENDING_MAX_MS + 100);
+  }
   const remote       = m.drawn.filter(l => LETTERS.includes(l));
   const remoteColors = parseColors(m.colors);
   const remoteOwners = parseOwners(m.owners);
@@ -1051,7 +1075,10 @@ function renderCount() {
 
 // ── Drawn-Chips rendern ──────────────────────────────────────────────
 // Gezogene Buchstaben aus dem Topf in Zieh-Reihenfolge
-function drawnOrder() { return [...drawn].filter(l => pool.has(l)); }
+function drawnOrder() {
+  const hidden = hiddenLetters();
+  return [...drawn].filter(l => pool.has(l) && !hidden.has(l));
+}
 
 function renderDrawn() {
   const box   = document.getElementById("drawnLetters");
@@ -1250,6 +1277,7 @@ document.getElementById("btnStart").addEventListener("click", () => {
     const final = claim.letter;
     claim   = null;
     rolling = false;
+    publish();   // aufgedeckt: jetzt dürfen Tafel und andere iPads ihn zeigen
     bl.classList.remove("rolling");
     renderCount();
     if (!final) {
