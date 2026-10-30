@@ -130,6 +130,15 @@
     }
     #repeatHint.show { opacity: 1; }
 
+    /* Sperrzeit ohne „Weiter“: Balken läuft ab, danach darf neu gewürfelt werden */
+    #lockBar {
+      position: fixed; left: 0; bottom: 0; height: 8px; width: 100%;
+      background: rgba(255,255,255,.75); z-index: 8000; pointer-events: none;
+      transform-origin: left; transform: scaleX(0);
+    }
+    #lockBar.run { animation: lockrun linear forwards; }
+    @keyframes lockrun { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+
     #drawer {
       position: fixed; inset: 0; background: rgba(0,0,0,.5);
       z-index: 10000; display: flex; align-items: flex-end;
@@ -246,6 +255,9 @@
       background: #fff; color: #1f5fa8; font-size: 1.3rem; cursor: pointer;
     }
     .seg button.on { background: #1f5fa8; color: #fff; }
+    .seg.small button { font-size: 1rem; padding: 10px 4px; }
+    .setrow.hidden { display: none; }
+    #btnLearn.learning { background: #f0c020; border-color: #b08a00; color: #333; }
     #boardLink { word-break: break-all; user-select: text; -webkit-user-select: text; }
     .tiny.hidden { display: none; }
     #drawnEmpty { font-size: .85rem; color: #999; align-self: center; }
@@ -298,8 +310,8 @@
 
 <div id="screenStart" class="screen">
   <button id="btnStart" aria-label="Buchstaben würfeln"></button>
-  <h1>Bitte berühren</h1>
-  <p>Tippe, um einen Buchstaben zu würfeln</p>
+  <h1 id="startTitle">Bitte berühren</h1>
+  <p id="startHint">Tippe, um einen Buchstaben zu würfeln</p>
   <p id="startCount" class="hidden"></p>
 </div>
 
@@ -314,6 +326,7 @@
 </div>
 
 <div id="repeatHint">🔊 Nochmal</div>
+<div id="lockBar"></div>
 
 <div id="alleDone" class="hidden">
   <div id="alleDoneTitle">Alle Buchstaben wurden gezogen! 🎉</div>
@@ -391,6 +404,42 @@
           </div>
           <div class="setrow">
             <label class="switch"><span class="lbl">Konfetti beim Ergebnis</span><input type="checkbox" id="fxConfetti"/></label>
+          </div>
+        </div>
+        <div class="scard">
+          <h3>Würfeln</h3>
+          <div class="setrow">
+            <span class="lbl">Würfeln mit</span>
+            <div class="seg small" id="trigSeg">
+              <button data-trig="tap">Antippen</button>
+              <button data-trig="switch">Taster</button>
+              <button data-trig="both">Beides</button>
+            </div>
+          </div>
+          <div class="setrow" id="keyRow" style="flex-direction:column; align-items:stretch">
+            <span class="lbl">Der Taster sendet</span>
+            <div class="seg small" id="keySeg">
+              <button data-key="Space">Leertaste</button>
+              <button data-key="Enter">Enter</button>
+              <button data-key="mouse">Mausklick</button>
+              <button id="btnLearn">Anlernen</button>
+            </div>
+            <div class="tiny" id="keyInfo"></div>
+            <div class="tiny">Wichtig: Die „Schaltersteuerung“ in den iPad-Bedienungshilfen muss für diesen Taster aus sein.</div>
+          </div>
+          <div class="setrow">
+            <label class="switch"><span class="lbl">„Weiter“-Knopf nach jedem Buchstaben</span><input type="checkbox" id="optWeiter"/></label>
+          </div>
+          <div class="setrow" id="lockRow" style="flex-direction:column; align-items:stretch">
+            <span class="lbl">Sperrzeit nach dem Ergebnis</span>
+            <div class="seg small" id="lockSeg">
+              <button data-lock="0">0 s</button>
+              <button data-lock="3">3 s</button>
+              <button data-lock="5">5 s</button>
+              <button data-lock="10">10 s</button>
+              <button data-lock="20">20 s</button>
+            </div>
+            <div class="tiny">So lange bleibt der Buchstabe stehen, bevor neu gewürfelt werden kann. Antippen in dieser Zeit spielt den Laut nochmal ab.</div>
           </div>
         </div>
       </section>
@@ -489,6 +538,11 @@ let settingsTab = "spiel";  // zuletzt geöffneter Reiter in ⚙️
 let colorKey   = "gruen";   // Farbe dieses iPads
 let fxDrum     = true;
 let fxConfetti = true;
+let trigMode   = "tap";     // "tap" | "switch" | "both"
+let switchKey  = "Space";   // "Space" | "Enter" | "mouse" | angelernter Tastencode
+let weiterOn   = true;      // „Weiter“-Knopf nach jedem Buchstaben
+let lockSec    = 5;         // Sperrzeit, wenn „Weiter“ aus ist
+const LOCKS    = [0, 3, 5, 10, 20];
 
 // Wer welchen Buchstaben gezogen hat (Buchstabe → Farbe / Gerät), wird abgeglichen
 let colors = {};
@@ -553,6 +607,7 @@ function save() {
       drawn: [...drawn], volume, code, gen, genTs, server: brokerIdx,
       pool: [...pool].join(""), poolTs, letterCase, boardMode, settingsTab,
       colorKey, colors, owners, fxDrum, fxConfetti,
+      trigMode, switchKey, weiterOn, lockSec,
     }));
   } catch (e) {}
 }
@@ -578,6 +633,10 @@ function load() {
     owners = parseOwners(s.owners);
     if (typeof s.fxDrum === "boolean") fxDrum = s.fxDrum;
     if (typeof s.fxConfetti === "boolean") fxConfetti = s.fxConfetti;
+    if (["tap", "switch", "both"].includes(s.trigMode)) trigMode = s.trigMode;
+    if (typeof s.switchKey === "string" && s.switchKey.length <= 40) switchKey = s.switchKey;
+    if (typeof s.weiterOn === "boolean") weiterOn = s.weiterOn;
+    if (LOCKS.includes(s.lockSec)) lockSec = s.lockSec;
   } catch (e) {}
 }
 
@@ -1190,6 +1249,7 @@ function renderAll() {
   renderPool();
   renderBoard();
   renderColors();
+  renderSwitch();
   document.querySelectorAll("#caseSeg button").forEach(b =>
     b.classList.toggle("on", b.dataset.case === letterCase));
 }
@@ -1198,6 +1258,7 @@ function renderAll() {
 function resetScreens() {
   stopAudio();
   stopConfetti();
+  stopLock();
   current = "";
   document.getElementById("alleDone").classList.add("hidden");
   document.getElementById("btnWeiter").classList.add("hidden");
@@ -1241,9 +1302,12 @@ function showDone() {
   document.getElementById("btnWeiter").classList.remove("hidden");
 }
 
-document.getElementById("btnStart").addEventListener("click", () => {
+function roll() {
   if (rolling || boardMode) return;
   initAudio();
+  stopLock();
+  stopConfetti();
+  current = "";
   if (!poolLeft().length) { showDone(); return; }
 
   rolling = true;
@@ -1287,32 +1351,213 @@ document.getElementById("btnStart").addEventListener("click", () => {
     }
     current = final;
     bl.textContent = fmt(final);
-    bw.classList.remove("hidden");
+    if (weiterOn) bw.classList.remove("hidden"); else startLock();
     say(final);
     confetti(COLORS[colorKey]);
   })(performance.now());
+}
+
+document.getElementById("btnStart").addEventListener("click", e => {
+  if (switchClick(e) || !tapOK()) return;
+  roll();
 });
 
-// ── Wiederholen bei Tippen ───────────────────────────────────────────
+// ── Antippen des Buchstabens: Laut wiederholen, ohne „Weiter“ nach der
+//    Sperrzeit neu würfeln ─────────────────────────────────────────────
+function letterTap() {
+  if (rolling || !current) return;
+  if (!weiterOn && tapOK() && Date.now() >= lockUntil && !isDone()) { roll(); return; }
+  initAudio();
+  say(current);
+  showHint();
+}
+
 document.getElementById("screenLetter").addEventListener("touchend", e => {
   if (rolling || !current) return;
   e.preventDefault();
-  initAudio();
-  say(current);
-  showHint();
+  letterTap();
 }, { passive: false });
 
 document.getElementById("screenLetter").addEventListener("click", e => {
-  if (rolling || !current) return;
   if (e.sourceCapabilities && e.sourceCapabilities.firesTouchEvents) return;
-  initAudio();
-  say(current);
-  showHint();
+  if (switchClick(e)) return;
+  letterTap();
 });
 
+// ── Sperrzeit ohne „Weiter“ ──────────────────────────────────────────
+let lockUntil = 0;
+
+function startLock() {
+  lockUntil = Date.now() + lockSec * 1000;
+  const bar = document.getElementById("lockBar");
+  bar.classList.remove("run");
+  if (!lockSec) return;
+  void bar.offsetWidth;   // Animation neu starten
+  bar.style.animationDuration = lockSec + "s";
+  bar.classList.add("run");
+}
+
+function stopLock() {
+  lockUntil = 0;
+  document.getElementById("lockBar").classList.remove("run");
+}
+
+// ── Taster ───────────────────────────────────────────────────────────
+// Ein Taster am iPad meldet sich als Tastatur (Leertaste, Enter, …) oder
+// als Maus. Er würfelt, wenn gerade gewürfelt werden darf: auf dem
+// Startbildschirm oder, ohne „Weiter“, nach Ablauf der Sperrzeit.
+let learning    = false;   // „Anlernen“: nächster Tastendruck wird gemerkt
+let keyHeld     = false;   // gedrückt gehalten → nur einmal würfeln
+let lastPointer = "";
+let swallowClick = false;
+
+const tapOK    = () => trigMode !== "switch";
+const switchOK = () => trigMode !== "tap";
+const isDone   = () => !document.getElementById("alleDone").classList.contains("hidden");
+const drawerOpen = () => !document.getElementById("drawer").classList.contains("hidden");
+
+// Klick, der vom Maus-Taster kommt (nicht vom Finger)
+function switchClick(e) {
+  return switchKey === "mouse" && switchOK() && lastPointer === "mouse";
+}
+
+function switchPress() {
+  if (rolling || boardMode || drawerOpen() || isDone()) return;
+  if (current && (weiterOn || Date.now() < lockUntil)) return;
+  if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+  roll();
+}
+
+function keyName(e) {
+  if (e.code === "Space" || e.key === " ") return "Space";
+  if (e.key === "Enter") return "Enter";
+  return e.code || e.key || "";
+}
+
+function keyLabel(k) {
+  if (k === "Space") return "Leertaste";
+  if (k === "Enter") return "Enter";
+  if (k === "mouse") return "Mausklick";
+  return k.replace(/^Key/, "").replace(/^Digit/, "").replace(/^Arrow/, "Pfeil ");
+}
+
+function learnDone(k) {
+  learning = false;
+  switchKey = k;
+  save();
+  renderSwitch();
+}
+
+document.addEventListener("keydown", e => {
+  if (learning) {
+    e.preventDefault();
+    keyHeld = true;
+    learnDone(keyName(e));
+    return;
+  }
+  if (e.target.closest && e.target.closest("input, textarea")) return;
+  if (!switchOK() || switchKey === "mouse" || keyName(e) !== switchKey) return;
+  e.preventDefault();   // keine Knöpfe auslösen, nicht scrollen
+  if (e.repeat || keyHeld) return;
+  keyHeld = true;
+  initAudio();
+  switchPress();
+});
+
+document.addEventListener("keyup", e => {
+  keyHeld = false;
+  if (switchOK() && keyName(e) === switchKey && !(e.target.closest && e.target.closest("input, textarea")))
+    e.preventDefault();
+});
+
+document.addEventListener("pointerdown", e => {
+  lastPointer = e.pointerType;
+  if (e.pointerType !== "mouse") return;
+  if (learning) {
+    if (e.target.closest("#btnLearn")) return;
+    swallowClick = true;
+    learnDone("mouse");
+    return;
+  }
+  if (!switchOK() || switchKey !== "mouse") return;
+  if (e.target.closest("#drawer, #btnSettings, #btnWeiter")) return;
+  initAudio();
+  switchPress();
+}, true);
+
+document.addEventListener("click", e => {
+  if (!swallowClick) return;
+  swallowClick = false;
+  e.preventDefault();
+  e.stopPropagation();
+}, true);
+
+function renderSwitch() {
+  document.querySelectorAll("#trigSeg button").forEach(b =>
+    b.classList.toggle("on", b.dataset.trig === trigMode));
+  const fixed = ["Space", "Enter", "mouse"];
+  document.querySelectorAll("#keySeg button[data-key]").forEach(b =>
+    b.classList.toggle("on", !learning && b.dataset.key === switchKey));
+  const learnBtn = document.getElementById("btnLearn");
+  learnBtn.classList.toggle("learning", learning);
+  learnBtn.classList.toggle("on", !learning && !fixed.includes(switchKey));
+  learnBtn.textContent = learning ? "Drücken …" : "Anlernen";
+  document.getElementById("keyInfo").textContent = learning
+    ? "Jetzt den Taster einmal drücken."
+    : switchKey === "mouse"
+      ? "Ein Klick irgendwo auf dem Bildschirm würfelt. „Weiter“ und ⚙️ reagieren nicht auf den Taster."
+      : fixed.includes(switchKey) ? "" : "Angelernt: " + keyLabel(switchKey);
+  document.getElementById("keyRow").classList.toggle("hidden", trigMode === "tap");
+  document.getElementById("optWeiter").checked = weiterOn;
+  document.getElementById("lockRow").classList.toggle("hidden", weiterOn);
+  document.querySelectorAll("#lockSeg button").forEach(b =>
+    b.classList.toggle("on", Number(b.dataset.lock) === lockSec));
+  document.getElementById("startTitle").textContent =
+    trigMode === "switch" ? "Bitte Taster drücken" : "Bitte berühren";
+  document.getElementById("startHint").textContent =
+    trigMode === "switch" ? "Drücke den Taster, um einen Buchstaben zu würfeln"
+    : trigMode === "both" ? "Tippe oder drücke den Taster, um einen Buchstaben zu würfeln"
+    : "Tippe, um einen Buchstaben zu würfeln";
+}
+
+document.querySelectorAll("#trigSeg button").forEach(b => b.addEventListener("click", () => {
+  trigMode = b.dataset.trig;
+  learning = false;
+  save();
+  renderSwitch();
+}));
+
+document.querySelectorAll("#keySeg button[data-key]").forEach(b => b.addEventListener("click", () => {
+  learning = false;
+  switchKey = b.dataset.key;
+  save();
+  renderSwitch();
+}));
+
+document.getElementById("btnLearn").addEventListener("click", () => {
+  learning = !learning;
+  renderSwitch();
+});
+
+document.getElementById("optWeiter").addEventListener("change", e => {
+  weiterOn = e.target.checked;
+  save();
+  renderSwitch();
+  if (current && !rolling && !isDone()) {
+    document.getElementById("btnWeiter").classList.toggle("hidden", !weiterOn);
+    stopLock();
+  }
+});
+
+document.querySelectorAll("#lockSeg button").forEach(b => b.addEventListener("click", () => {
+  lockSec = Number(b.dataset.lock);
+  save();
+  renderSwitch();
+}));
+
 // ── Weiter ───────────────────────────────────────────────────────────
-document.getElementById("btnWeiter").addEventListener("click", () => {
-  if (rolling) return;
+document.getElementById("btnWeiter").addEventListener("click", e => {
+  if (rolling || switchClick(e)) return;
   // Alle gezogen: allein startet „Weiter“ neu. Mit mehreren iPads setzt
   // nur die Lehrkraft über ⚙️ zurück, damit keine Fee das Spiel aller beendet.
   const done = !document.getElementById("alleDone").classList.contains("hidden");
@@ -1443,6 +1688,7 @@ document.querySelectorAll("#drawerTabs button").forEach(b =>
   b.addEventListener("click", () => showTab(b.dataset.tab)));
 
 document.getElementById("btnSettings").addEventListener("click", () => {
+  learning = false;
   renderAll();
   showTab(settingsTab);
   document.getElementById("drawer").classList.remove("hidden");
