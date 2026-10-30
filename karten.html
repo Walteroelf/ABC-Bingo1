@@ -155,11 +155,12 @@
 <script>
 "use strict";
 
-const LETTERS    = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+const BASIC      = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+const LETTERS    = [...BASIC, "Ä", "Ö", "Ü", "ß"];   // Ä–ß zieht die App als Zusatzlaute
 const STORE_KEY  = "abcBingo.v1";        // Spielstand der App (für den Topf)
 const KARTEN_KEY = "abcBingo.karten2";   // Auswahl auf dieser Seite
 
-// ── Wortlisten (ohne Ä, Ö, Ü, ß, weil die App diese nicht zieht) ──────
+// ── Wortlisten (ohne Ä, Ö, Ü, ß: die gibt es in der App nur als Zusatzlaute) ──
 const WORDS = {
   3: "OMA OPA EIS ARM BUS HUT TOR ZOO AST BAD OHR REH KUH ZUG TAG TEE SEE HAI HOF RAD TAL UHU EMU FEE",
   4: "AUTO BALL BAUM BOOT BROT BUCH DACH ENTE ESEL HAUS HUND IGEL KIND LAMM MAUS MOND NASE NEST OFEN RABE " +
@@ -360,22 +361,25 @@ function renderCardsAndInfo() {
 
   const odd = words.filter(w => [...w].some(ch => !LETTERS.includes(ch)));
   $("wordWarn").textContent = odd.length
-    ? `Achtung: ${odd.join(", ")} enthält Zeichen, die in der App nicht gezogen werden (z. B. Ä, Ö, Ü, ß). Am besten anders schreiben (AE, OE, UE, SS) oder ein anderes Wort nehmen.`
+    ? `Achtung: ${odd.join(", ")} enthält Zeichen, die in der App nicht gezogen werden. Am besten anders schreiben oder ein anderes Wort nehmen.`
     : "";
 
   const used = new Set(words.join("").split("").filter(ch => LETTERS.includes(ch)));
   const box = $("letters");
   box.textContent = "";
-  LETTERS.forEach(l => {
+  // Ä, Ö, Ü, ß nur zeigen, wenn sie in den Wörtern vorkommen
+  LETTERS.filter(l => BASIC.includes(l) || used.has(l)).forEach(l => {
     const s = document.createElement("span");
     s.textContent = l;
     if (!used.has(l)) s.className = "off";
     box.appendChild(s);
   });
-  const missing = LETTERS.filter(l => !used.has(l));
-  $("letterInfo").textContent = !used.size ? ""
+  const missing = BASIC.filter(l => !used.has(l));
+  const extras  = LETTERS.filter(l => !BASIC.includes(l) && used.has(l));
+  $("letterInfo").textContent = (!used.size ? ""
     : missing.length ? `${used.size} Buchstaben kommen vor. Nie gebraucht: ${missing.join(", ")}.`
-    : "Alle 26 Buchstaben kommen vor.";
+    : "Alle 26 Buchstaben kommen vor.") +
+    (extras.length ? ` ${extras.join(", ")} kommen als Zusatzlaute mit in den Topf.` : "");
   $("btnPool").disabled = !used.size;
   $("copies").value = copies;
 }

@@ -1506,7 +1506,7 @@ function renderBoard() {
   const order = drawnOrder();
   const last  = order[order.length - 1] || "";
   document.getElementById("boardCount").textContent =
-    code ? countText() : "Nicht verbunden: ⚙️ → Weitere iPads verbinden";
+    code ? countText() : "Nicht verbunden: ⚙️ → Verbinden → Gemeinsames Spiel starten";
   const lastEl = document.getElementById("boardLast");
   lastEl.textContent = "";
   lastEl.classList.toggle("long", !!last && isLong(last));

@@ -168,12 +168,15 @@ festsetzen.
 
 Der Generator zeigt, welche Buchstaben in den Wörtern vorkommen. Mit **Nur
 diese Buchstaben in den Topf** werden genau diese ins Spiel übernommen, so
-gehen keine Züge auf Buchstaben, die niemand braucht. Ä, Ö, Ü und ß werden
-in der App nicht gezogen; der Generator warnt bei solchen Wörtern.
+gehen keine Züge auf Buchstaben, die niemand braucht. Kommen Ä, Ö oder Ü in
+eigenen Wörtern vor, nimmt der Knopf sie mit in den Topf, so werden sie
+auch gezogen (siehe [Zusatzlaute](#zusatzlaute)). Bei anderen Zeichen, die
+die App nicht kennt, warnt der Generator.
 
 ## Datenschutz
 
-- Ohne „Weitere iPads verbinden“ bleibt alles auf dem Gerät.
+- Solange unter ⚙️ → Verbinden kein gemeinsames Spiel läuft, bleibt alles
+  auf dem Gerät.
 - Beim Verbinden tauschen die Geräte über einen öffentlichen Test-Server
   (HiveMQ, als Ersatz EMQX) nur Buchstaben, Farben, Topf und einen
   zufälligen Spielcode aus. Keine Namen, keine Gerätedaten.
