@@ -3,13 +3,14 @@
 // und nur ohne Netz aus dem Speicher. Alles andere (Töne, Schrift,
 // Bibliotheken, Symbole) kommt sofort aus dem Speicher und wird im
 // Hintergrund aufgefrischt. Bei Änderungen an der Dateiliste VERSION erhöhen.
-const VERSION = "abcbingo-v1";
+const VERSION = "abcbingo-v2";
 
 const LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 const FILES = [
   "./",
   "index.html",
   "karten.html",
+  "README.md",
   "manifest.webmanifest",
   "icons/icon-180.png",
   "icons/icon-192.png",
@@ -64,6 +65,8 @@ function cacheFirst(req) {
 self.addEventListener("fetch", e => {
   const req = e.request;
   if (req.method !== "GET" || new URL(req.url).origin !== location.origin) return;
-  const isPage = req.mode === "navigate" || req.destination === "document";
+  // Seiten und die Anleitung (README.md) zuerst aus dem Netz, damit sie aktuell sind
+  const isPage = req.mode === "navigate" || req.destination === "document" ||
+                 new URL(req.url).pathname.endsWith(".md");
   e.respondWith(isPage ? networkFirst(req) : cacheFirst(req));
 });

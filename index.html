@@ -261,10 +261,42 @@
     #boardLink { word-break: break-all; user-select: text; -webkit-user-select: text; }
     .tiny.hidden { display: none; }
     #drawnEmpty { font-size: .85rem; color: #999; align-self: center; }
-    #btnCloseDrawer {
+    #btnCloseDrawer, #btnCloseGuide {
       padding: 10px 18px; border-radius: 12px; border: none;
       background: #2a7d2e; color: #fff; font-weight: 700; cursor: pointer;
     }
+
+    /* Anleitung (aus README.md) über dem Menü */
+    #guide {
+      position: fixed; inset: 0; z-index: 10001; background: rgba(0,0,0,.5);
+      display: flex; align-items: center; justify-content: center;
+      padding: calc(.8rem + env(safe-area-inset-top)) .8rem calc(.8rem + env(safe-area-inset-bottom));
+    }
+    #guide.hidden { display: none; }
+    #guideInner {
+      width: 100%; max-width: 760px; height: 100%; background: #fff; border-radius: 18px;
+      display: flex; flex-direction: column; overflow: hidden;
+    }
+    #guideHead {
+      display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+      padding: .8rem 1rem; border-bottom: 1px solid #e3e6ea;
+    }
+    #guideHead h2 { font-size: 1.3rem; font-weight: 800; }
+    #guideBody {
+      flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
+      padding: .4rem 1.2rem 2rem; font-size: 1.02rem; line-height: 1.5; color: #222;
+      user-select: text; -webkit-user-select: text;
+    }
+    #guideBody h1 { display: none; }
+    #guideBody h2 { font-size: 1.25rem; font-weight: 800; margin: 1.4rem 0 .4rem; }
+    #guideBody p, #guideBody ul, #guideBody ol, #guideBody table { margin: .5rem 0; }
+    #guideBody ul, #guideBody ol { padding-left: 1.4rem; }
+    #guideBody li { margin: .2rem 0; }
+    #guideBody table { border-collapse: collapse; width: 100%; font-size: .95rem; }
+    #guideBody th, #guideBody td { border: 1px solid #dde1e6; padding: .4rem .5rem; text-align: left; vertical-align: top; }
+    #guideBody th { background: #f3f5f7; }
+    #guideBody code { background: #f0f2f4; border-radius: 4px; padding: 0 .25em; font-size: .92em; }
+    #guideBody a { color: #1f5fa8; }
 
     #alleDone {
       position: fixed; inset: 0; background: #2a7d2e; color: #fff;
@@ -500,10 +532,20 @@
         <div class="scard">
           <h3>📖 Anleitung</h3>
           <div class="tiny">Alles zum Spielen, Verbinden, zur Tafel und zur App auf dem Home-Bildschirm.</div>
-          <a class="sbtn light" href="https://github.com/Walteroelf/ABC-Bingo1#readme" target="_blank" rel="noopener">Anleitung öffnen</a>
+          <button id="btnGuide" class="sbtn light">Anleitung öffnen</button>
         </div>
       </section>
     </div>
+  </div>
+</div>
+
+<div id="guide" class="hidden">
+  <div id="guideInner" role="dialog" aria-label="Anleitung">
+    <div id="guideHead">
+      <h2>📖 Anleitung</h2>
+      <button id="btnCloseGuide">✕ Schließen</button>
+    </div>
+    <div id="guideBody"></div>
   </div>
 </div>
 
@@ -1698,6 +1740,96 @@ document.getElementById("btnCloseDrawer").addEventListener("click", () =>
 document.getElementById("drawer").addEventListener("click", e => {
   if (e.target === document.getElementById("drawer"))
     document.getElementById("drawer").classList.add("hidden");
+});
+
+// ── Anleitung ────────────────────────────────────────────────────────
+// Zeigt README.md als Fenster über dem Menü. Die Datei liegt im
+// Offline-Speicher, so geht die Anleitung auch ohne Internet. Kleiner
+// Umwandler nur für das, was im README vorkommt: Überschriften, Absätze,
+// Listen, Tabellen, fett, Code und Links.
+function mdInline(s) {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/`([^`]+)`/g, "<code>$1</code>")
+    .replace(/\*\*([^*]+)\*\*/g, "<b>$1</b>")
+    .replace(/\[([^\]]+)\]\(#([^)\s]+)\)/g, '<a href="#$2" data-anchor="$2">$1</a>')
+    .replace(/\[([^\]]+)\]\((https?:[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')
+    .replace(/&lt;(https?:[^&\s]+)&gt;/g, '<a href="$1" target="_blank" rel="noopener">$1</a>');
+}
+
+function mdSlug(s) {
+  return s.toLowerCase().replace(/[^\p{L}\p{N} -]/gu, "").trim().replace(/ /g, "-");
+}
+
+function mdToHtml(md) {
+  const lines = md.replace(/\r/g, "").split("\n");
+  const out = [];
+  let i = 0;
+  while (i < lines.length) {
+    const l = lines[i];
+    let m;
+    if (!l.trim()) { i++; continue; }
+    if ((m = l.match(/^(#{1,3}) (.*)/))) {
+      const n = m[1].length;
+      out.push(`<h${n} id="g-${mdSlug(m[2])}">${mdInline(m[2])}</h${n}>`);
+      i++;
+      continue;
+    }
+    if (l.startsWith("|")) {
+      const rows = [];
+      while (i < lines.length && lines[i].startsWith("|")) rows.push(lines[i++]);
+      const cells = r => r.trim().replace(/^\||\|$/g, "").split("|").map(c => mdInline(c.trim()));
+      const head = cells(rows[0]).map(c => `<th>${c}</th>`).join("");
+      const body = rows.slice(2).map(r => "<tr>" + cells(r).map(c => `<td>${c}</td>`).join("") + "</tr>").join("");
+      out.push(`<table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`);
+      continue;
+    }
+    if ((m = l.match(/^(\d+\.|-) /))) {
+      const tag = m[1] === "-" ? "ul" : "ol";
+      const items = [];
+      while (i < lines.length) {
+        const mm = lines[i].match(/^(\d+\.|-) (.*)/);
+        if (mm) items.push(mm[2]);
+        else if (/^\s+\S/.test(lines[i]) && items.length) items[items.length - 1] += " " + lines[i].trim();
+        else break;
+        i++;
+      }
+      out.push(`<${tag}>` + items.map(t => `<li>${mdInline(t)}</li>`).join("") + `</${tag}>`);
+      continue;
+    }
+    const p = [];
+    while (i < lines.length && lines[i].trim() && !/^(#{1,3} |\||\d+\. |- )/.test(lines[i])) p.push(lines[i++].trim());
+    out.push(`<p>${mdInline(p.join(" "))}</p>`);
+  }
+  return out.join("\n");
+}
+
+let guideLoaded = false;
+
+function openGuide() {
+  const body = document.getElementById("guideBody");
+  document.getElementById("guide").classList.remove("hidden");
+  body.scrollTop = 0;
+  if (guideLoaded) return;
+  body.textContent = "Lädt …";
+  fetch("README.md")
+    .then(r => { if (!r.ok) throw new Error(r.status); return r.text(); })
+    .then(md => { body.innerHTML = mdToHtml(md); guideLoaded = true; })
+    .catch(() => {
+      body.innerHTML = '<p>Die Anleitung ist gerade nicht erreichbar (kein Internet?).</p>' +
+        '<p><a href="https://github.com/Walteroelf/ABC-Bingo1#readme" target="_blank" rel="noopener">Anleitung auf GitHub öffnen</a></p>';
+    });
+}
+
+document.getElementById("btnGuide").addEventListener("click", openGuide);
+document.getElementById("btnCloseGuide").addEventListener("click", () =>
+  document.getElementById("guide").classList.add("hidden"));
+document.getElementById("guide").addEventListener("click", e => {
+  if (e.target === document.getElementById("guide")) { document.getElementById("guide").classList.add("hidden"); return; }
+  const a = e.target.closest("a[data-anchor]");
+  if (!a) return;
+  e.preventDefault();
+  const target = document.getElementById("g-" + a.dataset.anchor);
+  if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
 });
 
 // ── Lautstärke ───────────────────────────────────────────────────────

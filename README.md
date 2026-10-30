@@ -29,7 +29,7 @@ Das Menü hat vier Reiter. Es öffnet sich mit dem Reiter, der zuletzt offen war
 | 🎲 **Spiel** | Gezogene Buchstaben in Zieh-Reihenfolge (der neueste gelb umrandet), **Letzten zurücknehmen** (z. B. nach versehentlichem Doppeltippen), **Neues Spiel**. Darunter **Buchstaben im Topf**: antippen, um Buchstaben heraus- oder hineinzunehmen; Schnellknöpfe Alle, Keine, Ohne Q, X, Y. |
 | 📱 **Dieses iPad** | Gilt nur für dieses Gerät: **Farbe** (gezogene Buchstaben erscheinen in dieser Farbe, auch auf der Tafel), **Schreibweise** „A“, „A a“ oder „a“, **Lautstärke**, **Trommelwirbel** und **Konfetti** ein/aus. Unter **Würfeln**: Antippen, Taster oder beides, „Weiter“-Knopf an/aus und Sperrzeit (siehe [Taster](#taster)). |
 | 📡 **Verbinden** | Mehrere iPads und die Tafel, siehe unten. Ein Punkt am Reiter zeigt den Verbindungsstatus. |
-| ➕ **Mehr** | Wortkarten-Generator und diese Anleitung. |
+| ➕ **Mehr** | Wortkarten-Generator und diese Anleitung (als Fenster in der App, auch offline). |
 
 Gezogene Buchstaben und Einstellungen bleiben beim Neuladen erhalten.
 
