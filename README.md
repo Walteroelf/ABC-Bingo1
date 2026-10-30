@@ -188,8 +188,7 @@ Reine Webseite ohne Build-Schritt, läuft auf GitHub Pages.
 |---|---|
 | `index.html` | Die App (HTML, CSS, JavaScript in einer Datei) |
 | `karten.html` | Wortkarten-Generator |
-| `A.mp3` … `Z.mp3` | Gesprochene Buchstaben |
-| `AE.m4a`, `OE.m4a`, `UE.m4a`, `SZ.m4a`, `EU.m4a`, `SCH.m4a`, `CH.m4a` | Gesprochene Zusatzlaute, siehe unten |
+| `A.m4a` … `Z.m4a`, `AE.m4a`, `OE.m4a`, `UE.m4a`, `SZ.m4a`, `EU.m4a`, `SCH.m4a`, `CH.m4a` | Gesprochene Buchstaben und Zusatzlaute, siehe [Herkunft der Laute](#herkunft-der-laute) |
 | `sounds.js` | Würfel-Klänge, im Browser erzeugt (gleiche Datei wie im Mathe-Bingo) |
 | `sw.js`, `manifest.webmanifest`, `icons/` | Home-Bildschirm-App und Offline-Speicher |
 | `fonts/` | Schrift Andika (SIL, OFL-Lizenz, siehe `fonts/OFL.txt`) |
@@ -198,19 +197,21 @@ Reine Webseite ohne Build-Schritt, läuft auf GitHub Pages.
 Werden Dateien hinzugefügt oder umbenannt, die offline verfügbar sein
 sollen: in `sw.js` die Liste `FILES` anpassen und `VERSION` erhöhen.
 
-### Herkunft der Zusatzlaute
+### Herkunft der Laute
 
-Die Zusatzlaute sind mit der freien Sprachsynthese
-[Piper](https://github.com/rhasspy/piper) und der Stimme „Thorsten“
-(`de_DE-thorsten-high`) erzeugt. Weil die Stimme einzelne Laute schlecht
-spricht, ist jeder Laut aus einem Wort herausgeschnitten: Ä aus „Käfig“,
-Ö aus „Öfen“, Ü aus „Tüte“, Eu aus „Kreuze“, Sch aus „Fisch“, Ch aus
-„Stich“; ß ist „Ess-Zett“. Pausen und Lautstärke sind an die übrigen
-Buchstaben angeglichen.
+Alle Laute spricht derselbe Sprecher, Wikimedia-Commons-Nutzer
+[Jeuwre](https://commons.wikimedia.org/wiki/User:Jeuwre), Lizenz
+[CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/deed.de).
+Die Aufnahmen sind gekürzt, auf gleiche Pausen und Lautstärke gebracht und
+als m4a gespeichert; die bearbeiteten Dateien stehen ebenfalls unter
+CC BY-SA 4.0.
 
-- Die Sprachaufnahmen der Thorsten-Stimme stehen unter CC0
-  ([Thorsten-Voice](https://github.com/thorstenMueller/Thorsten-Voice)),
-  das Stimmmodell stellt Thorsten-Voice unter der MIT-Lizenz bereit.
-- Das Modell wurde aus der englischen Piper-Stimme „lessac“ weitertrainiert,
-  deren Ausgangsdaten nur für Forschungszwecke freigegeben sind. Ob das die
-  Nutzung der erzeugten Laute einschränkt, ist nicht abschließend geklärt.
+- Buchstaben aus seinen Aufnahmen `De-a.ogg`, `De-e.ogg` … (F, G, H, I, K,
+  L, M, R, U, V ebenso), `De-J.ogg`, `De-N.ogg`, `De-P.ogg`, `De-Q.ogg`,
+  `De-T.ogg`, `De-W.ogg`, `De-X.ogg`, `De-Y.ogg`, `De-oh.ogg` (O),
+  `De-Zett.ogg` (Z), `De-Ä.ogg`, `De-Ö.ogg`, `De-Ü.ogg`, `De-Eszett.ogg` (ß).
+- Aus Wörtern geschnitten: B aus `De-Beet.ogg`, C = `De-Zeh.ogg`, D aus
+  `De-Idee.ogg`, S aus `De-Eszett.ogg`, Eu aus `De-Heu.ogg`, Sch aus
+  `De-pscht.ogg`, Ch aus `De-Stich.ogg`.
+
+Die Originale: `https://commons.wikimedia.org/wiki/File:De-<Name>.ogg`.

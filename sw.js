@@ -3,7 +3,7 @@
 // und nur ohne Netz aus dem Speicher. Alles andere (Töne, Schrift,
 // Bibliotheken, Symbole) kommt sofort aus dem Speicher und wird im
 // Hintergrund aufgefrischt. Bei Änderungen an der Dateiliste VERSION erhöhen.
-const VERSION = "abcbingo-v4";
+const VERSION = "abcbingo-v5";
 
 const LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 const FILES = [
@@ -20,7 +20,7 @@ const FILES = [
   "fonts/andika-latin-700.woff2",
   "lib/mqtt.min.js",
   "lib/qrcode.js",
-  ...LETTERS.map(l => l + ".mp3"),
+  ...LETTERS.map(l => l + ".m4a"),
   ...["AE", "OE", "UE", "SZ", "EU", "SCH", "CH"].map(l => l + ".m4a"),
 ];
 

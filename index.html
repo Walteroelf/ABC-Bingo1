@@ -661,7 +661,7 @@ const EXTRA     = ["Ä", "Ö", "Ü", "ß", "ɔ", "ʃ", "ç"];
 const LETTERS   = [...BASIC, ...EXTRA];
 const LABEL     = { "ɔ": "Eu", "ʃ": "Sch", "ç": "Ch" };
 const FILE      = { "Ä": "AE.m4a", "Ö": "OE.m4a", "Ü": "UE.m4a", "ß": "SZ.m4a", "ɔ": "EU.m4a", "ʃ": "SCH.m4a", "ç": "CH.m4a" };
-const soundFile = l => FILE[l] || l + ".mp3";
+const soundFile = l => FILE[l] || l + ".m4a";
 const ROLL_MS   = [28,54,82,112,144,178,214,252,292,334,378,424];
 const STORE_KEY = "abcBingo.v1";
 
