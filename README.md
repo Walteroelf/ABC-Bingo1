@@ -27,7 +27,7 @@ Das Menü hat vier Reiter. Es öffnet sich mit dem Reiter, der zuletzt offen war
 | Reiter | Was es dort gibt |
 |---|---|
 | 🎲 **Spiel** | Gezogene Buchstaben in Zieh-Reihenfolge (der neueste gelb umrandet), **Letzten zurücknehmen** (z. B. nach versehentlichem Doppeltippen), **Neues Spiel**. Darunter **Buchstaben im Topf**: antippen, um Buchstaben heraus- oder hineinzunehmen; Schnellknöpfe Alle, Keine, Ohne Q, X, Y. |
-| 📱 **Dieses iPad** | Gilt nur für dieses Gerät. **Aussehen:** Farbe (gezogene Buchstaben erscheinen in dieser Farbe, auch auf der Tafel), Schreibweise „A“, „A a“ oder „a“, Anlaut-Bild (siehe [Anlaut-Bilder](#anlaut-bilder)). **Vorlesen:** an/aus, Lautstärke, Stimmprobe. **Würfel-Klang:** 🥁 Trommelwirbel, 🎺 Tusch, 🎡 Glücksrad, 🎵 Xylophon, ✨ Zauberstab oder 🔇 kein Klang (Antippen zum Anhören), Konfetti an/aus. **Würfeln:** Antippen, Taster oder beides, „Weiter“-Knopf an/aus und Sperrzeit (siehe [Taster](#taster)). |
+| 📱 **Dieses iPad** | Gilt nur für dieses Gerät. **Aussehen:** Farbe (gezogene Buchstaben erscheinen in dieser Farbe, auch auf der Tafel), Schreibweise „A“, „A a“ oder „a“, Anlaut-Bild (siehe [Anlaut-Bilder](#anlaut-bilder)). **Vorlesen:** an/aus, Lautstärke, Stimmprobe. **Würfel-Klang:** 🥁 Trommelwirbel, 🎺 Tusch, 🎡 Glücksrad, 🎵 Xylophon, ✨ Zauberstab oder 🔇 kein Klang (Antippen zum Anhören), Konfetti an/aus. **Würfeln:** Antippen, Taster oder beides, „Weiter“-Knopf an/aus und Sperrzeit (siehe [Taster](#taster)). **Vollbild** ein/aus (nur im Browser, nicht in der Home-Bildschirm-App). |
 | 📡 **Verbinden** | Mehrere iPads und die Tafel, siehe unten. Ein Punkt am Reiter zeigt den Verbindungsstatus. |
 | ➕ **Mehr** | Wortkarten-Generator und diese Anleitung (als Fenster in der App, auch offline). |
 
@@ -118,6 +118,8 @@ Verbinden → Tafel-Ansicht:
 - **QR-Code für die Tafel** mit der Kamera der Tafel scannen, oder
 - **Link kopieren** und auf dem Beamer-Rechner öffnen, oder
 - **Dieses Gerät als Tafel** (z. B. ein iPad per Kabel oder AirPlay am Beamer).
+
+Auf der Tafel unten rechts blendet **⛶ Vollbild** Adressleiste und Tabs aus.
 
 ## Als App auf den Home-Bildschirm
 

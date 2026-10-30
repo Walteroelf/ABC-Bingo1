@@ -133,6 +133,13 @@
     }
     #btnWeiter.hidden { display: none; }
 
+    #btnFull {
+      position: fixed; right: calc(1rem + env(safe-area-inset-right)); bottom: calc(1rem + env(safe-area-inset-bottom));
+      padding: 12px 18px; border-radius: 16px; background: rgba(0,0,0,.3);
+      color: #fff; border: 3px solid rgba(255,255,255,.3);
+      font-size: 1.1rem; font-weight: 700; z-index: 9999; cursor: pointer;
+    }
+    #btnFull.hidden, .scard.hidden { display: none; }
     #btnSettings {
       position: fixed; left: calc(1rem + env(safe-area-inset-left)); bottom: calc(1rem + env(safe-area-inset-bottom));
       width: clamp(64px,14vw,84px); height: clamp(64px,14vw,84px);
@@ -402,6 +409,7 @@
 <div id="syncDot" class="hidden"></div>
 <button id="btnWeiter" class="hidden">Weiter</button>
 <button id="btnSettings" aria-label="Einstellungen">⚙️</button>
+<button id="btnFull" class="hidden">⛶ Vollbild</button>
 
 <div id="drawer" class="hidden">
   <div id="drawerInner" role="dialog" aria-label="Einstellungen">
@@ -530,6 +538,13 @@
             </div>
             <div class="tiny">Beginnt, wenn der Buchstabe fertig vorgelesen ist. So lange bleibt er stehen, bevor neu gewürfelt werden kann. Antippen in dieser Zeit spielt den Laut nochmal ab.</div>
           </div>
+        </div>
+        <div class="scard" id="fullCard">
+          <div class="setrow">
+            <span class="lbl">🖥️ Vollbild</span>
+            <button id="btnFullSet" class="sbtn light">Einschalten</button>
+          </div>
+          <div class="tiny">Blendet Adressleiste und Tabs aus, z. B. am Beamer-Rechner. Auf dem iPad läuft die App vom Home-Bildschirm ohnehin im Vollbild.</div>
         </div>
       </section>
 
@@ -1282,7 +1297,44 @@ function show(name) {
   document.getElementById("screenStart") .classList.toggle("hidden", name !== "start");
   document.getElementById("screenLetter").classList.toggle("hidden", name !== "letter");
   document.getElementById("screenBoard") .classList.toggle("hidden", name !== "board");
+  renderFullscreen();
 }
+
+// ── Vollbild ─────────────────────────────────────────────────────────
+// Nur als Knopf (auf der Tafel und unter ⚙️), nie automatisch. Ausgeblendet,
+// wenn das Gerät es nicht kann oder die App schon vom Home-Bildschirm läuft.
+const fsRoot = document.documentElement;
+const canFullscreen = !!(fsRoot.requestFullscreen || fsRoot.webkitRequestFullscreen);
+const standalone = window.matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+const isFullscreen = () => !!(document.fullscreenElement || document.webkitFullscreenElement);
+
+function toggleFullscreen() {
+  try {
+    if (isFullscreen()) {
+      const exit = document.exitFullscreen || document.webkitExitFullscreen;
+      if (exit) Promise.resolve(exit.call(document)).catch(() => {});
+    } else {
+      const req = fsRoot.requestFullscreen || fsRoot.webkitRequestFullscreen;
+      Promise.resolve(req.call(fsRoot)).catch(() => {});
+    }
+  } catch (e) {}
+}
+
+function renderFullscreen() {
+  const offer = canFullscreen && !standalone;
+  document.getElementById("btnFull").classList.toggle("hidden", !(offer && boardMode && !isFullscreen()));
+  document.getElementById("fullCard").classList.toggle("hidden", !offer);
+  document.getElementById("btnFullSet").textContent = isFullscreen() ? "Beenden" : "Einschalten";
+}
+
+document.getElementById("btnFull").addEventListener("click", toggleFullscreen);
+document.getElementById("btnFullSet").addEventListener("click", () => {
+  const entering = !isFullscreen();
+  toggleFullscreen();
+  if (entering) document.getElementById("drawer").classList.add("hidden");
+});
+document.addEventListener("fullscreenchange", renderFullscreen);
+document.addEventListener("webkitfullscreenchange", renderFullscreen);
 
 // ── Zähler auf dem Startbildschirm ───────────────────────────────────
 function countText() {
@@ -1689,7 +1741,7 @@ document.addEventListener("pointerdown", e => {
     return;
   }
   if (!switchOK() || switchKey !== "mouse") return;
-  if (e.target.closest("#drawer, #btnSettings, #btnWeiter")) return;
+  if (e.target.closest("#drawer, #btnSettings, #btnWeiter, #btnFull")) return;
   initAudio();
   switchPress();
 }, true);
