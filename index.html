@@ -70,6 +70,23 @@
     body.case-both #bigLetter { font-size: clamp(8rem,30vw,34rem); }
     #bigLetter.rolling { opacity: 0.2; }
 
+    /* Anlaut-Bild unter dem Buchstaben (Emoji des Geräts, keine Bilddateien) */
+    .emo { font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif; font-weight: 400; }
+    #bigPic { display: flex; flex-direction: column; align-items: center; pointer-events: none; }
+    #bigPic.hidden { display: none; }
+    #bigPic .emo { font-size: min(26vw, 20vh); line-height: 1.1; }
+    #bigPic .word { color: #fff; font-size: min(7vw, 9vh); line-height: 1.1; }
+    #bigPic .word.hidden { display: none; }
+    .word b { color: #ffe066; }
+    body.pic-on #bigLetter { font-size: min(36vw, 46vh); }
+    body.pic-on.case-both #bigLetter { font-size: min(30vw, 36vh); }
+    #boardLast .bpic {
+      background: none; display: flex; flex-direction: column; align-items: center;
+      font-size: .55em; margin-left: .15em; padding: 0;
+    }
+    #boardLast .bpic span { background: none; padding: 0; }
+    #boardLast .bpic .word { font-size: .32em; line-height: 1.2; }
+
     #screenBoard { background: #1d3f6e; color: #fff; justify-content: flex-start; padding: calc(1.2rem + env(safe-area-inset-top)) 1rem 6rem; }
     #boardCount { font-size: clamp(1rem,2.4vw,1.8rem); opacity: .8; align-self: flex-start; }
     #boardLast {
@@ -349,6 +366,7 @@
 
 <div id="screenLetter" class="screen hidden">
   <div id="bigLetter" class="schrift" aria-live="polite"></div>
+  <div id="bigPic" class="hidden"><span class="emo"></span><span class="word schrift"></span></div>
 </div>
 
 <div id="screenBoard" class="screen hidden">
@@ -425,6 +443,15 @@
               <button data-case="both">A a</button>
               <button data-case="lower">a</button>
             </div>
+          </div>
+          <div class="setrow" style="flex-direction:column; align-items:stretch">
+            <span class="lbl">Anlaut-Bild</span>
+            <div class="seg small" id="picSeg">
+              <button data-pic="off">Aus</button>
+              <button data-pic="pic">Bild</button>
+              <button data-pic="word">Bild + Wort</button>
+            </div>
+            <div class="tiny">Zeigt nach dem Würfeln ein Bild zum Buchstaben, z. B. A wie Affe 🐒. Auch auf der Tafel, wenn es dort eingestellt ist.</div>
           </div>
           <div class="setrow">
             <label class="lbl" for="volRange">Lautstärke</label>
@@ -580,6 +607,7 @@ let settingsTab = "spiel";  // zuletzt geöffneter Reiter in ⚙️
 let colorKey   = "gruen";   // Farbe dieses iPads
 let fxDrum     = true;
 let fxConfetti = true;
+let picMode    = "off";     // Anlaut-Bild: "off" | "pic" | "word"
 let trigMode   = "tap";     // "tap" | "switch" | "both"
 let switchKey  = "Space";   // "Space" | "Enter" | "mouse" | angelernter Tastencode
 let weiterOn   = true;      // „Weiter“-Knopf nach jedem Buchstaben
@@ -598,6 +626,41 @@ const COLORS = {
   tuerkis: "#12857f",
   pink:    "#c2357a",
 };
+
+// Anlaut-Bilder: Emoji des Geräts, darum keine Bilddateien und keine Lizenzfragen.
+// X hat kein Wort mit X am Anfang, das sich gut zeigen lässt: Taxi.
+const ANLAUT = {
+  A: ["🐒", "Affe"],    B: ["🍌", "Banane"],  C: ["🤡", "Clown"],   D: ["🦕", "Dino"],
+  E: ["🦆", "Ente"],    F: ["🐟", "Fisch"],   G: ["🥒", "Gurke"],   H: ["🏠", "Haus"],
+  I: ["🦔", "Igel"],    J: ["🪀", "Jojo"],    K: ["🐈", "Katze"],   L: ["🦁", "Löwe"],
+  M: ["🐭", "Maus"],    N: ["👃", "Nase"],    O: ["👂", "Ohr"],     P: ["🍄", "Pilz"],
+  Q: ["🪼", "Qualle"],  R: ["🚀", "Rakete"],  S: ["☀️", "Sonne"],   T: ["🍅", "Tomate"],
+  U: ["⏰", "Uhr"],     V: ["🐦", "Vogel"],   W: ["🐳", "Wal"],     X: ["🚕", "Taxi"],
+  Y: ["🧘", "Yoga"],    Z: ["🦓", "Zebra"],
+};
+
+// Wort mit hervorgehobenem Buchstaben, Schreibweise wie eingestellt
+function anlautWord(l, el) {
+  const w = letterCase === "upper" ? ANLAUT[l][1].toUpperCase() : ANLAUT[l][1];
+  const i = w.toUpperCase().indexOf(l);
+  el.textContent = "";
+  el.append(w.slice(0, i));
+  const b = document.createElement("b");
+  b.textContent = w[i];
+  el.append(b, w.slice(i + 1));
+}
+
+function renderPic(l) {
+  const box = document.getElementById("bigPic");
+  const on = picMode !== "off" && !!l && !!ANLAUT[l];
+  box.classList.toggle("hidden", !on);
+  document.body.classList.toggle("pic-on", on);
+  if (!on) return;
+  box.querySelector(".emo").textContent = ANLAUT[l][0];
+  const word = box.querySelector(".word");
+  word.classList.toggle("hidden", picMode !== "word");
+  anlautWord(l, word);
+}
 
 function colorOf(l) { return COLORS[colors[l]] || COLORS.gruen; }
 
@@ -649,7 +712,7 @@ function save() {
       drawn: [...drawn], volume, code, gen, genTs, server: brokerIdx,
       pool: [...pool].join(""), poolTs, letterCase, boardMode, settingsTab,
       colorKey, colors, owners, fxDrum, fxConfetti,
-      trigMode, switchKey, weiterOn, lockSec,
+      trigMode, switchKey, weiterOn, lockSec, picMode,
     }));
   } catch (e) {}
 }
@@ -679,6 +742,7 @@ function load() {
     if (typeof s.switchKey === "string" && s.switchKey.length <= 40) switchKey = s.switchKey;
     if (typeof s.weiterOn === "boolean") weiterOn = s.weiterOn;
     if (LOCKS.includes(s.lockSec)) lockSec = s.lockSec;
+    if (["off", "pic", "word"].includes(s.picMode)) picMode = s.picMode;
   } catch (e) {}
 }
 
@@ -1266,6 +1330,21 @@ function renderBoard() {
     s.textContent = fmt(last);
     s.style.background = colorOf(last);
     lastEl.appendChild(s);
+    if (picMode !== "off" && ANLAUT[last]) {
+      const p = document.createElement("span");
+      p.className = "bpic";
+      const e = document.createElement("span");
+      e.className = "emo";
+      e.textContent = ANLAUT[last][0];
+      p.appendChild(e);
+      if (picMode === "word") {
+        const w = document.createElement("span");
+        w.className = "word schrift";
+        anlautWord(last, w);
+        p.appendChild(w);
+      }
+      lastEl.appendChild(p);
+    }
   }
   if (last && last !== boardShownLast) {
     lastEl.classList.remove("pop");
@@ -1294,6 +1373,9 @@ function renderAll() {
   renderSwitch();
   document.querySelectorAll("#caseSeg button").forEach(b =>
     b.classList.toggle("on", b.dataset.case === letterCase));
+  document.querySelectorAll("#picSeg button").forEach(b =>
+    b.classList.toggle("on", b.dataset.pic === picMode));
+  renderPic(rolling ? "" : current);
 }
 
 // ── Neues Spiel ──────────────────────────────────────────────────────
@@ -1302,6 +1384,7 @@ function resetScreens() {
   stopConfetti();
   stopLock();
   current = "";
+  renderPic("");
   document.getElementById("alleDone").classList.add("hidden");
   document.getElementById("btnWeiter").classList.add("hidden");
   show(boardMode ? "board" : "start");
@@ -1350,6 +1433,7 @@ function roll() {
   stopLock();
   stopConfetti();
   current = "";
+  renderPic("");
   if (!poolLeft().length) { showDone(); return; }
 
   rolling = true;
@@ -1393,6 +1477,7 @@ function roll() {
     }
     current = final;
     bl.textContent = fmt(final);
+    renderPic(final);
     if (weiterOn) bw.classList.remove("hidden"); else startLock();
     say(final);
     confetti(COLORS[colorKey]);
@@ -1686,6 +1771,13 @@ document.querySelectorAll("#caseSeg button").forEach(b => b.addEventListener("cl
   save();
   renderAll();
   if (current && !rolling) document.getElementById("bigLetter").textContent = fmt(current);
+}));
+
+// ── Anlaut-Bild ──────────────────────────────────────────────────────
+document.querySelectorAll("#picSeg button").forEach(b => b.addEventListener("click", () => {
+  picMode = b.dataset.pic;
+  save();
+  renderAll();
 }));
 
 // ── Tafel-Ansicht ────────────────────────────────────────────────────
