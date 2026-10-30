@@ -27,7 +27,7 @@ Das Menü hat vier Reiter. Es öffnet sich mit dem Reiter, der zuletzt offen war
 | Reiter | Was es dort gibt |
 |---|---|
 | 🎲 **Spiel** | Gezogene Buchstaben in Zieh-Reihenfolge (der neueste gelb umrandet), **Letzten zurücknehmen** (z. B. nach versehentlichem Doppeltippen), **Neues Spiel**. Darunter **Buchstaben im Topf**: antippen, um Buchstaben heraus- oder hineinzunehmen; Schnellknöpfe Alle, Keine, Ohne Q, X, Y. |
-| 📱 **Dieses iPad** | Gilt nur für dieses Gerät: **Farbe** (gezogene Buchstaben erscheinen in dieser Farbe, auch auf der Tafel), **Schreibweise** „A“, „A a“ oder „a“, **Anlaut-Bild** (Aus, Bild, Bild + Wort, siehe [Anlaut-Bilder](#anlaut-bilder)), **Lautstärke**, **Trommelwirbel** und **Konfetti** ein/aus. Unter **Würfeln**: Antippen, Taster oder beides, „Weiter“-Knopf an/aus und Sperrzeit (siehe [Taster](#taster)). |
+| 📱 **Dieses iPad** | Gilt nur für dieses Gerät. **Aussehen:** Farbe (gezogene Buchstaben erscheinen in dieser Farbe, auch auf der Tafel), Schreibweise „A“, „A a“ oder „a“, Anlaut-Bild (siehe [Anlaut-Bilder](#anlaut-bilder)). **Vorlesen:** an/aus, Lautstärke, Stimmprobe. **Würfel-Klang:** 🥁 Trommelwirbel, 🎺 Tusch, 🎡 Glücksrad, 🎵 Xylophon, ✨ Zauberstab oder 🔇 kein Klang (Antippen zum Anhören), Konfetti an/aus. **Würfeln:** Antippen, Taster oder beides, „Weiter“-Knopf an/aus und Sperrzeit (siehe [Taster](#taster)). |
 | 📡 **Verbinden** | Mehrere iPads und die Tafel, siehe unten. Ein Punkt am Reiter zeigt den Verbindungsstatus. |
 | ➕ **Mehr** | Wortkarten-Generator und diese Anleitung (als Fenster in der App, auch offline). |
 
@@ -36,10 +36,15 @@ Gezogene Buchstaben und Einstellungen bleiben beim Neuladen erhalten.
 ## Anlaut-Bilder
 
 Auf Wunsch erscheint nach dem Würfeln unter dem Buchstaben ein Bild zum
-Anlaut, z. B. A wie Affe 🐒, mit „Bild + Wort“ auch das Wort mit
-hervorgehobenem Buchstaben. Einstellen unter ⚙️ → **Dieses iPad** →
-**Anlaut-Bild**. Auf der Tafel erscheint das Bild neben dem Buchstaben,
-wenn es auf dem Tafel-Gerät eingestellt ist.
+Anlaut, z. B. A wie Affe 🐒. Einstellen unter ⚙️ → **Dieses iPad** →
+**Anlaut-Bild**:
+
+- **Aus**, **Immer** (das Bild erscheint mit dem Buchstaben) oder **Auf
+  Antippen**: Unter dem Buchstaben erscheint „Bild zeigen“, so können die
+  Kinder erst raten. Der Taster deckt das Bild nie auf, nur der Finger.
+- **Wort unter dem Bild:** das Wort mit hervorgehobenem Buchstaben.
+- Auf der Tafel erscheint das Bild neben dem Buchstaben, wenn auf dem
+  Tafel-Gerät „Immer“ eingestellt ist.
 
 | | | | | | | |
 |---|---|---|---|---|---|---|
@@ -70,9 +75,9 @@ würfeln. Einstellung unter ⚙️ → **Dieses iPad** → **Würfeln**:
 **Mit „Weiter“-Knopf:** Nach dem Ergebnis reagiert der Taster nicht, bis die
 Lehrkraft „Weiter“ antippt.
 
-**Ohne „Weiter“-Knopf:** Der Buchstabe bleibt stehen. Nach der **Sperrzeit**
-(0–20 Sekunden, ein Balken am unteren Rand läuft ab) würfelt der nächste
-Druck sofort neu. Antippen während der Sperrzeit spielt den Laut nochmal ab.
+**Ohne „Weiter“-Knopf:** Der Buchstabe bleibt stehen. Ist er fertig
+vorgelesen, läuft die **Sperrzeit** (0–20 Sekunden, ein Balken am unteren
+Rand läuft ab). Danach würfelt der nächste Druck sofort neu. Antippen während der Sperrzeit spielt den Laut nochmal ab.
 
 ## Mehrere iPads
 
@@ -170,6 +175,7 @@ Reine Webseite ohne Build-Schritt, läuft auf GitHub Pages.
 | `index.html` | Die App (HTML, CSS, JavaScript in einer Datei) |
 | `karten.html` | Wortkarten-Generator |
 | `A.mp3` … `Z.mp3` | Gesprochene Buchstaben |
+| `sounds.js` | Würfel-Klänge, im Browser erzeugt (gleiche Datei wie im Mathe-Bingo) |
 | `sw.js`, `manifest.webmanifest`, `icons/` | Home-Bildschirm-App und Offline-Speicher |
 | `fonts/` | Schrift Andika (SIL, OFL-Lizenz, siehe `fonts/OFL.txt`) |
 | `lib/` | MQTT.js 5.10.1 und qrcode-generator 1.4.4 (beide MIT), siehe `lib/README.md` |

@@ -78,6 +78,13 @@
     #bigPic .word { color: #fff; font-size: min(7vw, 9vh); line-height: 1.1; }
     #bigPic .word.hidden { display: none; }
     .word b { color: #ffe066; }
+    #btnPic {
+      margin-top: 1rem; padding: 14px 26px; border-radius: 16px;
+      border: 3px solid rgba(255,255,255,.8); background: rgba(255,255,255,.15);
+      color: #fff; font-size: clamp(1.1rem,3vw,1.6rem); font-weight: 800; cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    #btnPic.hidden { display: none; }
     body.pic-on #bigLetter { font-size: min(36vw, 46vh); }
     body.pic-on.case-both #bigLetter { font-size: min(30vw, 36vh); }
     #boardLast .bpic {
@@ -274,6 +281,13 @@
     .seg button.on { background: #1f5fa8; color: #fff; }
     .seg.small button { font-size: 1rem; padding: 10px 4px; }
     .setrow.hidden { display: none; }
+    .sound-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: .4rem; }
+    .sound-list button {
+      padding: 12px 10px; border-radius: 12px; border: 2px solid #1f5fa8;
+      background: #fff; color: #1f5fa8; font-size: 1rem; font-weight: 700; text-align: left; cursor: pointer;
+    }
+    .sound-list button.on { background: #1f5fa8; color: #fff; }
+    @media (max-width: 520px) { .sound-list { grid-template-columns: repeat(2, 1fr); } }
     #btnLearn.learning { background: #f0c020; border-color: #b08a00; color: #333; }
     #boardLink { word-break: break-all; user-select: text; -webkit-user-select: text; }
     .tiny.hidden { display: none; }
@@ -367,6 +381,7 @@
 <div id="screenLetter" class="screen hidden">
   <div id="bigLetter" class="schrift" aria-live="polite"></div>
   <div id="bigPic" class="hidden"><span class="emo"></span><span class="word schrift"></span></div>
+  <button id="btnPic" class="hidden">Bild zeigen</button>
 </div>
 
 <div id="screenBoard" class="screen hidden">
@@ -429,8 +444,9 @@
 
       <!-- ── Dieses iPad ───────────────────────────────────── -->
       <section data-tab="geraet" class="hidden">
+        <div class="tiny">Diese Einstellungen gelten nur für dieses Gerät.</div>
         <div class="scard">
-          <div class="tiny">Diese Einstellungen gelten nur für dieses Gerät.</div>
+          <h3>🎨 Aussehen</h3>
           <div class="setrow" style="flex-direction:column; align-items:stretch">
             <span class="lbl">Farbe</span>
             <div id="colorRow"></div>
@@ -448,10 +464,19 @@
             <span class="lbl">Anlaut-Bild</span>
             <div class="seg small" id="picSeg">
               <button data-pic="off">Aus</button>
-              <button data-pic="pic">Bild</button>
-              <button data-pic="word">Bild + Wort</button>
+              <button data-pic="tap">Auf Antippen</button>
+              <button data-pic="always">Immer</button>
             </div>
-            <div class="tiny">Zeigt nach dem Würfeln ein Bild zum Buchstaben, z. B. A wie Affe 🐒. Auch auf der Tafel, wenn es dort eingestellt ist.</div>
+            <div class="tiny">Ein Bild zum Buchstaben, z. B. A wie Affe 🐒. „Auf Antippen“: Unter dem Buchstaben erscheint ein Knopf, der das Bild aufdeckt. Auf der Tafel erscheint es bei „Immer“.</div>
+          </div>
+          <div class="setrow" id="picWordRow">
+            <label class="switch"><span class="lbl">Wort unter dem Bild</span><input type="checkbox" id="picWord"/></label>
+          </div>
+        </div>
+        <div class="scard">
+          <h3>🔊 Vorlesen</h3>
+          <div class="setrow">
+            <label class="switch"><span class="lbl">Buchstaben vorlesen</span><input type="checkbox" id="optSpeech"/></label>
           </div>
           <div class="setrow">
             <label class="lbl" for="volRange">Lautstärke</label>
@@ -459,14 +484,19 @@
             <span class="tiny" id="volVal">100 %</span>
           </div>
           <div class="setrow">
-            <label class="switch"><span class="lbl">Trommelwirbel beim Würfeln</span><input type="checkbox" id="fxDrum"/></label>
+            <span class="lbl">Stimmprobe</span>
+            <button id="btnTestVoice" class="sbtn light">🔊 Probe hören</button>
           </div>
+        </div>
+        <div class="scard">
+          <h3>🥁 Würfel-Klang <span class="tiny">Antippen zum Anhören und Auswählen</span></h3>
+          <div id="soundList" class="sound-list"></div>
           <div class="setrow">
             <label class="switch"><span class="lbl">Konfetti beim Ergebnis</span><input type="checkbox" id="fxConfetti"/></label>
           </div>
         </div>
         <div class="scard">
-          <h3>Würfeln</h3>
+          <h3>👆 Würfeln</h3>
           <div class="setrow">
             <span class="lbl">Würfeln mit</span>
             <div class="seg small" id="trigSeg">
@@ -498,7 +528,7 @@
               <button data-lock="10">10 s</button>
               <button data-lock="20">20 s</button>
             </div>
-            <div class="tiny">So lange bleibt der Buchstabe stehen, bevor neu gewürfelt werden kann. Antippen in dieser Zeit spielt den Laut nochmal ab.</div>
+            <div class="tiny">Beginnt, wenn der Buchstabe fertig vorgelesen ist. So lange bleibt er stehen, bevor neu gewürfelt werden kann. Antippen in dieser Zeit spielt den Laut nochmal ab.</div>
           </div>
         </div>
       </section>
@@ -576,6 +606,7 @@
   </div>
 </div>
 
+<script src="sounds.js"></script>
 <script>
 "use strict";
 
@@ -605,9 +636,12 @@ let letterCase = "upper";   // "upper" | "both" | "lower"
 let boardMode  = false;     // Tafel-Ansicht für den Beamer
 let settingsTab = "spiel";  // zuletzt geöffneter Reiter in ⚙️
 let colorKey   = "gruen";   // Farbe dieses iPads
-let fxDrum     = true;
+let sound      = "trommel"; // Würfel-Klang aus sounds.js
+let speech     = true;      // Buchstaben vorlesen
 let fxConfetti = true;
-let picMode    = "off";     // Anlaut-Bild: "off" | "pic" | "word"
+let picShow    = "off";     // Anlaut-Bild: "off" | "tap" | "always"
+let picWord    = false;     // Wort unter dem Bild
+let picShown   = false;     // bei „Auf Antippen“: schon aufgedeckt
 let trigMode   = "tap";     // "tap" | "switch" | "both"
 let switchKey  = "Space";   // "Space" | "Enter" | "mouse" | angelernter Tastencode
 let weiterOn   = true;      // „Weiter“-Knopf nach jedem Buchstaben
@@ -652,13 +686,15 @@ function anlautWord(l, el) {
 
 function renderPic(l) {
   const box = document.getElementById("bigPic");
-  const on = picMode !== "off" && !!l && !!ANLAUT[l];
-  box.classList.toggle("hidden", !on);
+  const on = picShow !== "off" && !!l && !!ANLAUT[l];
+  const visible = on && (picShow === "always" || picShown);
+  box.classList.toggle("hidden", !visible);
+  document.getElementById("btnPic").classList.toggle("hidden", !on || visible);
   document.body.classList.toggle("pic-on", on);
-  if (!on) return;
+  if (!visible) return;
   box.querySelector(".emo").textContent = ANLAUT[l][0];
   const word = box.querySelector(".word");
-  word.classList.toggle("hidden", picMode !== "word");
+  word.classList.toggle("hidden", !picWord);
   anlautWord(l, word);
 }
 
@@ -711,8 +747,8 @@ function save() {
     localStorage.setItem(STORE_KEY, JSON.stringify({
       drawn: [...drawn], volume, code, gen, genTs, server: brokerIdx,
       pool: [...pool].join(""), poolTs, letterCase, boardMode, settingsTab,
-      colorKey, colors, owners, fxDrum, fxConfetti,
-      trigMode, switchKey, weiterOn, lockSec, picMode,
+      colorKey, colors, owners, sound, speech, fxConfetti,
+      trigMode, switchKey, weiterOn, lockSec, picShow, picWord,
     }));
   } catch (e) {}
 }
@@ -736,13 +772,20 @@ function load() {
     if (COLORS[s.colorKey]) colorKey = s.colorKey;
     colors = parseColors(s.colors);
     owners = parseOwners(s.owners);
-    if (typeof s.fxDrum === "boolean") fxDrum = s.fxDrum;
+    if (SOUNDS[s.sound]) sound = s.sound;
+    else if (s.fxDrum === false) sound = "aus";   // früher: Trommelwirbel aus
+    if (typeof s.speech === "boolean") speech = s.speech;
     if (typeof s.fxConfetti === "boolean") fxConfetti = s.fxConfetti;
     if (["tap", "switch", "both"].includes(s.trigMode)) trigMode = s.trigMode;
     if (typeof s.switchKey === "string" && s.switchKey.length <= 40) switchKey = s.switchKey;
     if (typeof s.weiterOn === "boolean") weiterOn = s.weiterOn;
     if (LOCKS.includes(s.lockSec)) lockSec = s.lockSec;
-    if (["off", "pic", "word"].includes(s.picMode)) picMode = s.picMode;
+    if (["off", "tap", "always"].includes(s.picShow)) picShow = s.picShow;
+    if (typeof s.picWord === "boolean") picWord = s.picWord;
+    if (s.picMode === "pic" || s.picMode === "word") {   // frühere Einstellung
+      picShow = "always";
+      picWord = s.picMode === "word";
+    }
   } catch (e) {}
 }
 
@@ -784,60 +827,74 @@ function initAudio() {
   });
 }
 
+let sayRun = 0;
+
 function stopAudio() {
+  sayRun++;
   if (source) { try { source.stop(); } catch (e) {} source = null; }
   if (fallbackAudio) { fallbackAudio.pause(); fallbackAudio = null; }
 }
 
-function say(letter) {
+// Spielt den Buchstaben nach delay Sekunden (damit der Abschluss-Klang nicht
+// überdeckt wird). Das Promise ist erfüllt, wenn er fertig gesprochen ist.
+function say(letter, delay = 0) {
   stopAudio();
-  if (ctx && buffers[letter]) {
-    source = ctx.createBufferSource();
-    source.buffer = buffers[letter];
-    source.connect(gain);
-    source.start(0);
-    return;
-  }
-  // Fallback: Datei noch nicht geladen oder kein Web Audio
-  const audio = new Audio(letter + ".mp3");
-  audio.volume = volume;
-  audio.play().catch(() => {});
-  fallbackAudio = audio;
+  if (!speech) return Promise.resolve();
+  const run = sayRun;
+  return new Promise(done => {
+    const safety = setTimeout(done, (delay + 4) * 1000);   // falls kein Ende gemeldet wird
+    const finish = () => { clearTimeout(safety); done(); };
+    if (ctx && buffers[letter]) {
+      source = ctx.createBufferSource();
+      source.buffer = buffers[letter];
+      source.connect(gain);
+      source.onended = finish;
+      source.start(ctx.currentTime + delay);
+      return;
+    }
+    // Fallback: Datei noch nicht geladen oder kein Web Audio
+    const play = () => {
+      if (run !== sayRun) { finish(); return; }
+      const audio = new Audio(letter + ".mp3");
+      audio.volume = volume;
+      audio.onended = finish;
+      audio.onerror = finish;
+      audio.play().catch(finish);
+      fallbackAudio = audio;
+    };
+    if (delay) setTimeout(play, delay * 1000); else play();
+  });
+}
+
+// Würfel-Klang (sounds.js): eigene Lautstärke-Stufe und ein Begrenzer gegen Übersteuern
+function soundOut() {
+  if (!ctx || ctx.state !== "running") return null;
+  const g = ctx.createGain();
+  g.gain.value = 0.9 * volume;
+  const limit = ctx.createDynamicsCompressor();
+  limit.threshold.value = -8; limit.knee.value = 6; limit.ratio.value = 12;
+  limit.attack.value = 0.002; limit.release.value = 0.15;
+  g.connect(limit);
+  limit.connect(ctx.destination);
+  return g;
+}
+
+const currentSound = () => SOUNDS[sound] || SOUNDS.trommel;
+const rollTicks = () => ROLL_MS.map(ms => ms / 1000);
+
+// Klang einmal vorspielen: Rollen und Abschluss, wie beim Würfeln
+function previewSound(key) {
+  initAudio();
+  const out = soundOut();
+  const snd = SOUNDS[key];
+  if (!out || !snd) return;
+  const t0 = ctx.currentTime + 0.05;
+  const ticks = rollTicks();
+  snd.roll(ctx, out, t0, ticks);
+  snd.finale(ctx, out, t0 + ticks[ticks.length - 1] + 0.12);
 }
 
 // ── Effekte ──────────────────────────────────────────────────────────
-// Trommelschlag aus Rauschen + tiefem Ton, im Browser erzeugt (keine Datei)
-let noiseBuf = null;
-
-function drumTick(strength) {
-  if (!fxDrum || !ctx || ctx.state !== "running") return;
-  if (!noiseBuf) {
-    noiseBuf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.15), ctx.sampleRate);
-    const d = noiseBuf.getChannelData(0);
-    for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
-  }
-  const t = ctx.currentTime;
-  const src = ctx.createBufferSource();
-  src.buffer = noiseBuf;
-  const bp = ctx.createBiquadFilter();
-  bp.type = "bandpass"; bp.frequency.value = 1800; bp.Q.value = 0.8;
-  const env = ctx.createGain();
-  env.gain.setValueAtTime(0.0001, t);
-  env.gain.exponentialRampToValueAtTime(0.5 * strength, t + 0.005);
-  env.gain.exponentialRampToValueAtTime(0.0001, t + 0.12);
-  src.connect(bp); bp.connect(env); env.connect(gain);
-  src.start(t); src.stop(t + 0.15);
-
-  const osc = ctx.createOscillator();
-  osc.frequency.setValueAtTime(140, t);
-  osc.frequency.exponentialRampToValueAtTime(60, t + 0.1);
-  const og = ctx.createGain();
-  og.gain.setValueAtTime(0.4 * strength, t);
-  og.gain.exponentialRampToValueAtTime(0.0001, t + 0.12);
-  osc.connect(og); og.connect(gain);
-  osc.start(t); osc.stop(t + 0.13);
-}
-
 let confettiRun = 0;
 
 function stopConfetti() {
@@ -1278,7 +1335,17 @@ function renderColors() {
   }
   [...row.children].forEach(b => b.classList.toggle("on", b.dataset.color === colorKey));
   document.getElementById("screenLetter").style.background = COLORS[colorKey];
-  document.getElementById("fxDrum").checked = fxDrum;
+  document.getElementById("optSpeech").checked = speech;
+  const list = document.getElementById("soundList");
+  if (!list.children.length) {
+    SOUND_LIST.forEach(({ key, name }) => {
+      const b = document.createElement("button");
+      b.dataset.sound = key;
+      b.textContent = name;
+      list.appendChild(b);
+    });
+  }
+  [...list.children].forEach(b => b.classList.toggle("on", b.dataset.sound === sound));
   document.getElementById("fxConfetti").checked = fxConfetti;
 }
 
@@ -1330,14 +1397,14 @@ function renderBoard() {
     s.textContent = fmt(last);
     s.style.background = colorOf(last);
     lastEl.appendChild(s);
-    if (picMode !== "off" && ANLAUT[last]) {
+    if (picShow === "always" && ANLAUT[last]) {
       const p = document.createElement("span");
       p.className = "bpic";
       const e = document.createElement("span");
       e.className = "emo";
       e.textContent = ANLAUT[last][0];
       p.appendChild(e);
-      if (picMode === "word") {
+      if (picWord) {
         const w = document.createElement("span");
         w.className = "word schrift";
         anlautWord(last, w);
@@ -1374,7 +1441,9 @@ function renderAll() {
   document.querySelectorAll("#caseSeg button").forEach(b =>
     b.classList.toggle("on", b.dataset.case === letterCase));
   document.querySelectorAll("#picSeg button").forEach(b =>
-    b.classList.toggle("on", b.dataset.pic === picMode));
+    b.classList.toggle("on", b.dataset.pic === picShow));
+  document.getElementById("picWord").checked = picWord;
+  document.getElementById("picWordRow").classList.toggle("hidden", picShow === "off");
   renderPic(rolling ? "" : current);
 }
 
@@ -1427,6 +1496,8 @@ function showDone() {
   document.getElementById("btnWeiter").classList.remove("hidden");
 }
 
+let rollRun = 0;
+
 function roll() {
   if (rolling || boardMode) return;
   initAudio();
@@ -1437,8 +1508,11 @@ function roll() {
   if (!poolLeft().length) { showDone(); return; }
 
   rolling = true;
+  rollRun++;
   stopAudio();
   show("letter");
+  const out = soundOut();
+  if (out) currentSound().roll(ctx, out, ctx.currentTime + 0.02, rollTicks());
 
   const bl = document.getElementById("bigLetter");
   const bw = document.getElementById("btnWeiter");
@@ -1458,7 +1532,6 @@ function roll() {
     const elapsed = now - t0;
     if (elapsed >= nextAt) {
       bl.textContent = fmt(spin[Math.floor(Math.random() * spin.length)]);
-      drumTick(0.5 + 0.5 * Math.min(idx, ROLL_MS.length) / ROLL_MS.length);
       idx++;
       nextAt = idx < ROLL_MS.length ? ROLL_MS[idx] : elapsed + 120;
     }
@@ -1475,11 +1548,20 @@ function roll() {
       showDone();
       return;
     }
+    const fin = soundOut();
+    if (fin) currentSound().finale(ctx, fin, ctx.currentTime + 0.01);
     current = final;
     bl.textContent = fmt(final);
+    picShown = false;
     renderPic(final);
-    if (weiterOn) bw.classList.remove("hidden"); else startLock();
-    say(final);
+    const run = rollRun;
+    const spoken = say(final, currentSound().speechDelay);
+    if (weiterOn) bw.classList.remove("hidden");
+    else {
+      // Sperrzeit beginnt erst, wenn der Buchstabe fertig vorgelesen ist
+      lockUntil = Infinity;
+      spoken.then(() => { if (run === rollRun && current === final && !weiterOn) startLock(); });
+    }
     confetti(COLORS[colorKey]);
   })(performance.now());
 }
@@ -1496,18 +1578,18 @@ function letterTap() {
   if (!weiterOn && tapOK() && Date.now() >= lockUntil && !isDone()) { roll(); return; }
   initAudio();
   say(current);
-  showHint();
+  if (speech) showHint();
 }
 
 document.getElementById("screenLetter").addEventListener("touchend", e => {
-  if (rolling || !current) return;
+  if (rolling || !current || e.target.closest("#btnPic")) return;
   e.preventDefault();
   letterTap();
 }, { passive: false });
 
 document.getElementById("screenLetter").addEventListener("click", e => {
   if (e.sourceCapabilities && e.sourceCapabilities.firesTouchEvents) return;
-  if (switchClick(e)) return;
+  if (switchClick(e) || e.target.closest("#btnPic")) return;
   letterTap();
 });
 
@@ -1756,7 +1838,26 @@ document.getElementById("btnUndo").addEventListener("click", () => {
 });
 
 // ── Effekte ein/aus ──────────────────────────────────────────────────
-document.getElementById("fxDrum").addEventListener("change", e => { fxDrum = e.target.checked; save(); });
+document.getElementById("soundList").addEventListener("click", e => {
+  const b = e.target.closest("[data-sound]");
+  if (!b) return;
+  sound = b.dataset.sound;
+  save();
+  renderColors();
+  previewSound(sound);
+});
+document.getElementById("optSpeech").addEventListener("change", e => {
+  speech = e.target.checked;
+  save();
+  if (!speech) stopAudio();
+});
+document.getElementById("btnTestVoice").addEventListener("click", () => {
+  initAudio();
+  const was = speech;
+  speech = true;   // Probe auch hörbar, wenn Vorlesen aus ist
+  say("A");
+  speech = was;
+});
 document.getElementById("fxConfetti").addEventListener("change", e => { fxConfetti = e.target.checked; save(); });
 
 // ── Topf-Knöpfe ──────────────────────────────────────────────────────
@@ -1775,10 +1876,22 @@ document.querySelectorAll("#caseSeg button").forEach(b => b.addEventListener("cl
 
 // ── Anlaut-Bild ──────────────────────────────────────────────────────
 document.querySelectorAll("#picSeg button").forEach(b => b.addEventListener("click", () => {
-  picMode = b.dataset.pic;
+  picShow = b.dataset.pic;
   save();
   renderAll();
 }));
+document.getElementById("picWord").addEventListener("change", e => {
+  picWord = e.target.checked;
+  save();
+  renderAll();
+});
+// Bild aufdecken: nur mit dem Finger, nicht mit dem Taster
+document.getElementById("btnPic").addEventListener("click", e => {
+  e.stopPropagation();
+  if (switchClick(e) || rolling || !current) return;
+  picShown = true;
+  renderPic(current);
+});
 
 // ── Tafel-Ansicht ────────────────────────────────────────────────────
 document.getElementById("btnCopyBoard").addEventListener("click", e => {
