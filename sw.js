@@ -3,7 +3,7 @@
 // und nur ohne Netz aus dem Speicher. Alles andere (Töne, Schrift,
 // Bibliotheken, Symbole) kommt sofort aus dem Speicher und wird im
 // Hintergrund aufgefrischt. Bei Änderungen an der Dateiliste VERSION erhöhen.
-const VERSION = "abcbingo-v3";
+const VERSION = "abcbingo-v4";
 
 const LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 const FILES = [
@@ -21,6 +21,7 @@ const FILES = [
   "lib/mqtt.min.js",
   "lib/qrcode.js",
   ...LETTERS.map(l => l + ".mp3"),
+  ...["AE", "OE", "UE", "SZ", "EU", "SCH", "CH"].map(l => l + ".m4a"),
 ];
 
 self.addEventListener("install", e => {

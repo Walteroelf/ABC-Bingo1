@@ -68,6 +68,8 @@
       transition: opacity 0.1s;
     }
     body.case-both #bigLetter { font-size: clamp(8rem,30vw,34rem); }
+    #bigLetter.long { font-size: clamp(7rem,30vw,32rem); }
+    body.case-both #bigLetter.long { font-size: clamp(5rem,18vw,20rem); }
     #bigLetter.rolling { opacity: 0.2; }
 
     /* Anlaut-Bild unter dem Buchstaben (Emoji des Geräts, keine Bilddateien) */
@@ -87,6 +89,8 @@
     #btnPic.hidden { display: none; }
     body.pic-on #bigLetter { font-size: min(36vw, 46vh); }
     body.pic-on.case-both #bigLetter { font-size: min(30vw, 36vh); }
+    body.pic-on #bigLetter.long { font-size: min(26vw, 36vh); }
+    body.pic-on.case-both #bigLetter.long { font-size: min(17vw, 26vh); }
     #boardLast .bpic {
       background: none; display: flex; flex-direction: column; align-items: center;
       font-size: .55em; margin-left: .15em; padding: 0;
@@ -104,6 +108,7 @@
       border-radius: .12em; padding: .02em .14em;
       background: rgba(255,255,255,.12);
     }
+    #boardLast.long { font-size: clamp(5rem,20vh,17rem); }
     #boardLast.pop { animation: pop .5s ease-out; }
     @keyframes pop { from { transform: scale(.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
     #boardList {
@@ -276,6 +281,8 @@
       height: 2.8rem; border-radius: 10px; border: 2px solid #2a7d2e;
       background: #2a7d2e; color: #fff; font-size: 1.3rem; cursor: pointer;
     }
+    #poolGrid button.wide { grid-column: span 2; }
+    #poolGrid button.hidden { display: none; }
     #poolGrid button.off {
       background: #fff; color: #aaa; border-color: #ccc; text-decoration: line-through;
     }
@@ -442,6 +449,9 @@
           <h3>Buchstaben im Topf</h3>
           <div class="tiny" id="poolInfo">Antippen, um einen Buchstaben heraus- oder hineinzunehmen.</div>
           <div id="poolGrid" class="schrift"></div>
+          <div class="setrow">
+            <label class="switch"><span class="lbl">Zusatzlaute: Ä Ö Ü ß Eu Sch Ch</span><input type="checkbox" id="optExtra"/></label>
+          </div>
           <div class="btnrow">
             <button id="btnPoolAll" class="sbtn light">Alle</button>
             <button id="btnPoolNone" class="sbtn light">Keine</button>
@@ -625,7 +635,15 @@
 <script>
 "use strict";
 
-const LETTERS   = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+const BASIC     = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+// Zusatzlaute, in ⚙️ zuschaltbar. Jeder Laut bleibt ein einzelnes Zeichen, weil
+// der Topf als Zeichenkette abgeglichen wird; Sch, Ch und Eu stehen darum intern
+// als Lautschrift-Zeichen ʃ, ç und ɔ.
+const EXTRA     = ["Ä", "Ö", "Ü", "ß", "ɔ", "ʃ", "ç"];
+const LETTERS   = [...BASIC, ...EXTRA];
+const LABEL     = { "ɔ": "Eu", "ʃ": "Sch", "ç": "Ch" };
+const FILE      = { "Ä": "AE.m4a", "Ö": "OE.m4a", "Ü": "UE.m4a", "ß": "SZ.m4a", "ɔ": "EU.m4a", "ʃ": "SCH.m4a", "ç": "CH.m4a" };
+const soundFile = l => FILE[l] || l + ".mp3";
 const ROLL_MS   = [28,54,82,112,144,178,214,252,292,334,378,424];
 const STORE_KEY = "abcBingo.v1";
 
@@ -643,8 +661,9 @@ let code    = "";   // Spielcode für mehrere iPads, leer = nur dieses iPad
 
 // Buchstaben im Topf; wird mit allen verbundenen iPads abgeglichen,
 // die jüngste Änderung (poolTs) gewinnt.
-let pool    = new Set(LETTERS);
+let pool    = new Set(BASIC);
 let poolTs  = 0;
+let extraOn = false;   // Zusatzlaute im Topf zeigen (dieses Gerät)
 
 // Nur auf diesem Gerät
 let letterCase = "upper";   // "upper" | "both" | "lower"
@@ -686,17 +705,23 @@ const ANLAUT = {
   Q: ["🪼", "Qualle"],  R: ["🚀", "Rakete"],  S: ["☀️", "Sonne"],   T: ["🍅", "Tomate"],
   U: ["⏰", "Uhr"],     V: ["🐦", "Vogel"],   W: ["🐳", "Wal"],     X: ["🚕", "Taxi"],
   Y: ["🧘", "Yoga"],    Z: ["🦓", "Zebra"],
+  "Ä": ["🍎", "Äpfel"], "Ö": ["🛢️", "Öl"],    "Ü": ["🛍️", "Tüte"],  "ß": ["🦶", "Fuß"],
+  "ɔ": ["🦉", "Eule"],  "ʃ": ["🐑", "Schaf"], "ç": ["🥛", "Milch"],
 };
+
+// Großschreibung ohne ß → SS
+const upper = s => s.replace(/[^ß]+/g, t => t.toUpperCase());
 
 // Wort mit hervorgehobenem Buchstaben, Schreibweise wie eingestellt
 function anlautWord(l, el) {
-  const w = letterCase === "upper" ? ANLAUT[l][1].toUpperCase() : ANLAUT[l][1];
-  const i = w.toUpperCase().indexOf(l);
+  const w = letterCase === "upper" ? upper(ANLAUT[l][1]) : ANLAUT[l][1];
+  const t = LABEL[l] || l;
+  const i = upper(w).indexOf(upper(t));
   el.textContent = "";
   el.append(w.slice(0, i));
   const b = document.createElement("b");
-  b.textContent = w[i];
-  el.append(b, w.slice(i + 1));
+  b.textContent = w.slice(i, i + t.length);
+  el.append(b, w.slice(i + t.length));
 }
 
 function renderPic(l) {
@@ -734,9 +759,26 @@ function parseOwners(o) {
 const CODE_RE = /^[a-z0-9]{6,20}$/;
 
 function fmt(l) {
-  if (letterCase === "lower") return l.toLowerCase();
-  if (letterCase === "both")  return l + " " + l.toLowerCase();
-  return l;
+  if (l === "ß") return l;   // gibt es nur klein
+  const t = LABEL[l] || l;
+  if (letterCase === "lower") return t.toLowerCase();
+  if (letterCase === "both")  return t + " " + t.toLowerCase();
+  return t.toUpperCase();
+}
+
+// Mehrbuchstabige Laute (Sch, Eu …) brauchen eine kleinere Schrift
+const isLong = l => fmt(l).length > 3;
+
+function showBig(l) {
+  const bl = document.getElementById("bigLetter");
+  bl.textContent = l ? fmt(l) : "";
+  bl.classList.toggle("long", !!l && isLong(l));
+}
+
+// Buchstaben, die im Topf zur Wahl stehen: Zusatzlaute, wenn eingeschaltet
+// oder ein anderes iPad sie in den Topf gelegt hat
+function shownLetters() {
+  return extraOn || EXTRA.some(l => pool.has(l)) ? LETTERS : BASIC;
 }
 
 function poolLeft() { return LETTERS.filter(l => pool.has(l) && !drawn.has(l)); }
@@ -763,7 +805,7 @@ function save() {
       drawn: [...drawn], volume, code, gen, genTs, server: brokerIdx,
       pool: [...pool].join(""), poolTs, letterCase, boardMode, settingsTab,
       colorKey, colors, owners, sound, speech, fxConfetti,
-      trigMode, switchKey, weiterOn, lockSec, picShow, picWord,
+      trigMode, switchKey, weiterOn, lockSec, picShow, picWord, extraOn,
     }));
   } catch (e) {}
 }
@@ -797,6 +839,7 @@ function load() {
     if (LOCKS.includes(s.lockSec)) lockSec = s.lockSec;
     if (["off", "tap", "always"].includes(s.picShow)) picShow = s.picShow;
     if (typeof s.picWord === "boolean") picWord = s.picWord;
+    if (typeof s.extraOn === "boolean") extraOn = s.extraOn;
     if (s.picMode === "pic" || s.picMode === "word") {   // frühere Einstellung
       picShow = "always";
       picWord = s.picMode === "word";
@@ -834,7 +877,7 @@ function initAudio() {
   unlock.start(0);
   if (ctx.state !== "running") ctx.resume().catch(() => {});
   LETTERS.forEach(l => {
-    fetch(l + ".mp3")
+    fetch(soundFile(l))
       .then(r => { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); })
       .then(data => new Promise((res, rej) => ctx.decodeAudioData(data, res, rej)))
       .then(buf => { buffers[l] = buf; })
@@ -870,7 +913,7 @@ function say(letter, delay = 0) {
     // Fallback: Datei noch nicht geladen oder kein Web Audio
     const play = () => {
       if (run !== sayRun) { finish(); return; }
-      const audio = new Audio(letter + ".mp3");
+      const audio = new Audio(soundFile(letter));
       audio.volume = volume;
       audio.onended = finish;
       audio.onerror = finish;
@@ -1228,7 +1271,7 @@ function joinGame(j) {
     brokerIdx = j.server;
     gen = ""; genTs = 0;
     drawn.clear(); colors = {}; owners = {};
-    pool = new Set(LETTERS); poolTs = 0;
+    pool = new Set(BASIC); poolTs = 0;
   }
   if (j.board) boardMode = true;
   save();
@@ -1399,11 +1442,13 @@ function renderColors() {
   }
   [...list.children].forEach(b => b.classList.toggle("on", b.dataset.sound === sound));
   document.getElementById("fxConfetti").checked = fxConfetti;
+  document.getElementById("optExtra").checked = shownLetters() === LETTERS;
 }
 
 // ── Topf-Auswahl ─────────────────────────────────────────────────────
 function renderPool() {
   const grid = document.getElementById("poolGrid");
+  const shown = shownLetters();
   if (!grid.children.length) {
     LETTERS.forEach(l => {
       const b = document.createElement("button");
@@ -1419,11 +1464,13 @@ function renderPool() {
   [...grid.children].forEach(b => {
     const l = b.dataset.letter;
     b.textContent = fmt(l);
+    b.classList.toggle("hidden", !shown.includes(l));
+    b.classList.toggle("wide", isLong(l));
     b.classList.toggle("off", !pool.has(l));
     b.setAttribute("aria-pressed", pool.has(l));
   });
   document.getElementById("poolInfo").textContent =
-    `${pool.size} von ${LETTERS.length} Buchstaben im Topf. Antippen, um einen heraus- oder hineinzunehmen.`;
+    `${pool.size} von ${shown.length} Buchstaben im Topf. Antippen, um einen heraus- oder hineinzunehmen.`;
 }
 
 function setPool(next) {
@@ -1444,6 +1491,7 @@ function renderBoard() {
     code ? countText() : "Nicht verbunden: ⚙️ → Weitere iPads verbinden";
   const lastEl = document.getElementById("boardLast");
   lastEl.textContent = "";
+  lastEl.classList.toggle("long", !!last && isLong(last));
   if (last) {
     const s = document.createElement("span");
     s.textContent = fmt(last);
@@ -1576,14 +1624,14 @@ function roll() {
   makeClaim();
 
   // Animation zeigt nur Buchstaben aus dem Topf (bei sehr kleinem Topf alle)
-  const spin   = pool.size >= 3 ? [...pool] : LETTERS;
+  const spin   = pool.size >= 3 ? [...pool] : shownLetters();
   let idx    = 0;
   let nextAt = ROLL_MS[0];
   const t0   = performance.now();
   (function frame(now) {
     const elapsed = now - t0;
     if (elapsed >= nextAt) {
-      bl.textContent = fmt(spin[Math.floor(Math.random() * spin.length)]);
+      showBig(spin[Math.floor(Math.random() * spin.length)]);
       idx++;
       nextAt = idx < ROLL_MS.length ? ROLL_MS[idx] : elapsed + 120;
     }
@@ -1603,7 +1651,7 @@ function roll() {
     const fin = soundOut();
     if (fin) currentSound().finale(ctx, fin, ctx.currentTime + 0.01);
     current = final;
-    bl.textContent = fmt(final);
+    showBig(final);
     picShown = false;
     renderPic(final);
     const run = rollRun;
@@ -1913,17 +1961,25 @@ document.getElementById("btnTestVoice").addEventListener("click", () => {
 document.getElementById("fxConfetti").addEventListener("change", e => { fxConfetti = e.target.checked; save(); });
 
 // ── Topf-Knöpfe ──────────────────────────────────────────────────────
-document.getElementById("btnPoolAll").addEventListener("click", () => setPool(new Set(LETTERS)));
+document.getElementById("btnPoolAll").addEventListener("click", () => setPool(new Set(shownLetters())));
 document.getElementById("btnPoolNone").addEventListener("click", () => setPool(new Set()));
 document.getElementById("btnPoolRare").addEventListener("click", () =>
-  setPool(new Set(LETTERS.filter(l => !"QXY".includes(l)))));
+  setPool(new Set(shownLetters().filter(l => !"QXY".includes(l)))));
+
+// Zusatzlaute ein: alle in den Topf; aus: alle heraus
+document.getElementById("optExtra").addEventListener("change", e => {
+  extraOn = e.target.checked;
+  const next = new Set(pool);
+  EXTRA.forEach(l => extraOn ? next.add(l) : next.delete(l));
+  setPool(next);
+});
 
 // ── Schreibweise ─────────────────────────────────────────────────────
 document.querySelectorAll("#caseSeg button").forEach(b => b.addEventListener("click", () => {
   letterCase = b.dataset.case;
   save();
   renderAll();
-  if (current && !rolling) document.getElementById("bigLetter").textContent = fmt(current);
+  if (current && !rolling) showBig(current);
 }));
 
 // ── Anlaut-Bild ──────────────────────────────────────────────────────

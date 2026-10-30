@@ -26,7 +26,7 @@ Das Menü hat vier Reiter. Es öffnet sich mit dem Reiter, der zuletzt offen war
 
 | Reiter | Was es dort gibt |
 |---|---|
-| 🎲 **Spiel** | Gezogene Buchstaben in Zieh-Reihenfolge (der neueste gelb umrandet), **Letzten zurücknehmen** (z. B. nach versehentlichem Doppeltippen), **Neues Spiel**. Darunter **Buchstaben im Topf**: antippen, um Buchstaben heraus- oder hineinzunehmen; Schnellknöpfe Alle, Keine, Ohne Q, X, Y. |
+| 🎲 **Spiel** | Gezogene Buchstaben in Zieh-Reihenfolge (der neueste gelb umrandet), **Letzten zurücknehmen** (z. B. nach versehentlichem Doppeltippen), **Neues Spiel**. Darunter **Buchstaben im Topf**: antippen, um Buchstaben heraus- oder hineinzunehmen; Schnellknöpfe Alle, Keine, Ohne Q, X, Y. Schalter **Zusatzlaute** (siehe [Zusatzlaute](#zusatzlaute)). |
 | 📱 **Dieses iPad** | Gilt nur für dieses Gerät. **Aussehen:** Farbe (gezogene Buchstaben erscheinen in dieser Farbe, auch auf der Tafel), Schreibweise „A“, „A a“ oder „a“, Anlaut-Bild (siehe [Anlaut-Bilder](#anlaut-bilder)). **Vorlesen:** an/aus, Lautstärke, Stimmprobe. **Würfel-Klang:** 🥁 Trommelwirbel, 🎺 Tusch, 🎡 Glücksrad, 🎵 Xylophon, ✨ Zauberstab oder 🔇 kein Klang (Antippen zum Anhören), Konfetti an/aus. **Würfeln:** Antippen, Taster oder beides, „Weiter“-Knopf an/aus und Sperrzeit (siehe [Taster](#taster)). **Vollbild** ein/aus (nur im Browser, nicht in der Home-Bildschirm-App). |
 | 📡 **Verbinden** | Mehrere iPads und die Tafel, siehe unten. Ein Punkt am Reiter zeigt den Verbindungsstatus. |
 | ➕ **Mehr** | Wortkarten-Generator und diese Anleitung (als Fenster in der App, auch offline). |
@@ -52,10 +52,22 @@ Anlaut, z. B. A wie Affe 🐒. Einstellen unter ⚙️ → **Dieses iPad** →
 | H 🏠 Haus | I 🦔 Igel | J 🪀 Jojo | K 🐈 Katze | L 🦁 Löwe | M 🐭 Maus | N 👃 Nase |
 | O 👂 Ohr | P 🍄 Pilz | Q 🪼 Qualle | R 🚀 Rakete | S ☀️ Sonne | T 🍅 Tomate | U ⏰ Uhr |
 | V 🐦 Vogel | W 🐳 Wal | X 🚕 Taxi | Y 🧘 Yoga | Z 🦓 Zebra | | |
+| Ä 🍎 Äpfel | Ö 🛢️ Öl | Ü 🛍️ Tüte | ß 🦶 Fuß | Eu 🦉 Eule | Sch 🐑 Schaf | Ch 🥛 Milch |
 
 Die Bilder sind die Emojis des Geräts, es gibt also keine Bilddateien und
 keine Lizenzfragen. Auf älteren iPads (vor iPadOS 16.4) fehlt eventuell die
 Qualle.
+
+## Zusatzlaute
+
+Unter ⚙️ → **Spiel** → **Buchstaben im Topf** schaltet **Zusatzlaute**
+die Laute Ä, Ö, Ü, ß, Eu, Sch und Ch dazu. Sie kommen dann alle in den
+Topf und lassen sich wie die anderen Buchstaben einzeln heraus- und
+hineinnehmen. Ausschalten nimmt sie wieder aus dem Topf. Der Topf gilt
+für alle verbundenen iPads, so erscheinen die Zusatzlaute auch dort.
+Standardmäßig sind sie aus.
+
+Ch wird wie in „ich“ gesprochen, ß als „Ess-Zett“.
 
 ## Taster
 
@@ -177,6 +189,7 @@ Reine Webseite ohne Build-Schritt, läuft auf GitHub Pages.
 | `index.html` | Die App (HTML, CSS, JavaScript in einer Datei) |
 | `karten.html` | Wortkarten-Generator |
 | `A.mp3` … `Z.mp3` | Gesprochene Buchstaben |
+| `AE.m4a`, `OE.m4a`, `UE.m4a`, `SZ.m4a`, `EU.m4a`, `SCH.m4a`, `CH.m4a` | Gesprochene Zusatzlaute, siehe unten |
 | `sounds.js` | Würfel-Klänge, im Browser erzeugt (gleiche Datei wie im Mathe-Bingo) |
 | `sw.js`, `manifest.webmanifest`, `icons/` | Home-Bildschirm-App und Offline-Speicher |
 | `fonts/` | Schrift Andika (SIL, OFL-Lizenz, siehe `fonts/OFL.txt`) |
@@ -184,3 +197,20 @@ Reine Webseite ohne Build-Schritt, läuft auf GitHub Pages.
 
 Werden Dateien hinzugefügt oder umbenannt, die offline verfügbar sein
 sollen: in `sw.js` die Liste `FILES` anpassen und `VERSION` erhöhen.
+
+### Herkunft der Zusatzlaute
+
+Die Zusatzlaute sind mit der freien Sprachsynthese
+[Piper](https://github.com/rhasspy/piper) und der Stimme „Thorsten“
+(`de_DE-thorsten-high`) erzeugt. Weil die Stimme einzelne Laute schlecht
+spricht, ist jeder Laut aus einem Wort herausgeschnitten: Ä aus „Käfig“,
+Ö aus „Öfen“, Ü aus „Tüte“, Eu aus „Kreuze“, Sch aus „Fisch“, Ch aus
+„Stich“; ß ist „Ess-Zett“. Pausen und Lautstärke sind an die übrigen
+Buchstaben angeglichen.
+
+- Die Sprachaufnahmen der Thorsten-Stimme stehen unter CC0
+  ([Thorsten-Voice](https://github.com/thorstenMueller/Thorsten-Voice)),
+  das Stimmmodell stellt Thorsten-Voice unter der MIT-Lizenz bereit.
+- Das Modell wurde aus der englischen Piper-Stimme „lessac“ weitertrainiert,
+  deren Ausgangsdaten nur für Forschungszwecke freigegeben sind. Ob das die
+  Nutzung der erzeugten Laute einschränkt, ist nicht abschließend geklärt.
