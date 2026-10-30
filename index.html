@@ -295,6 +295,15 @@
     .seg button.on { background: #1f5fa8; color: #fff; }
     .seg.small button { font-size: 1rem; padding: 10px 4px; }
     .setrow.hidden { display: none; }
+    details.more > summary {
+      list-style: none; cursor: pointer; background: #fff; border-radius: 16px;
+      padding: .9rem 1rem; font-weight: 800; font-size: 1.05rem;
+    }
+    details.more > summary::-webkit-details-marker { display: none; }
+    details.more > summary::before { content: "▸ "; }
+    details.more[open] > summary::before { content: "▾ "; }
+    details.more[open] > summary { margin-bottom: .9rem; }
+    details.more > .scard + .scard { margin-top: .9rem; }
     .sound-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: .4rem; }
     .sound-list button {
       padding: 12px 10px; border-radius: 12px; border: 2px solid #1f5fa8;
@@ -464,7 +473,6 @@
       <section data-tab="geraet" class="hidden">
         <div class="tiny">Diese Einstellungen gelten nur für dieses Gerät.</div>
         <div class="scard">
-          <h3>🎨 Aussehen</h3>
           <div class="setrow" style="flex-direction:column; align-items:stretch">
             <span class="lbl">Farbe</span>
             <div id="colorRow"></div>
@@ -478,43 +486,11 @@
               <button data-case="lower">a</button>
             </div>
           </div>
-          <div class="setrow" style="flex-direction:column; align-items:stretch">
-            <span class="lbl">Anlaut-Bild</span>
-            <div class="seg small" id="picSeg">
-              <button data-pic="off">Aus</button>
-              <button data-pic="tap">Auf Antippen</button>
-              <button data-pic="always">Immer</button>
-            </div>
-            <div class="tiny">Ein Bild zum Buchstaben, z. B. A wie Affe 🐒. „Auf Antippen“: Unter dem Buchstaben erscheint ein Knopf, der das Bild aufdeckt. Auf der Tafel erscheint es bei „Immer“.</div>
-          </div>
-          <div class="setrow" id="picWordRow">
-            <label class="switch"><span class="lbl">Wort unter dem Bild</span><input type="checkbox" id="picWord"/></label>
-          </div>
-        </div>
-        <div class="scard">
-          <h3>🔊 Vorlesen</h3>
-          <div class="setrow">
-            <label class="switch"><span class="lbl">Buchstaben vorlesen</span><input type="checkbox" id="optSpeech"/></label>
-          </div>
           <div class="setrow">
             <label class="lbl" for="volRange">Lautstärke</label>
             <input id="volRange" type="range" min="0.1" max="1.0" step="0.05" value="1.0"/>
             <span class="tiny" id="volVal">100 %</span>
           </div>
-          <div class="setrow">
-            <span class="lbl">Stimmprobe</span>
-            <button id="btnTestVoice" class="sbtn light">🔊 Probe hören</button>
-          </div>
-        </div>
-        <div class="scard">
-          <h3>🥁 Würfel-Klang <span class="tiny">Antippen zum Anhören und Auswählen</span></h3>
-          <div id="soundList" class="sound-list"></div>
-          <div class="setrow">
-            <label class="switch"><span class="lbl">Konfetti beim Ergebnis</span><input type="checkbox" id="fxConfetti"/></label>
-          </div>
-        </div>
-        <div class="scard">
-          <h3>👆 Würfeln</h3>
           <div class="setrow">
             <span class="lbl">Würfeln mit</span>
             <div class="seg small" id="trigSeg">
@@ -534,28 +510,70 @@
             <div class="tiny" id="keyInfo"></div>
             <div class="tiny">Wichtig: Die „Schaltersteuerung“ in den iPad-Bedienungshilfen muss für diesen Taster aus sein.</div>
           </div>
-          <div class="setrow">
-            <label class="switch"><span class="lbl">„Weiter“-Knopf nach jedem Buchstaben</span><input type="checkbox" id="optWeiter"/></label>
-          </div>
-          <div class="setrow" id="lockRow" style="flex-direction:column; align-items:stretch">
-            <span class="lbl">Sperrzeit nach dem Ergebnis</span>
-            <div class="seg small" id="lockSeg">
-              <button data-lock="0">0 s</button>
-              <button data-lock="3">3 s</button>
-              <button data-lock="5">5 s</button>
-              <button data-lock="10">10 s</button>
-              <button data-lock="20">20 s</button>
+        </div>
+
+        <details id="moreDev" class="more">
+          <summary>Weitere Einstellungen <span class="tiny" id="moreInfo"></span></summary>
+          <div class="scard">
+            <h3>🔊 Vorlesen</h3>
+            <div class="setrow">
+              <label class="switch"><span class="lbl">Buchstaben vorlesen</span><input type="checkbox" id="optSpeech"/></label>
             </div>
-            <div class="tiny">Beginnt, wenn der Buchstabe fertig vorgelesen ist. So lange bleibt er stehen, bevor neu gewürfelt werden kann. Antippen in dieser Zeit spielt den Laut nochmal ab.</div>
+            <div class="setrow">
+              <span class="lbl">Stimmprobe</span>
+              <button id="btnTestVoice" class="sbtn light">🔊 Probe hören</button>
+            </div>
           </div>
-        </div>
-        <div class="scard" id="fullCard">
-          <div class="setrow">
-            <span class="lbl">🖥️ Vollbild</span>
-            <button id="btnFullSet" class="sbtn light">Einschalten</button>
+          <div class="scard">
+            <h3>🐒 Anlaut-Bild</h3>
+            <div class="setrow" style="flex-direction:column; align-items:stretch">
+              <div class="seg small" id="picSeg">
+                <button data-pic="off">Aus</button>
+                <button data-pic="tap">Auf Antippen</button>
+                <button data-pic="always">Immer</button>
+              </div>
+              <div class="tiny">Ein Bild zum Buchstaben, z. B. A wie Affe 🐒. „Auf Antippen“: Unter dem Buchstaben erscheint ein Knopf, der das Bild aufdeckt. Auf der Tafel erscheint es bei „Immer“.</div>
+            </div>
+            <div class="setrow" id="picWordRow">
+              <label class="switch"><span class="lbl">Wort unter dem Bild</span><input type="checkbox" id="picWord"/></label>
+            </div>
           </div>
-          <div class="tiny">Blendet Adressleiste und Tabs aus, z. B. am Beamer-Rechner. Auf dem iPad läuft die App vom Home-Bildschirm ohnehin im Vollbild.</div>
-        </div>
+          <div class="scard">
+            <h3>🥁 Würfel-Klang <span class="tiny">Antippen zum Anhören und Auswählen</span></h3>
+            <div id="soundList" class="sound-list"></div>
+            <div class="setrow">
+              <label class="switch"><span class="lbl">Konfetti beim Ergebnis</span><input type="checkbox" id="fxConfetti"/></label>
+            </div>
+          </div>
+          <div class="scard">
+            <h3>⏭️ Nach dem Buchstaben</h3>
+            <div class="setrow">
+              <label class="switch"><span class="lbl">„Weiter“-Knopf nach jedem Buchstaben</span><input type="checkbox" id="optWeiter"/></label>
+            </div>
+            <div class="setrow" id="lockRow" style="flex-direction:column; align-items:stretch">
+              <span class="lbl">Sperrzeit nach dem Ergebnis</span>
+              <div class="seg small" id="lockSeg">
+                <button data-lock="0">0 s</button>
+                <button data-lock="3">3 s</button>
+                <button data-lock="5">5 s</button>
+                <button data-lock="10">10 s</button>
+                <button data-lock="20">20 s</button>
+              </div>
+              <div class="tiny">Beginnt, wenn der Buchstabe fertig vorgelesen ist. So lange bleibt er stehen, bevor neu gewürfelt werden kann. Antippen in dieser Zeit spielt den Laut nochmal ab.</div>
+            </div>
+          </div>
+          <div class="scard" id="fullCard">
+            <div class="setrow">
+              <span class="lbl">🖥️ Vollbild</span>
+              <button id="btnFullSet" class="sbtn light">Einschalten</button>
+            </div>
+            <div class="tiny">Blendet Adressleiste und Tabs aus, z. B. am Beamer-Rechner. Auf dem iPad läuft die App vom Home-Bildschirm ohnehin im Vollbild.</div>
+          </div>
+          <div class="scard">
+            <button id="btnDevReset" class="sbtn light">↺ Dieses iPad auf Standard zurücksetzen</button>
+            <div class="tiny">Alle Einstellungen dieses Geräts wie beim ersten Start: Antippen, Trommelwirbel, Vorlesen, „Weiter“-Knopf, kein Anlaut-Bild, Großbuchstaben, volle Lautstärke. Farbe, Spielstand und Verbindung bleiben.</div>
+          </div>
+        </details>
       </section>
 
       <!-- ── Verbinden ─────────────────────────────────────── -->
@@ -1545,7 +1563,51 @@ function renderAll() {
   document.getElementById("picWord").checked = picWord;
   document.getElementById("picWordRow").classList.toggle("hidden", picShow === "off");
   renderPic(rolling ? "" : current);
+  renderMoreInfo();
 }
+
+// ── Standard dieses Geräts ───────────────────────────────────────────
+// So verhält sich ein neues iPad (wie die erste Fassung der App).
+const DEVICE_DEFAULTS = {
+  letterCase: "upper", volume: 1.0, trigMode: "tap", switchKey: "Space",
+  sound: "trommel", speech: true, fxConfetti: true,
+  picShow: "off", picWord: false, weiterOn: true, lockSec: 5,
+};
+
+function deviceSettings() {
+  return { letterCase, volume, trigMode, switchKey, sound, speech, fxConfetti,
+           picShow, picWord, weiterOn, lockSec };
+}
+
+// Hinweis an „Weitere Einstellungen“, wenn dort etwas verstellt ist
+function renderMoreInfo() {
+  const cur = deviceSettings();
+  const keys = ["sound", "speech", "fxConfetti", "picShow", "weiterOn"];
+  let n = keys.filter(k => cur[k] !== DEVICE_DEFAULTS[k]).length;
+  if (picShow !== "off" && picWord) n++;
+  if (!weiterOn && lockSec !== DEVICE_DEFAULTS.lockSec) n++;
+  document.getElementById("moreInfo").textContent = n ? `· ${n} geändert` : "";
+}
+
+// Nach jeder Änderung im Reiter den Hinweis auffrischen
+["click", "change"].forEach(ev => document.getElementById("moreDev").addEventListener(ev, () => setTimeout(renderMoreInfo)));
+
+document.getElementById("btnDevReset").addEventListener("click", () => {
+  if (!confirm("Alle Einstellungen dieses iPads auf Standard zurücksetzen? Farbe, Spielstand und Verbindung bleiben.")) return;
+  ({ letterCase, volume, trigMode, switchKey, sound, speech, fxConfetti,
+     picShow, picWord, weiterOn, lockSec } = DEVICE_DEFAULTS);
+  learning = false;
+  if (gain) gain.gain.value = volume;
+  if (fallbackAudio) fallbackAudio.volume = volume;
+  save();
+  renderVolume();
+  renderAll();
+  if (current && !rolling) {
+    showBig(current);
+    document.getElementById("btnWeiter").classList.toggle("hidden", isDone() ? false : !weiterOn);
+    stopLock();
+  }
+});
 
 // ── Neues Spiel ──────────────────────────────────────────────────────
 function resetScreens() {
@@ -1597,6 +1659,7 @@ function showDone() {
 }
 
 let rollRun = 0;
+const SPEECH_MIN_S = 0.45;
 
 function roll() {
   if (rolling || boardMode) return;
@@ -1648,14 +1711,21 @@ function roll() {
       showDone();
       return;
     }
+    // Ansage freistellen: Sie kommt frühestens SPEECH_MIN_S nach dem
+    // Abschluss-Klang, und dessen Nachklang (Becken, Glocken) wird kurz
+    // vorher ausgeblendet, damit der Buchstabe sauber zu hören ist.
+    const speechAt = Math.max(currentSound().speechDelay, SPEECH_MIN_S);
     const fin = soundOut();
-    if (fin) currentSound().finale(ctx, fin, ctx.currentTime + 0.01);
+    if (fin) {
+      currentSound().finale(ctx, fin, ctx.currentTime + 0.01);
+      if (speech) fin.gain.setTargetAtTime(0, ctx.currentTime + speechAt - 0.15, 0.04);
+    }
     current = final;
     showBig(final);
     picShown = false;
     renderPic(final);
     const run = rollRun;
-    const spoken = say(final, currentSound().speechDelay);
+    const spoken = say(final, speechAt);
     if (weiterOn) bw.classList.remove("hidden");
     else {
       // Sperrzeit beginnt erst, wenn der Buchstabe fertig vorgelesen ist
