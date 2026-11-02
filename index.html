@@ -1787,6 +1787,8 @@ function stopLock() {
 // Startbildschirm oder, ohne „Weiter“, nach Ablauf der Sperrzeit.
 let learning    = false;   // „Anlernen“: nächster Tastendruck wird gemerkt
 let keyHeld     = false;   // gedrückt gehalten → nur einmal würfeln
+let lastKeyAt   = 0;       // letztes Tastensignal des Tasters (auch Wiederholungen)
+const HOLD_GAP_MS = 700;   // längere Pause = neuer Druck, auch ohne Loslassen
 let lastPointer = "";
 let swallowClick = false;
 
@@ -1837,11 +1839,21 @@ document.addEventListener("keydown", e => {
   if (e.target.closest && e.target.closest("input, textarea")) return;
   if (!switchOK() || switchKey === "mouse" || keyName(e) !== switchKey) return;
   e.preventDefault();   // keine Knöpfe auslösen, nicht scrollen
-  if (e.repeat || keyHeld) return;
+  // Gehaltener Taster schickt Wiederholungen in kurzen Abständen: nur einmal
+  // würfeln. Kam das Loslassen nie an (iPad gesperrt, Adapter meldet es
+  // nicht), zählt ein Signal nach längerer Pause trotzdem als neuer Druck.
+  const now = Date.now();
+  const held = e.repeat || (keyHeld && now - lastKeyAt < HOLD_GAP_MS);
+  lastKeyAt = now;
+  if (held) return;
   keyHeld = true;
   initAudio();
   switchPress();
 });
+
+// Fokus weg (App gewechselt, iPad gesperrt): Taster gilt als losgelassen
+window.addEventListener("blur", () => { keyHeld = false; });
+document.addEventListener("visibilitychange", () => { keyHeld = false; });
 
 document.addEventListener("keyup", e => {
   keyHeld = false;
