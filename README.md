@@ -22,12 +22,16 @@ Wer zuerst alle Wörter voll hat, ruft „Bingo!“.
 
 ## Einstellungen (⚙️ unten links)
 
+Daneben schaltet ein Knopf auf jedem Bildschirm (iPad und Tafel) **Vollbild**
+ein und aus. In der App vom Home-Bildschirm fehlt er, die läuft ohnehin im
+Vollbild.
+
 Das Menü hat vier Reiter. Es öffnet sich mit dem Reiter, der zuletzt offen war.
 
 | Reiter | Was es dort gibt |
 |---|---|
 | 🎲 **Spiel** | Gezogene Buchstaben in Zieh-Reihenfolge (der neueste gelb umrandet), **Letzten zurücknehmen** (z. B. nach versehentlichem Doppeltippen), **Neues Spiel**. Darunter **Buchstaben im Topf**: antippen, um Buchstaben heraus- oder hineinzunehmen; Schnellknöpfe Alle, Keine, Ohne Q, X, Y. Schalter **Zusatzlaute** (siehe [Zusatzlaute](#zusatzlaute)). |
-| 📱 **Dieses iPad** | Gilt nur für dieses Gerät. Oben das Wichtigste: **Farbe** (gezogene Buchstaben erscheinen in dieser Farbe, auch auf der Tafel), **Schreibweise** „A“, „A a“ oder „a“, **Lautstärke**, **Würfeln mit** Antippen, Taster oder beidem (siehe [Taster](#taster)). Darunter aufklappbar **Weitere Einstellungen** (ein Hinweis zeigt, wie viele davon verstellt sind): Vorlesen an/aus und Stimmprobe, Anlaut-Bild (siehe [Anlaut-Bilder](#anlaut-bilder)), Würfel-Klang 🥁 🎺 🎡 🎵 ✨ 🔇 (Antippen zum Anhören) und Konfetti, „Weiter“-Knopf und Sperrzeit, Vollbild (nur im Browser), und **↺ Dieses iPad auf Standard zurücksetzen**: alles wie beim ersten Start, Farbe, Spielstand und Verbindung bleiben. |
+| 📱 **Dieses iPad** | Gilt nur für dieses Gerät. Oben das Wichtigste: **Farbe** (gezogene Buchstaben erscheinen in dieser Farbe, auch auf der Tafel), **Schreibweise** „A“, „A a“ oder „a“, **Lautstärke**, **Würfeln mit** Antippen, Taster oder beidem (siehe [Taster](#taster)). Darunter aufklappbar **Weitere Einstellungen** (ein Hinweis zeigt, wie viele davon verstellt sind): Vorlesen an/aus und Stimmprobe, Anlaut-Bild (siehe [Anlaut-Bilder](#anlaut-bilder)), Würfel-Klang 🥁 🎺 🎡 🎵 ✨ 🔇 (Antippen zum Anhören) und Konfetti, „Weiter“-Knopf und Sperrzeit, und **↺ Dieses iPad auf Standard zurücksetzen**: alles wie beim ersten Start, Farbe, Spielstand und Verbindung bleiben. |
 | 📡 **Verbinden** | Mehrere iPads und die Tafel, siehe unten. Ein Punkt am Reiter zeigt den Verbindungsstatus. |
 | ➕ **Mehr** | Wortkarten-Generator und diese Anleitung (als Fenster in der App, auch offline). |
 
@@ -43,8 +47,9 @@ Anlaut, z. B. A wie Affe 🐒. Einstellen unter ⚙️ → **Dieses iPad** →
   Antippen**: Unter dem Buchstaben erscheint „Bild zeigen“, so können die
   Kinder erst raten. Der Taster deckt das Bild nie auf, nur der Finger.
 - **Wort unter dem Bild:** das Wort mit hervorgehobenem Buchstaben.
-- Auf der Tafel erscheint das Bild neben dem Buchstaben, wenn auf dem
-  Tafel-Gerät „Immer“ eingestellt ist.
+- Auf der Tafel erscheint das Bild neben dem Buchstaben, wie auf dem
+  Tafel-Gerät eingestellt: bei „Immer“ sofort, bei „Auf Antippen“ über den
+  Knopf „Bild zeigen“ neben dem Buchstaben.
 
 | | | | | | | |
 |---|---|---|---|---|---|---|
@@ -131,7 +136,7 @@ Verbinden → Tafel-Ansicht:
 - **Link kopieren** und auf dem Beamer-Rechner öffnen, oder
 - **Dieses Gerät als Tafel** (z. B. ein iPad per Kabel oder AirPlay am Beamer).
 
-Auf der Tafel unten rechts blendet **⛶ Vollbild** Adressleiste und Tabs aus.
+Der Vollbild-Knopf neben ⚙️ blendet Adressleiste und Tabs aus und wieder ein.
 
 ## Als App auf den Home-Bildschirm
 

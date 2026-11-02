@@ -96,6 +96,11 @@
       font-size: .55em; margin-left: .15em; padding: 0;
     }
     #boardLast .bpic span { background: none; padding: 0; }
+    #boardLast .bpicbtn {
+      margin-left: 1.5rem; padding: 14px 26px; border-radius: 16px;
+      border: 3px solid rgba(255,255,255,.8); background: rgba(255,255,255,.15);
+      color: #fff; font-size: clamp(1.1rem,2.4vw,1.8rem); font-weight: 800; cursor: pointer;
+    }
     #boardLast .bpic .word { font-size: .32em; line-height: 1.2; }
 
     #screenBoard { background: #1d3f6e; color: #fff; justify-content: flex-start; padding: calc(1.2rem + env(safe-area-inset-top)) 1rem 6rem; }
@@ -138,12 +143,17 @@
     }
     #btnWeiter.hidden { display: none; }
 
+    /* Vollbild an/aus, neben ⚙️ auf jedem Bildschirm */
     #btnFull {
-      position: fixed; right: calc(1rem + env(safe-area-inset-right)); bottom: calc(1rem + env(safe-area-inset-bottom));
-      padding: 12px 18px; border-radius: 16px; background: rgba(0,0,0,.3);
+      position: fixed; bottom: calc(1rem + env(safe-area-inset-bottom));
+      left: calc(1rem + env(safe-area-inset-left) + clamp(64px,14vw,84px) + .6rem);
+      width: clamp(64px,14vw,84px); height: clamp(64px,14vw,84px);
+      border-radius: 16px; background: rgba(0,0,0,.3);
       color: #fff; border: 3px solid rgba(255,255,255,.3);
-      font-size: 1.1rem; font-weight: 700; z-index: 9999; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      z-index: 9999; cursor: pointer; -webkit-tap-highlight-color: transparent;
     }
+    #btnFull svg { width: 55%; height: 55%; }
     #btnFull.hidden, .scard.hidden { display: none; }
     #btnSettings {
       position: fixed; left: calc(1rem + env(safe-area-inset-left)); bottom: calc(1rem + env(safe-area-inset-bottom));
@@ -425,7 +435,12 @@
 <div id="syncDot" class="hidden"></div>
 <button id="btnWeiter" class="hidden">Weiter</button>
 <button id="btnSettings" aria-label="Einstellungen">⚙️</button>
-<button id="btnFull" class="hidden">⛶ Vollbild</button>
+<button id="btnFull" class="hidden" aria-label="Vollbild">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path class="fs-enter" d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>
+    <path class="fs-exit" d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5" style="display:none"/>
+  </svg>
+</button>
 
 <div id="drawer" class="hidden">
   <div id="drawerInner" role="dialog" aria-label="Einstellungen">
@@ -532,7 +547,7 @@
                 <button data-pic="tap">Auf Antippen</button>
                 <button data-pic="always">Immer</button>
               </div>
-              <div class="tiny">Ein Bild zum Buchstaben, z. B. A wie Affe 🐒. „Auf Antippen“: Unter dem Buchstaben erscheint ein Knopf, der das Bild aufdeckt. Auf der Tafel erscheint es bei „Immer“.</div>
+              <div class="tiny">Ein Bild zum Buchstaben, z. B. A wie Affe 🐒. „Auf Antippen“: Neben bzw. unter dem Buchstaben erscheint „Bild zeigen“, das Bild kommt erst auf Antippen. Gilt auch für die Tafel, wenn es dort so eingestellt ist.</div>
             </div>
             <div class="setrow" id="picWordRow">
               <label class="switch"><span class="lbl">Wort unter dem Bild</span><input type="checkbox" id="picWord"/></label>
@@ -561,13 +576,6 @@
               </div>
               <div class="tiny">Beginnt, wenn der Buchstabe fertig vorgelesen ist. So lange bleibt er stehen, bevor neu gewürfelt werden kann. Antippen in dieser Zeit spielt den Laut nochmal ab.</div>
             </div>
-          </div>
-          <div class="scard" id="fullCard">
-            <div class="setrow">
-              <span class="lbl">🖥️ Vollbild</span>
-              <button id="btnFullSet" class="sbtn light">Einschalten</button>
-            </div>
-            <div class="tiny">Blendet Adressleiste und Tabs aus, z. B. am Beamer-Rechner. Auf dem iPad läuft die App vom Home-Bildschirm ohnehin im Vollbild.</div>
           </div>
           <div class="scard">
             <button id="btnDevReset" class="sbtn light">↺ Dieses iPad auf Standard zurücksetzen</button>
@@ -1362,7 +1370,7 @@ function show(name) {
 }
 
 // ── Vollbild ─────────────────────────────────────────────────────────
-// Nur als Knopf (auf der Tafel und unter ⚙️), nie automatisch. Ausgeblendet,
+// Nur als Knopf neben ⚙️ (auf jedem Bildschirm), nie automatisch. Ausgeblendet,
 // wenn das Gerät es nicht kann oder die App schon vom Home-Bildschirm läuft.
 const fsRoot = document.documentElement;
 const canFullscreen = !!(fsRoot.requestFullscreen || fsRoot.webkitRequestFullscreen);
@@ -1382,17 +1390,18 @@ function toggleFullscreen() {
 }
 
 function renderFullscreen() {
-  const offer = canFullscreen && !standalone;
-  document.getElementById("btnFull").classList.toggle("hidden", !(offer && boardMode && !isFullscreen()));
-  document.getElementById("fullCard").classList.toggle("hidden", !offer);
-  document.getElementById("btnFullSet").textContent = isFullscreen() ? "Beenden" : "Einschalten";
+  const btn = document.getElementById("btnFull");
+  const fs = isFullscreen();
+  btn.classList.toggle("hidden", !(canFullscreen && !standalone));
+  btn.setAttribute("aria-label", fs ? "Vollbild beenden" : "Vollbild");
+  btn.querySelector(".fs-enter").style.display = fs ? "none" : "";
+  btn.querySelector(".fs-exit").style.display = fs ? "" : "none";
 }
 
-document.getElementById("btnFull").addEventListener("click", toggleFullscreen);
-document.getElementById("btnFullSet").addEventListener("click", () => {
-  const entering = !isFullscreen();
+document.getElementById("btnFull").addEventListener("click", e => {
+  e.stopPropagation();
+  if (switchClick(e)) return;   // nur mit dem Finger, nicht mit dem Taster
   toggleFullscreen();
-  if (entering) document.getElementById("drawer").classList.add("hidden");
 });
 document.addEventListener("fullscreenchange", renderFullscreen);
 document.addEventListener("webkitfullscreenchange", renderFullscreen);
@@ -1501,6 +1510,7 @@ function setPool(next) {
 
 // ── Tafel-Ansicht ────────────────────────────────────────────────────
 let boardShownLast = "";
+let boardPicFor    = "";   // Buchstabe, dessen Anlaut-Bild auf der Tafel aufgedeckt ist
 
 function renderBoard() {
   const order = drawnOrder();
@@ -1515,7 +1525,15 @@ function renderBoard() {
     s.textContent = fmt(last);
     s.style.background = colorOf(last);
     lastEl.appendChild(s);
-    if (picShow === "always" && ANLAUT[last]) {
+    const picOpen = picShow === "always" || (picShow === "tap" && boardPicFor === last);
+    if (picShow === "tap" && !picOpen && ANLAUT[last]) {
+      const b = document.createElement("button");
+      b.className = "bpicbtn";
+      b.textContent = "Bild zeigen";
+      b.addEventListener("click", () => { boardPicFor = last; renderBoard(); });
+      lastEl.appendChild(b);
+    }
+    if (picOpen && ANLAUT[last]) {
       const p = document.createElement("span");
       p.className = "bpic";
       const e = document.createElement("span");
