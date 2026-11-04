@@ -79,11 +79,16 @@
     #letters span.off { background: #eee; color: #bbb; }
 
     /* ── Karten ──────────────────────────────────────────── */
-    #sheet { max-width: 190mm; margin: 0 auto; background: #fff; padding: 8mm; border-radius: 6px; }
-    #cards { display: flex; flex-wrap: wrap; gap: 6mm 5mm; }
+    #sheet { max-width: 202mm; margin: 0 auto; background: #fff; padding: 8mm; border-radius: 6px; }
+    /* Jede Seite ist ein eigener Block mit fester Breite: die Karten werden in
+       cards() von Hand auf Seiten verteilt, damit der Browser nie mitten durch
+       eine Karte umbricht. */
+    .page { display: flex; flex-wrap: wrap; align-content: flex-start; gap: 6mm 5mm; width: 186mm; max-width: 100%; }
+    .page + .page { margin-top: 8mm; padding-top: 8mm; border-top: 1px dashed #bbb; }
     .card {
       border: 0.6mm solid #111; border-radius: 1.5mm;
       padding: 3mm 2.5mm 2.5mm; break-inside: avoid; page-break-inside: avoid;
+      box-sizing: border-box;
     }
     .card .word, .card .dots { display: grid; grid-auto-flow: column; grid-auto-columns: 14mm; gap: 1mm; }
     .card .word span { text-align: center; font-size: 15mm; line-height: 1.05; color: #111; }
@@ -97,6 +102,9 @@
       body { background: #fff; padding: 0; }
       #controls { display: none; }
       #sheet { max-width: none; padding: 0; border-radius: 0; }
+      .page { break-after: page; page-break-after: always; }
+      .page:last-child { break-after: auto; page-break-after: auto; }
+      .page + .page { margin-top: 0; padding-top: 0; border-top: 0; }
     }
   </style>
 </head>
@@ -325,6 +333,32 @@ function renderPanel() {
 }
 
 // ── Anzeige: Karten und Hinweise ─────────────────────────────────────
+// Verteilt die Karten auf A4-Seiten (Maße in mm, passend zum CSS oben).
+// Reihe für Reihe wie beim Umbrechen, eine neue Seite beginnt erst, wenn
+// die nächste Reihe nicht mehr ganz draufpasst.
+const PAGE_W = 185, PAGE_H = 270;        // nutzbar: 186 x 273 mm, mit etwas Luft
+const GAP_X = 5, GAP_Y = 6, CARD_H = 36; // Kartenhöhe: 35,5 mm, aufgerundet
+const cardW = n => 15 * n + 5.2 + 0.4;   // n Felder à 14 mm + 1 mm Abstand, Rand, Luft
+
+function paginate(list) {
+  const pages = [];
+  let page = [], y = 0, x = 0, rowStarted = false;
+  list.forEach(c => {
+    const w = cardW(c.n);
+    if (rowStarted && x + GAP_X + w > PAGE_W) {          // neue Reihe
+      y += CARD_H + GAP_Y; x = 0; rowStarted = false;
+    }
+    if (!rowStarted && y + CARD_H > PAGE_H && page.length) { // neue Seite
+      pages.push(page); page = []; y = 0;
+    }
+    x = rowStarted ? x + GAP_X + w : w;
+    rowStarted = true;
+    page.push(c);
+  });
+  if (page.length) pages.push(page);
+  return pages;
+}
+
 function renderCardsAndInfo() {
   const words = allCards();
 
@@ -333,6 +367,7 @@ function renderCardsAndInfo() {
   const sorted = words.slice().sort((a, b) => a.length - b.length || rank(a) - rank(b));
   const cards = $("cards");
   cards.textContent = "";
+  const made = [];
   sorted.forEach(w => {
     for (let k = 0; k < copies; k++) {
       const card = document.createElement("div");
@@ -348,8 +383,14 @@ function renderCardsAndInfo() {
         dots.appendChild(document.createElement("span"));
       });
       card.append(word, dots);
-      cards.appendChild(card);
+      made.push({ card, n: [...w].length });
     }
+  });
+  paginate(made).forEach(group => {
+    const page = document.createElement("div");
+    page.className = "page";
+    group.forEach(c => page.appendChild(c.card));
+    cards.appendChild(page);
   });
   $("empty").style.display = words.length ? "none" : "";
 
