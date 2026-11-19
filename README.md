@@ -30,7 +30,7 @@ Das Menü hat vier Reiter. Es öffnet sich mit dem Reiter, der zuletzt offen war
 
 | Reiter | Was es dort gibt |
 |---|---|
-| 🎲 **Spiel** | Gezogene Buchstaben in Zieh-Reihenfolge (der neueste gelb umrandet), **Letzten zurücknehmen** (z. B. nach versehentlichem Doppeltippen), **Neues Spiel**. Darunter **Buchstaben im Topf**: antippen, um Buchstaben heraus- oder hineinzunehmen; Schnellknöpfe Alle, Keine, Ohne Q, X, Y. Schalter **Zusatzlaute** (siehe [Zusatzlaute](#zusatzlaute)). |
+| 🎲 **Spiel** | Gezogene Buchstaben in Zieh-Reihenfolge (der neueste dunkel umrandet), **Letzten zurücknehmen** (z. B. nach versehentlichem Doppeltippen), **Neues Spiel**. Darunter **Buchstaben im Topf**: antippen, um Buchstaben heraus- oder hineinzunehmen; Schnellknöpfe Alle, Keine, Ohne Q, X, Y. Schalter **Zusatzlaute** (siehe [Zusatzlaute](#zusatzlaute)). |
 | 📱 **Dieses iPad** | Gilt nur für dieses Gerät. Oben das Wichtigste: **Farbe** (gezogene Buchstaben erscheinen in dieser Farbe, auch auf der Tafel), **Schreibweise** „A“, „A a“ oder „a“, **Lautstärke**, **Würfeln mit** Antippen, Taster oder beidem (siehe [Taster](#taster)). Darunter aufklappbar **Weitere Einstellungen** (ein Hinweis zeigt, wie viele davon verstellt sind): Vorlesen an/aus und Stimmprobe, Anlaut-Bild (siehe [Anlaut-Bilder](#anlaut-bilder)), Würfel-Klang 🥁 🎺 🎡 🎵 ✨ 🔇 (Antippen zum Anhören) und Konfetti, „Weiter“-Knopf und Sperrzeit, und **↺ Dieses iPad auf Standard zurücksetzen**: alles wie beim ersten Start, Farbe, Spielstand und Verbindung bleiben. |
 | 📡 **Verbinden** | Mehrere iPads und die Tafel, siehe unten. Ein Punkt am Reiter zeigt den Verbindungsstatus. |
 | ➕ **Mehr** | Wortkarten-Generator und diese Anleitung (als Fenster in der App, auch offline). |
@@ -196,6 +196,7 @@ Reine Webseite ohne Build-Schritt, läuft auf GitHub Pages.
 |---|---|
 | `index.html` | Die App (HTML, CSS, JavaScript in einer Datei) |
 | `karten.html` | Wortkarten-Generator |
+| `design.css`, `DESIGN.md` | Gemeinsames Design aller Unterrichts-Apps (Olympia-72-Farben, Deutsch-Rot als Akzent) |
 | `A.m4a` … `Z.m4a`, `AE.m4a`, `OE.m4a`, `UE.m4a`, `SZ.m4a`, `EU.m4a`, `SCH.m4a`, `CH.m4a` | Gesprochene Buchstaben und Zusatzlaute, siehe [Herkunft der Laute](#herkunft-der-laute) |
 | `sounds.js` | Würfel-Klänge, im Browser erzeugt (gleiche Datei wie im Mathe-Bingo) |
 | `sw.js`, `manifest.webmanifest`, `icons/` | Home-Bildschirm-App und Offline-Speicher |
