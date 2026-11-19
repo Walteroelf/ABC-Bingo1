@@ -210,7 +210,7 @@
     }
     #drawerHead h2, #guideHead h2 { font-size: var(--gr-2); font-weight: 700; display: flex; align-items: center; gap: .4em; }
     #drawerTabs {
-      display: grid; grid-template-columns: repeat(4, 1fr); gap: .3rem;
+      display: grid; grid-template-columns: repeat(5, 1fr); gap: .3rem;
       margin: 0 1.2rem; padding: .3rem; border-radius: 14px; background: var(--flaeche-2);
     }
     #drawerTabs button {
@@ -220,6 +220,7 @@
     #drawerTabs button .ico { display: flex; justify-content: center; line-height: 1.2; margin-bottom: .15rem; }
     #drawerTabs button .ico .symbol { width: 1.6rem; height: 1.6rem; }
     #drawerTabs button.on { background: var(--karte); box-shadow: inset 0 -4px 0 var(--app-akzent); }
+    @media (max-width: 520px) { #drawerTabs button { font-size: .72rem; } }
     #tabDot {
       position: absolute; top: .45rem; right: .6rem; width: 10px; height: 10px; border-radius: 50%;
       background: var(--orange);
@@ -415,6 +416,7 @@
   <symbol id="i-zahnrad" viewBox="0 0 24 24"><path d="M18.99 10.29 L21.38 10.49 L21.38 13.51 L18.99 13.71 L18.16 15.74 L19.70 17.56 L17.56 19.70 L15.74 18.16 L13.71 18.99 L13.51 21.38 L10.49 21.38 L10.29 18.99 L8.26 18.16 L6.44 19.70 L4.30 17.56 L5.84 15.74 L5.01 13.71 L2.62 13.51 L2.62 10.49 L5.01 10.29 L5.84 8.26 L4.30 6.44 L6.44 4.30 L8.26 5.84 L10.29 5.01 L10.49 2.62 L13.51 2.62 L13.71 5.01 L15.74 5.84 L17.56 4.30 L19.70 6.44 L18.16 8.26Z"/><circle cx="12" cy="12" r="3.2"/></symbol>
   <symbol id="i-wuerfel" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="3.5"/><path d="M8 8h.01M16 8h.01M12 12h.01M8 16h.01M16 16h.01" stroke-width="3.4"/></symbol>
   <symbol id="i-ipad" viewBox="0 0 24 24"><rect x="5" y="2.5" width="14" height="19" rx="2.5"/><path d="M11 18.5h2"/></symbol>
+  <symbol id="i-taster" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/></symbol>
   <symbol id="i-verbinden" viewBox="0 0 24 24"><path d="M12 13v8"/><circle cx="12" cy="11" r="1.6"/><path d="M8.5 7.5a5 5 0 0 0 0 7M15.5 7.5a5 5 0 0 1 0 7M5.5 4.5a9.2 9.2 0 0 0 0 13M18.5 4.5a9.2 9.2 0 0 1 0 13"/></symbol>
   <symbol id="i-mehr" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
   <symbol id="i-schliessen" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
@@ -474,6 +476,7 @@
     <div id="drawerTabs" role="tablist">
       <button data-tab="spiel" role="tab"><span class="ico"><svg class="symbol" aria-hidden="true"><use href="#i-wuerfel"/></svg></span>Spiel</button>
       <button data-tab="geraet" role="tab"><span class="ico"><svg class="symbol" aria-hidden="true"><use href="#i-ipad"/></svg></span>Dieses iPad</button>
+      <button data-tab="taster" role="tab"><span class="ico"><svg class="symbol" aria-hidden="true"><use href="#i-taster"/></svg></span>Taster</button>
       <button data-tab="verbinden" role="tab"><span class="ico"><svg class="symbol" aria-hidden="true"><use href="#i-verbinden"/></svg></span>Verbinden<span id="tabDot" class="hidden"></span></button>
       <button data-tab="mehr" role="tab"><span class="ico"><svg class="symbol" aria-hidden="true"><use href="#i-mehr"/></svg></span>Mehr</button>
     </div>
@@ -529,25 +532,6 @@
             <input id="volRange" type="range" min="0.1" max="1.0" step="0.05" value="1.0"/>
             <span class="tiny" id="volVal">100 %</span>
           </div>
-          <div class="setrow">
-            <span class="lbl">Würfeln mit</span>
-            <div class="seg small" id="trigSeg">
-              <button data-trig="tap">Antippen</button>
-              <button data-trig="switch">Taster</button>
-              <button data-trig="both">Beides</button>
-            </div>
-          </div>
-          <div class="setrow" id="keyRow" style="flex-direction:column; align-items:stretch">
-            <span class="lbl">Der Taster sendet</span>
-            <div class="seg small" id="keySeg">
-              <button data-key="Space">Leertaste</button>
-              <button data-key="Enter">Enter</button>
-              <button data-key="mouse">Mausklick</button>
-              <button id="btnLearn">Anlernen</button>
-            </div>
-            <div class="tiny" id="keyInfo"></div>
-            <div class="tiny">Wichtig: Die „Schaltersteuerung“ in den iPad-Bedienungshilfen muss für diesen Taster aus sein.</div>
-          </div>
         </div>
 
         <details id="moreDev" class="more">
@@ -584,27 +568,51 @@
             </div>
           </div>
           <div class="scard">
-            <h3><span class="titel"><svg class="symbol" aria-hidden="true"><use href="#i-weiter"/></svg> Nach dem Buchstaben</span></h3>
-            <div class="setrow">
-              <label class="switch"><span class="lbl">„Weiter“-Knopf nach jedem Buchstaben</span><input type="checkbox" id="optWeiter"/></label>
-            </div>
-            <div class="setrow" id="lockRow" style="flex-direction:column; align-items:stretch">
-              <span class="lbl">Sperrzeit nach dem Ergebnis</span>
-              <div class="seg small" id="lockSeg">
-                <button data-lock="0">0 s</button>
-                <button data-lock="3">3 s</button>
-                <button data-lock="5">5 s</button>
-                <button data-lock="10">10 s</button>
-                <button data-lock="20">20 s</button>
-              </div>
-              <div class="tiny">Beginnt, wenn der Buchstabe fertig vorgelesen ist. So lange bleibt er stehen, bevor neu gewürfelt werden kann. Antippen in dieser Zeit spielt den Laut nochmal ab.</div>
-            </div>
-          </div>
-          <div class="scard">
             <button id="btnDevReset" class="sbtn light">↺ Dieses iPad auf Standard zurücksetzen</button>
             <div class="tiny">Alle Einstellungen dieses Geräts wie beim ersten Start: Antippen, Trommelwirbel, Vorlesen, „Weiter“-Knopf, kein Anlaut-Bild, Großbuchstaben, volle Lautstärke. Farbe, Spielstand und Verbindung bleiben.</div>
           </div>
         </details>
+      </section>
+
+      <!-- ── Taster ────────────────────────────────────────── -->
+      <section data-tab="taster" class="hidden">
+        <div class="tiny">Diese Einstellungen gelten nur für dieses Gerät.</div>
+        <div class="scard">
+          <h3><span class="titel"><svg class="symbol" aria-hidden="true"><use href="#i-taster"/></svg> Würfeln mit Taster</span></h3>
+          <div class="setrow">
+            <span class="lbl">Würfeln mit</span>
+            <div class="seg small" id="trigSeg">
+              <button data-trig="tap">Antippen</button>
+              <button data-trig="switch">Taster</button>
+              <button data-trig="both">Beides</button>
+            </div>
+          </div>
+          <div class="setrow" id="keyRow" style="flex-direction:column; align-items:stretch">
+            <span class="lbl">Der Taster sendet</span>
+            <div class="seg small" id="keySeg">
+              <button data-key="Space">Leertaste</button>
+              <button data-key="Enter">Enter</button>
+              <button data-key="mouse">Mausklick</button>
+              <button id="btnLearn">Anlernen</button>
+            </div>
+            <div class="tiny" id="keyInfo"></div>
+            <div class="tiny">Wichtig: Die „Schaltersteuerung“ in den iPad-Bedienungshilfen muss für diesen Taster aus sein.</div>
+          </div>
+          <div class="setrow">
+            <label class="switch"><span class="lbl">„Weiter“-Knopf nach jedem Buchstaben</span><input type="checkbox" id="optWeiter"/></label>
+          </div>
+          <div class="setrow" id="lockRow" style="flex-direction:column; align-items:stretch">
+            <span class="lbl">Sperrzeit nach dem Ergebnis</span>
+            <div class="seg small" id="lockSeg">
+              <button data-lock="0">0 s</button>
+              <button data-lock="3">3 s</button>
+              <button data-lock="5">5 s</button>
+              <button data-lock="10">10 s</button>
+              <button data-lock="20">20 s</button>
+            </div>
+            <div class="tiny">Beginnt, wenn der Buchstabe fertig vorgelesen ist. So lange bleibt er stehen, bevor neu gewürfelt werden kann. Antippen in dieser Zeit spielt den Laut nochmal ab.</div>
+          </div>
+        </div>
       </section>
 
       <!-- ── Verbinden ─────────────────────────────────────── -->
@@ -885,7 +893,7 @@ function load() {
     if (typeof s.poolTs === "number") poolTs = s.poolTs;
     if (["upper", "both", "lower"].includes(s.letterCase)) letterCase = s.letterCase;
     boardMode = s.boardMode === true;
-    if (["spiel", "geraet", "verbinden", "mehr"].includes(s.settingsTab)) settingsTab = s.settingsTab;
+    if (["spiel", "geraet", "taster", "verbinden", "mehr"].includes(s.settingsTab)) settingsTab = s.settingsTab;
     if (COLORS[s.colorKey]) colorKey = s.colorKey;
     colors = parseColors(s.colors);
     owners = parseOwners(s.owners);
@@ -1634,10 +1642,9 @@ function deviceSettings() {
 // Hinweis an „Weitere Einstellungen“, wenn dort etwas verstellt ist
 function renderMoreInfo() {
   const cur = deviceSettings();
-  const keys = ["sound", "speech", "fxConfetti", "picShow", "weiterOn"];
+  const keys = ["sound", "speech", "fxConfetti", "picShow"];
   let n = keys.filter(k => cur[k] !== DEVICE_DEFAULTS[k]).length;
   if (picShow !== "off" && picWord) n++;
-  if (!weiterOn && lockSec !== DEVICE_DEFAULTS.lockSec) n++;
   document.getElementById("moreInfo").textContent = n ? `· ${n} geändert` : "";
 }
 
