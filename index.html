@@ -10,8 +10,12 @@
   <meta name="mobile-web-app-capable" content="yes"/>
   <meta name="apple-mobile-web-app-title" content="ABC-Bingo"/>
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
-  <meta name="theme-color" content="#c92b2b"/>
+  <meta name="theme-color" content="#EF6B45"/>
+  <link rel="stylesheet" href="design.css"/>
   <style>
+    /* Buchstaben-Bingo: App-eigene Gestaltung.
+       Farben, Schrift, Fokus-Rahmen und Grundregeln aus design.css (Olympia-72-Palette, siehe DESIGN.md).
+       Regel: Auf jeder Farbfläche steht Dunkelblau. Weiße Schrift gibt es nicht. Blau nie als Fläche. */
     /* Andika: Leselern-Schrift von SIL (OFL), unterscheidet I und l deutlich */
     @font-face {
       font-family: "Andika"; font-weight: 400; font-display: block;
@@ -21,10 +25,14 @@
       font-family: "Andika"; font-weight: 700; font-display: block;
       src: url("fonts/andika-latin-700.woff2") format("woff2");
     }
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --schleier: rgb(13 43 78 / 0.55);
+      /* Deutsch ist rot: Akzent dieser App ist die Fachfarbe Deutsch */
+      --app-akzent: var(--fach-deutsch);
+    }
+    *, *::before, *::after { margin: 0; padding: 0; }
     html, body {
       width: 100%; height: 100%;
-      font-family: system-ui, sans-serif;
       -webkit-user-select: none; user-select: none;
       touch-action: manipulation;
       overscroll-behavior: none;
@@ -36,21 +44,28 @@
     }
     .screen.hidden { display: none; }
 
-    #screenStart { background: #c92b2b; }
+    /* Knöpfe über einer Farbfläche: Weiß mit Dunkelblau, auf jeder Gerätefarbe sichtbar */
+    .schwebe {
+      background: var(--weiss); color: var(--dunkelblau);
+      border: 3px solid var(--dunkelblau);
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    #screenStart { background: var(--app-akzent); }
     #screenStart h1 {
-      color: #fff; font-size: clamp(2.8rem,11vw,7rem);
-      font-weight: 900; text-align: center; padding: 1rem;
+      color: var(--dunkelblau); font-size: clamp(2.8rem,11vw,7rem);
+      font-weight: 700; text-align: center; padding: 1rem;
       pointer-events: none;
     }
     #screenStart p {
-      color: rgba(255,255,255,.75);
-      font-size: clamp(1rem,3.5vw,2rem);
+      color: var(--dunkelblau);
+      font-size: clamp(1.1rem,3.5vw,2rem);
       margin-top: 1rem; text-align: center;
       pointer-events: none;
     }
     #startCount {
       position: absolute; top: calc(1.2rem + env(safe-area-inset-top)); left: 0; right: 0;
-      margin-top: 0; font-size: clamp(.9rem,2.8vw,1.4rem);
+      margin-top: 0; font-size: clamp(1rem,2.8vw,1.4rem);
     }
     #startCount.hidden { display: none; }
     #btnStart {
@@ -59,11 +74,12 @@
       -webkit-tap-highlight-color: transparent;
     }
 
-    #screenLetter { background: #2a7d2e; }
-    .schrift { font-family: "Andika", system-ui, sans-serif; font-weight: 700; }
+    /* Hintergrund = Farbe dieses iPads (COLORS im Skript) */
+    #screenLetter { background: var(--gruen); color: var(--dunkelblau); }
+    .schrift { font-family: var(--schrift); font-weight: 700; }
     #bigLetter {
       font-size: clamp(12rem,48vw,52rem);
-      line-height: 1; color: #fff; white-space: nowrap;
+      line-height: 1; color: var(--dunkelblau); white-space: nowrap;
       pointer-events: none;
       transition: opacity 0.1s;
     }
@@ -72,20 +88,24 @@
     body.case-both #bigLetter.long { font-size: clamp(5rem,18vw,20rem); }
     #bigLetter.rolling { opacity: 0.2; }
 
-    /* Anlaut-Bild unter dem Buchstaben (Emoji des Geräts, keine Bilddateien) */
+    /* Anlaut-Bild unter dem Buchstaben (Emoji des Geräts, keine Bilddateien).
+       Das Bild ist Inhalt, kein Bedien-Symbol, darum bleibt es ein Emoji. */
     .emo { font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif; font-weight: 400; }
     #bigPic { display: flex; flex-direction: column; align-items: center; pointer-events: none; }
     #bigPic.hidden { display: none; }
     #bigPic .emo { font-size: min(26vw, 20vh); line-height: 1.1; }
-    #bigPic .word { color: #fff; font-size: min(7vw, 9vh); line-height: 1.1; }
+    #bigPic .word { color: var(--dunkelblau); font-size: min(7vw, 9vh); line-height: 1.1; }
     #bigPic .word.hidden { display: none; }
-    .word b { color: #ffe066; }
-    #btnPic {
-      margin-top: 1rem; padding: 14px 26px; border-radius: 16px;
-      border: 3px solid rgba(255,255,255,.8); background: rgba(255,255,255,.15);
-      color: #fff; font-size: clamp(1.1rem,3vw,1.6rem); font-weight: 800; cursor: pointer;
+    /* Anlaut im Wort: unterstrichen statt gelb, damit es auf jeder Gerätefarbe lesbar bleibt */
+    .word b { text-decoration: underline; text-decoration-thickness: 0.09em; text-underline-offset: 0.12em; }
+    #btnPic, #boardLast .bpicbtn {
+      min-height: var(--knopf-hoehe);
+      padding: 10px 26px; border-radius: var(--rundung);
+      background: var(--weiss); color: var(--dunkelblau); border: 3px solid var(--dunkelblau);
+      font-weight: 700; cursor: pointer;
       -webkit-tap-highlight-color: transparent;
     }
+    #btnPic { margin-top: 1rem; font-size: clamp(1.1rem,3vw,1.6rem); }
     #btnPic.hidden { display: none; }
     body.pic-on #bigLetter { font-size: min(36vw, 46vh); }
     body.pic-on.case-both #bigLetter { font-size: min(30vw, 36vh); }
@@ -96,22 +116,19 @@
       font-size: .55em; margin-left: .15em; padding: 0;
     }
     #boardLast .bpic span { background: none; padding: 0; }
-    #boardLast .bpicbtn {
-      margin-left: 1.5rem; padding: 14px 26px; border-radius: 16px;
-      border: 3px solid rgba(255,255,255,.8); background: rgba(255,255,255,.15);
-      color: #fff; font-size: clamp(1.1rem,2.4vw,1.8rem); font-weight: 800; cursor: pointer;
-    }
-    #boardLast .bpic .word { font-size: .32em; line-height: 1.2; }
+    #boardLast .bpicbtn { margin-left: 1.5rem; font-size: clamp(1.1rem,2.4vw,1.8rem); }
+    #boardLast .bpic .word { font-size: .32em; line-height: 1.2; color: var(--text); }
 
-    #screenBoard { background: #1d3f6e; color: #fff; justify-content: flex-start; padding: calc(1.2rem + env(safe-area-inset-top)) 1rem 6rem; }
-    #boardCount { font-size: clamp(1rem,2.4vw,1.8rem); opacity: .8; align-self: flex-start; }
+    /* Tafel-Ansicht für Beamer und Smartboard */
+    #screenBoard { background: var(--hg); color: var(--text); justify-content: flex-start; padding: calc(1.2rem + env(safe-area-inset-top)) 1rem 6rem; }
+    #boardCount { font-size: clamp(1rem,2.4vw,1.8rem); color: var(--leise); align-self: flex-start; }
     #boardLast {
       flex: 1; display: flex; align-items: center; justify-content: center;
       font-size: clamp(8rem,30vh,26rem); line-height: 1; white-space: nowrap;
     }
     #boardLast span {
       border-radius: .12em; padding: .02em .14em;
-      background: rgba(255,255,255,.12);
+      color: var(--dunkelblau);
     }
     #boardLast.long { font-size: clamp(5rem,20vh,17rem); }
     #boardLast.pop { animation: pop .5s ease-out; }
@@ -121,11 +138,11 @@
       max-width: 100%;
     }
     #boardList div {
-      background: rgba(255,255,255,.15); border-radius: 12px;
+      color: var(--dunkelblau); border-radius: 12px;
       min-width: clamp(2.6rem,6vw,4.6rem); padding: .2rem .5rem;
       font-size: clamp(1.6rem,4vw,3rem); text-align: center;
     }
-    #boardList div.last { box-shadow: 0 0 0 4px #f0c020; }
+    #boardList div.last { box-shadow: 0 0 0 3px var(--hg), 0 0 0 7px var(--text); }
 
     #confetti { position: fixed; inset: 0; pointer-events: none; z-index: 8500; }
     #confetti.hidden { display: none; }
@@ -133,44 +150,34 @@
     #btnWeiter {
       position: fixed; right: calc(1rem + env(safe-area-inset-right)); bottom: calc(1rem + env(safe-area-inset-bottom));
       width: clamp(80px,18vw,110px); height: clamp(80px,18vw,110px);
-      border-radius: 20px;
-      background: linear-gradient(180deg,#c92b2b,#8b0000);
-      color: #fff; border: 4px solid #fff;
-      font-weight: 900; font-size: clamp(.95rem,2.5vw,1.2rem);
-      box-shadow: 0 10px 28px rgba(0,0,0,.4);
+      border-radius: var(--rundung-gross);
+      background: var(--gruen); color: var(--dunkelblau); border: 4px solid var(--dunkelblau);
+      font-weight: 700; font-size: clamp(1rem,2.5vw,1.25rem);
       z-index: 9999; cursor: pointer;
       -webkit-tap-highlight-color: transparent;
     }
     #btnWeiter.hidden { display: none; }
 
-    /* Vollbild an/aus, neben ⚙️ auf jedem Bildschirm */
-    #btnFull {
+    /* Vollbild an/aus, neben dem Zahnrad auf jedem Bildschirm */
+    #btnFull, #btnSettings {
       position: fixed; bottom: calc(1rem + env(safe-area-inset-bottom));
-      left: calc(1rem + env(safe-area-inset-left) + clamp(64px,14vw,84px) + .6rem);
-      width: clamp(64px,14vw,84px); height: clamp(64px,14vw,84px);
-      border-radius: 16px; background: rgba(0,0,0,.3);
-      color: #fff; border: 3px solid rgba(255,255,255,.3);
+      width: clamp(64px,14vw,84px); height: clamp(64px,14vw,84px); padding: 0;
+      border-radius: var(--rundung);
       display: flex; align-items: center; justify-content: center;
-      z-index: 9999; cursor: pointer; -webkit-tap-highlight-color: transparent;
-    }
-    #btnFull svg { width: 55%; height: 55%; }
-    #btnFull.hidden, .scard.hidden { display: none; }
-    #btnSettings {
-      position: fixed; left: calc(1rem + env(safe-area-inset-left)); bottom: calc(1rem + env(safe-area-inset-bottom));
-      width: clamp(64px,14vw,84px); height: clamp(64px,14vw,84px);
-      border-radius: 16px; background: rgba(0,0,0,.3);
-      color: #fff; border: 3px solid rgba(255,255,255,.3);
-      font-size: clamp(1.4rem,4vw,2rem);
       z-index: 9999; cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
     }
+    #btnFull { left: calc(1rem + env(safe-area-inset-left) + clamp(64px,14vw,84px) + .6rem); }
+    #btnSettings { left: calc(1rem + env(safe-area-inset-left)); }
+    #btnFull svg, #btnSettings .symbol { width: 55%; height: 55%; }
+    #btnFull.hidden, .scard.hidden { display: none; }
 
     #repeatHint {
       position: fixed; bottom: 7rem; left: 50%;
       transform: translateX(-50%);
-      background: rgba(0,0,0,.6); color: #fff;
-      font-size: 1rem; font-weight: 700;
-      padding: .4rem 1rem; border-radius: 20px;
+      display: flex; align-items: center; gap: .4em;
+      background: var(--weiss); color: var(--dunkelblau); border: 2px solid var(--dunkelblau);
+      font-size: 1.1rem; font-weight: 700;
+      padding: .4rem 1rem; border-radius: 999px;
       opacity: 0; transition: opacity .2s;
       pointer-events: none; z-index: 8000;
     }
@@ -178,20 +185,21 @@
 
     /* Sperrzeit ohne „Weiter“: Balken läuft ab, danach darf neu gewürfelt werden */
     #lockBar {
-      position: fixed; left: 0; bottom: 0; height: 8px; width: 100%;
-      background: rgba(255,255,255,.75); z-index: 8000; pointer-events: none;
+      position: fixed; left: 0; bottom: 0; height: 10px; width: 100%;
+      background: var(--dunkelblau); z-index: 8000; pointer-events: none;
       transform-origin: left; transform: scaleX(0);
     }
     #lockBar.run { animation: lockrun linear forwards; }
     @keyframes lockrun { from { transform: scaleX(1); } to { transform: scaleX(0); } }
 
+    /* ── Einstellungen ── */
     #drawer {
-      position: fixed; inset: 0; background: rgba(0,0,0,.5);
+      position: fixed; inset: 0; background: var(--schleier);
       z-index: 10000; display: flex; align-items: flex-end;
     }
     #drawer.hidden { display: none; }
     #drawerInner {
-      width: 100%; max-width: 760px; margin: 0 auto; background: #eef1f4;
+      width: 100%; max-width: 760px; margin: 0 auto; background: var(--hg); color: var(--text);
       border-radius: 22px 22px 0 0;
       display: flex; flex-direction: column;
       height: min(88vh, 900px);
@@ -200,22 +208,23 @@
       display: flex; align-items: center; justify-content: space-between; gap: 1rem;
       padding: 1rem 1.2rem .6rem;
     }
-    #drawerHead h2 { font-size: 1.3rem; font-weight: 800; }
+    #drawerHead h2, #guideHead h2 { font-size: var(--gr-2); font-weight: 700; display: flex; align-items: center; gap: .4em; }
     #drawerTabs {
       display: grid; grid-template-columns: repeat(4, 1fr); gap: .3rem;
-      margin: 0 1.2rem; padding: .3rem; border-radius: 14px; background: #dde2e7;
+      margin: 0 1.2rem; padding: .3rem; border-radius: 14px; background: var(--flaeche-2);
     }
     #drawerTabs button {
-      position: relative; padding: .6rem .2rem; border: none; border-radius: 11px;
-      background: transparent; color: #333; font-size: .95rem; font-weight: 700; cursor: pointer;
+      position: relative; padding: .55rem .2rem; border: none; border-radius: 11px;
+      background: transparent; color: var(--text); font-size: .95rem; font-weight: 700; cursor: pointer;
     }
-    #drawerTabs button .ico { display: block; font-size: 1.3rem; line-height: 1.2; }
-    #drawerTabs button.on { background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,.15); }
+    #drawerTabs button .ico { display: flex; justify-content: center; line-height: 1.2; margin-bottom: .15rem; }
+    #drawerTabs button .ico .symbol { width: 1.6rem; height: 1.6rem; }
+    #drawerTabs button.on { background: var(--karte); box-shadow: inset 0 -4px 0 var(--app-akzent); }
     #tabDot {
       position: absolute; top: .45rem; right: .6rem; width: 10px; height: 10px; border-radius: 50%;
-      background: #f0a020;
+      background: var(--orange);
     }
-    #tabDot.on { background: #3ddc5a; }
+    #tabDot.on { background: var(--gruen); }
     #tabDot.hidden { display: none; }
     #drawerBody {
       flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
@@ -224,147 +233,142 @@
     #drawerBody section { display: flex; flex-direction: column; gap: .9rem; }
     #drawerBody section.hidden { display: none; }
     .scard {
-      background: #fff; border-radius: 16px; padding: 1rem;
+      background: var(--karte); border-radius: 16px; padding: 1rem;
       display: flex; flex-direction: column; gap: .6rem;
     }
     .scard.hidden { display: none; }
-    .scard h3 { font-size: 1.05rem; font-weight: 800; display: flex; align-items: center; justify-content: space-between; gap: .5rem; }
+    .scard h3 { font-size: 1.15rem; font-weight: 700; display: flex; align-items: center; justify-content: space-between; gap: .5rem; }
+    .scard h3 .titel { display: inline-flex; align-items: center; gap: .4em; }
     .scard h3 .tiny { font-weight: 400; }
     .setrow {
       display: flex; align-items: center; justify-content: space-between; gap: .8rem; flex-wrap: wrap;
       padding: .3rem 0;
     }
-    .setrow + .setrow { border-top: 1px solid #eee; padding-top: .8rem; }
+    .setrow + .setrow { border-top: 1px solid var(--linie); padding-top: .8rem; }
     .setrow > .lbl { font-weight: 700; }
     .setrow .seg { min-width: 220px; }
-    .setrow input[type=range] { flex: 1; min-width: 180px; }
+    .setrow input[type=range] { flex: 1; min-width: 180px; accent-color: var(--akzent-text); }
     .switch { display: flex; align-items: center; justify-content: space-between; gap: 1rem; width: 100%; cursor: pointer; }
     .switch input {
       appearance: none; -webkit-appearance: none; flex: none;
-      width: 3.2rem; height: 1.9rem; border-radius: 1rem; background: #ccc;
+      width: 3.4rem; height: 2rem; border-radius: 1rem; background: var(--rand);
       position: relative; cursor: pointer; transition: background .15s;
     }
     .switch input::after {
       content: ""; position: absolute; top: .2rem; left: .2rem;
-      width: 1.5rem; height: 1.5rem; border-radius: 50%; background: #fff;
-      box-shadow: 0 1px 3px rgba(0,0,0,.3); transition: transform .15s;
+      width: 1.6rem; height: 1.6rem; border-radius: 50%; background: var(--weiss);
+      transition: transform .15s;
     }
-    .switch input:checked { background: #2a7d2e; }
-    .switch input:checked::after { transform: translateX(1.3rem); }
+    .switch input:checked { background: var(--akzent-text); }
+    .switch input:checked::after { transform: translateX(1.4rem); }
     #codeBig {
-      font-size: 1.8rem; font-weight: 800; letter-spacing: .12em; text-align: center;
-      padding: .5rem; border-radius: 12px; background: #f6f8fa; user-select: text; -webkit-user-select: text;
+      font-size: 1.8rem; font-weight: 700; letter-spacing: .12em; text-align: center;
+      padding: .5rem; border-radius: 12px; background: var(--hg); user-select: text; -webkit-user-select: text;
     }
     #codeBig.hidden { display: none; }
-    .bigbtn { width: 100%; padding: 14px 16px; font-size: 1.05rem; align-self: stretch; }
+    .bigbtn { width: 100%; font-size: 1.1rem; align-self: stretch; }
     .srow { display: flex; flex-direction: column; gap: .35rem; }
-    .srow label, .srow .lbl { font-weight: 700; font-size: 1rem; }
-    .tiny { font-size: .85rem; color: #555; }
+    .srow label, .srow .lbl { font-weight: 700; font-size: 1.05rem; }
+    .tiny { font-size: .9rem; color: var(--leise); }
     .drawn-header { display: flex; align-items: center; justify-content: space-between; }
-    #btnReset {
-      padding: 8px 16px; border-radius: 10px; border: none;
-      background: #b22222; color: #fff; font-weight: 700; cursor: pointer;
-    }
-    #drawnLetters { display: flex; flex-wrap: wrap; gap: .4rem; min-height: 2.4rem; }
+    /* Hintergrund = Farbe des iPads, das gezogen hat */
+    #drawnLetters { display: flex; flex-wrap: wrap; gap: .4rem; min-height: 2.6rem; }
     .chip {
-      background: #2a7d2e; color: #fff;
-      min-width: 2.3rem; height: 2.3rem; padding: 0 .4rem; border-radius: 10px;
+      background: var(--gruen); color: var(--dunkelblau);
+      min-width: 2.5rem; height: 2.5rem; padding: 0 .4rem; border-radius: 10px;
       display: flex; align-items: center; justify-content: center;
       font-size: 1.2rem;
     }
-    .chip.last { box-shadow: 0 0 0 3px #f0c020; }
-    #btnUndo {
-      padding: 8px 14px; border-radius: 10px; border: none;
-      background: #ddd; color: #333; font-weight: 700; cursor: pointer;
-    }
+    .chip.last { box-shadow: 0 0 0 3px var(--karte), 0 0 0 6px var(--text); }
     .drawn-header .btnrow { gap: .4rem; }
-    #colorRow { display: flex; flex-wrap: wrap; gap: .5rem; }
+    #colorRow { display: flex; flex-wrap: wrap; gap: .6rem; }
     #colorRow button {
-      width: 3rem; height: 3rem; border-radius: 50%; cursor: pointer;
-      border: 4px solid #fff; box-shadow: 0 0 0 2px #ccc;
+      width: 3.2rem; height: 3.2rem; border-radius: 50%; cursor: pointer;
+      border: 4px solid var(--karte); box-shadow: 0 0 0 2px var(--rand);
     }
-    #colorRow button.on { box-shadow: 0 0 0 4px #333; }
+    #colorRow button.on { box-shadow: 0 0 0 4px var(--text); }
     .check { display: flex; align-items: center; gap: .5rem; font-size: 1rem; }
-    .check input { width: 1.4rem; height: 1.4rem; }
-    #poolGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(2.8rem, 1fr)); gap: .4rem; }
+    .check input { width: 1.4rem; height: 1.4rem; accent-color: var(--akzent-text); }
+    #poolGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(3rem, 1fr)); gap: .4rem; }
     #poolGrid button {
-      height: 2.8rem; border-radius: 10px; border: 2px solid #2a7d2e;
-      background: #2a7d2e; color: #fff; font-size: 1.3rem; cursor: pointer;
+      height: 3rem; border-radius: 10px; border: 2px solid var(--app-akzent);
+      background: var(--app-akzent); color: var(--dunkelblau); font-size: 1.3rem; cursor: pointer;
     }
     #poolGrid button.wide { grid-column: span 2; }
     #poolGrid button.hidden { display: none; }
     #poolGrid button.off {
-      background: #fff; color: #aaa; border-color: #ccc; text-decoration: line-through;
+      background: var(--karte); color: var(--leise); border-color: var(--linie); text-decoration: line-through;
     }
     .btnrow { display: flex; flex-wrap: wrap; gap: .5rem; }
     .seg { display: flex; gap: .4rem; }
     .seg button {
-      flex: 1; padding: 10px 0; border-radius: 10px; border: 2px solid #1f5fa8;
-      background: #fff; color: #1f5fa8; font-size: 1.3rem; cursor: pointer;
+      flex: 1; min-height: var(--knopf-hoehe); padding: 0; border-radius: 10px; border: 2px solid var(--rand);
+      background: var(--karte); color: var(--text); font-size: 1.3rem; cursor: pointer;
     }
-    .seg button.on { background: #1f5fa8; color: #fff; }
-    .seg.small button { font-size: 1rem; padding: 10px 4px; }
+    .seg button.on { background: var(--app-akzent); border-color: var(--app-akzent); color: var(--dunkelblau); }
+    .seg.small button { font-size: 1rem; font-weight: 700; padding: 0 4px; }
     .setrow.hidden { display: none; }
     details.more > summary {
-      list-style: none; cursor: pointer; background: #fff; border-radius: 16px;
-      padding: .9rem 1rem; font-weight: 800; font-size: 1.05rem;
+      list-style: none; cursor: pointer; background: var(--karte); border-radius: 16px;
+      min-height: var(--knopf-hoehe); display: flex; align-items: center; gap: .4em;
+      padding: .6rem 1rem; font-weight: 700; font-size: 1.1rem;
     }
     details.more > summary::-webkit-details-marker { display: none; }
-    details.more > summary::before { content: "▸ "; }
-    details.more[open] > summary::before { content: "▾ "; }
+    details.more > summary::before { content: "▸"; }
+    details.more[open] > summary::before { content: "▾"; }
     details.more[open] > summary { margin-bottom: .9rem; }
     details.more > .scard + .scard { margin-top: .9rem; }
     .sound-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: .4rem; }
     .sound-list button {
-      padding: 12px 10px; border-radius: 12px; border: 2px solid #1f5fa8;
-      background: #fff; color: #1f5fa8; font-size: 1rem; font-weight: 700; text-align: left; cursor: pointer;
+      min-height: 48px; padding: 10px; border-radius: var(--rundung); border: 2px solid var(--rand);
+      background: var(--karte); color: var(--text); font-size: 1rem; font-weight: 700; text-align: left; cursor: pointer;
     }
-    .sound-list button.on { background: #1f5fa8; color: #fff; }
+    .sound-list button.on { background: var(--app-akzent); border-color: var(--app-akzent); color: var(--dunkelblau); }
     @media (max-width: 520px) { .sound-list { grid-template-columns: repeat(2, 1fr); } }
-    #btnLearn.learning { background: #f0c020; border-color: #b08a00; color: #333; }
+    #btnLearn.learning { background: var(--gelb); border-color: var(--dunkelblau); color: var(--dunkelblau); }
     #boardLink { word-break: break-all; user-select: text; -webkit-user-select: text; }
     .tiny.hidden { display: none; }
-    #drawnEmpty { font-size: .85rem; color: #999; align-self: center; }
+    #drawnEmpty { font-size: .9rem; color: var(--leise); align-self: center; }
     #btnCloseDrawer, #btnCloseGuide {
-      padding: 10px 18px; border-radius: 12px; border: none;
-      background: #2a7d2e; color: #fff; font-weight: 700; cursor: pointer;
+      min-height: 48px; padding: 0 18px; border-radius: var(--rundung); border: none;
+      background: var(--app-akzent); color: var(--dunkelblau); font-weight: 700; cursor: pointer;
+      display: inline-flex; align-items: center; gap: .4em;
     }
 
     /* Anleitung (aus README.md) über dem Menü */
     #guide {
-      position: fixed; inset: 0; z-index: 10001; background: rgba(0,0,0,.5);
+      position: fixed; inset: 0; z-index: 10001; background: var(--schleier);
       display: flex; align-items: center; justify-content: center;
       padding: calc(.8rem + env(safe-area-inset-top)) .8rem calc(.8rem + env(safe-area-inset-bottom));
     }
     #guide.hidden { display: none; }
     #guideInner {
-      width: 100%; max-width: 760px; height: 100%; background: #fff; border-radius: 18px;
+      width: 100%; max-width: 760px; height: 100%; background: var(--karte); color: var(--text); border-radius: 18px;
       display: flex; flex-direction: column; overflow: hidden;
     }
     #guideHead {
       display: flex; align-items: center; justify-content: space-between; gap: 1rem;
-      padding: .8rem 1rem; border-bottom: 1px solid #e3e6ea;
+      padding: .8rem 1rem; border-bottom: 1px solid var(--linie);
     }
-    #guideHead h2 { font-size: 1.3rem; font-weight: 800; }
     #guideBody {
       flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
-      padding: .4rem 1.2rem 2rem; font-size: 1.02rem; line-height: 1.5; color: #222;
+      padding: .4rem 1.2rem 2rem; font-size: 1.05rem; line-height: 1.5; color: var(--text);
       user-select: text; -webkit-user-select: text;
     }
     #guideBody h1 { display: none; }
-    #guideBody h2 { font-size: 1.25rem; font-weight: 800; margin: 1.4rem 0 .4rem; }
+    #guideBody h2 { font-size: 1.3rem; font-weight: 700; margin: 1.4rem 0 .4rem; }
     #guideBody p, #guideBody ul, #guideBody ol, #guideBody table { margin: .5rem 0; }
     #guideBody ul, #guideBody ol { padding-left: 1.4rem; }
     #guideBody li { margin: .2rem 0; }
     #guideBody table { border-collapse: collapse; width: 100%; font-size: .95rem; }
-    #guideBody th, #guideBody td { border: 1px solid #dde1e6; padding: .4rem .5rem; text-align: left; vertical-align: top; }
-    #guideBody th { background: #f3f5f7; }
-    #guideBody code { background: #f0f2f4; border-radius: 4px; padding: 0 .25em; font-size: .92em; }
-    #guideBody a { color: #1f5fa8; }
+    #guideBody th, #guideBody td { border: 1px solid var(--linie); padding: .4rem .5rem; text-align: left; vertical-align: top; }
+    #guideBody th { background: var(--hg); }
+    #guideBody code { background: var(--hg); border-radius: 4px; padding: 0 .25em; font-size: .92em; }
+    #guideBody a { color: var(--akzent-text); }
 
     #alleDone {
-      position: fixed; inset: 0; background: #2a7d2e; color: #fff;
-      font-size: clamp(1.6rem,6vw,3.2rem); font-weight: 900;
+      position: fixed; inset: 0; background: var(--hellgruen); color: var(--dunkelblau);
+      font-size: clamp(1.6rem,6vw,3.2rem); font-weight: 700;
       display: flex; align-items: center; justify-content: center;
       flex-direction: column; text-align: center; padding: 2rem;
       z-index: 8000;
@@ -374,28 +378,31 @@
 
     #syncDot {
       position: fixed; top: calc(1rem + env(safe-area-inset-top)); right: calc(1rem + env(safe-area-inset-right));
-      width: 14px; height: 14px; border-radius: 50%;
-      border: 2px solid rgba(255,255,255,.8);
-      background: #f0a020; pointer-events: none; z-index: 9000;
+      width: 16px; height: 16px; border-radius: 50%;
+      border: 2px solid var(--dunkelblau);
+      background: var(--orange); pointer-events: none; z-index: 9000;
     }
-    #syncDot.on { background: #3ddc5a; }
+    #syncDot.on { background: var(--gruen); }
     #syncDot.hidden { display: none; }
-    .sbtn {
-      padding: 10px 16px; border-radius: 10px; border: none;
-      background: #1f5fa8; color: #fff; font-weight: 700; cursor: pointer;
-      align-self: flex-start;
+    /* Knöpfe in den Einstellungen: Hauptknopf Hellblau, .light = leise, .dark = Gelb zum Hervorheben */
+    .sbtn, #btnUndo, #btnReset {
+      display: inline-flex; align-items: center; justify-content: center; gap: .4em;
+      min-height: var(--knopf-hoehe);
+      padding: 0 18px; border-radius: var(--rundung); border: 2px solid transparent;
+      background: var(--app-akzent); color: var(--dunkelblau); font-weight: 700; cursor: pointer;
+      align-self: flex-start; text-decoration: none;
     }
-    .sbtn.light { background: #ddd; color: #333; }
+    .sbtn.light, #btnUndo { background: var(--karte); color: var(--text); border-color: var(--rand); }
+    #btnReset { background: var(--gelb); }
     .sbtn.hidden { display: none; }
-    a.sbtn { text-decoration: none; display: inline-block; }
     #joinBox { display: flex; flex-direction: column; gap: .4rem; }
     #joinBox.hidden { display: none; }
     #joinInput {
-      flex: 1; min-width: 10rem; padding: 10px 12px; border-radius: 10px;
-      border: 2px solid #ccc; font-size: 1.1rem; letter-spacing: .08em;
+      flex: 1; min-width: 10rem; min-height: 48px; padding: 8px 12px; border-radius: 10px;
+      border: 2px solid var(--rand); background: var(--karte); color: var(--text); font-size: 1.1rem; letter-spacing: .08em;
       -webkit-user-select: text; user-select: text;
     }
-    #joinError { color: #b22222; }
+    #joinError { color: var(--hinweis-text); }
     #qrBox, #qrBoardBox { display: flex; flex-direction: column; align-items: center; gap: .4rem; }
     #qrBox.hidden, #qrBoardBox.hidden { display: none; }
     #qr, #qrBoard { width: min(260px, 70vw); background: #fff; padding: 6px; border-radius: 10px; }
@@ -403,6 +410,22 @@
   </style>
 </head>
 <body>
+<!-- Eigene Linien-Symbole für die Bedienung (statt Emojis), siehe DESIGN.md -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <symbol id="i-zahnrad" viewBox="0 0 24 24"><path d="M18.99 10.29 L21.38 10.49 L21.38 13.51 L18.99 13.71 L18.16 15.74 L19.70 17.56 L17.56 19.70 L15.74 18.16 L13.71 18.99 L13.51 21.38 L10.49 21.38 L10.29 18.99 L8.26 18.16 L6.44 19.70 L4.30 17.56 L5.84 15.74 L5.01 13.71 L2.62 13.51 L2.62 10.49 L5.01 10.29 L5.84 8.26 L4.30 6.44 L6.44 4.30 L8.26 5.84 L10.29 5.01 L10.49 2.62 L13.51 2.62 L13.71 5.01 L15.74 5.84 L17.56 4.30 L19.70 6.44 L18.16 8.26Z"/><circle cx="12" cy="12" r="3.2"/></symbol>
+  <symbol id="i-wuerfel" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="3.5"/><path d="M8 8h.01M16 8h.01M12 12h.01M8 16h.01M16 16h.01" stroke-width="3.4"/></symbol>
+  <symbol id="i-ipad" viewBox="0 0 24 24"><rect x="5" y="2.5" width="14" height="19" rx="2.5"/><path d="M11 18.5h2"/></symbol>
+  <symbol id="i-verbinden" viewBox="0 0 24 24"><path d="M12 13v8"/><circle cx="12" cy="11" r="1.6"/><path d="M8.5 7.5a5 5 0 0 0 0 7M15.5 7.5a5 5 0 0 1 0 7M5.5 4.5a9.2 9.2 0 0 0 0 13M18.5 4.5a9.2 9.2 0 0 1 0 13"/></symbol>
+  <symbol id="i-mehr" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-schliessen" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+  <symbol id="i-ton" viewBox="0 0 24 24"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/></symbol>
+  <symbol id="i-bild" viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="15" rx="2.5"/><circle cx="9" cy="10" r="1.8"/><path d="M3.5 17.5l5-5 4 4 3-3 5 5"/></symbol>
+  <symbol id="i-klang" viewBox="0 0 24 24"><path d="M9 18V5.5l10-2V16"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="16" r="2.5"/></symbol>
+  <symbol id="i-weiter" viewBox="0 0 24 24"><path d="M5 5.5l7 6.5-7 6.5M13 5.5l7 6.5-7 6.5"/></symbol>
+  <symbol id="i-drucker" viewBox="0 0 24 24"><path d="M7 9V3.5h10V9"/><rect x="3.5" y="9" width="17" height="8" rx="2"/><path d="M7 14h10v6.5H7z"/></symbol>
+  <symbol id="i-buch" viewBox="0 0 24 24"><path d="M12 6.5C10 5 7 4.5 3.5 5v13.5c3.5-.5 6.5 0 8.5 1.5 2-1.5 5-2 8.5-1.5V5C17 4.5 14 5 12 6.5zM12 6.5V20"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5h.01"/></symbol>
+</svg>
 
 <div id="screenStart" class="screen">
   <button id="btnStart" aria-label="Buchstaben würfeln"></button>
@@ -423,19 +446,19 @@
   <div id="boardList" class="schrift"></div>
 </div>
 
-<div id="repeatHint">🔊 Nochmal</div>
-<div id="lockBar"></div>
+<div id="repeatHint"><svg class="symbol" aria-hidden="true"><use href="#i-ton"/></svg> Nochmal</div>
+<div id="lockBar" class="bewegung-erlaubt"></div>
 
 <div id="alleDone" class="hidden">
-  <div id="alleDoneTitle">Alle Buchstaben wurden gezogen! 🎉</div>
+  <div id="alleDoneTitle">Alle Buchstaben wurden gezogen!</div>
   <span id="alleDoneHint">Drücke „Weiter", um neu zu starten.</span>
 </div>
 
 <canvas id="confetti" class="hidden"></canvas>
 <div id="syncDot" class="hidden"></div>
 <button id="btnWeiter" class="hidden">Weiter</button>
-<button id="btnSettings" aria-label="Einstellungen">⚙️</button>
-<button id="btnFull" class="hidden" aria-label="Vollbild">
+<button id="btnSettings" class="schwebe" aria-label="Einstellungen"><svg class="symbol" aria-hidden="true"><use href="#i-zahnrad"/></svg></button>
+<button id="btnFull" class="schwebe hidden" aria-label="Vollbild">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
     <path class="fs-enter" d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>
     <path class="fs-exit" d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5" style="display:none"/>
@@ -445,14 +468,14 @@
 <div id="drawer" class="hidden">
   <div id="drawerInner" role="dialog" aria-label="Einstellungen">
     <div id="drawerHead">
-      <h2>⚙️ Einstellungen</h2>
-      <button id="btnCloseDrawer">✕ Schließen</button>
+      <h2><svg class="symbol" aria-hidden="true"><use href="#i-zahnrad"/></svg> Einstellungen</h2>
+      <button id="btnCloseDrawer"><svg class="symbol" aria-hidden="true"><use href="#i-schliessen"/></svg> Schließen</button>
     </div>
     <div id="drawerTabs" role="tablist">
-      <button data-tab="spiel" role="tab"><span class="ico">🎲</span>Spiel</button>
-      <button data-tab="geraet" role="tab"><span class="ico">📱</span>Dieses iPad</button>
-      <button data-tab="verbinden" role="tab"><span class="ico">📡</span>Verbinden<span id="tabDot" class="hidden"></span></button>
-      <button data-tab="mehr" role="tab"><span class="ico">➕</span>Mehr</button>
+      <button data-tab="spiel" role="tab"><span class="ico"><svg class="symbol" aria-hidden="true"><use href="#i-wuerfel"/></svg></span>Spiel</button>
+      <button data-tab="geraet" role="tab"><span class="ico"><svg class="symbol" aria-hidden="true"><use href="#i-ipad"/></svg></span>Dieses iPad</button>
+      <button data-tab="verbinden" role="tab"><span class="ico"><svg class="symbol" aria-hidden="true"><use href="#i-verbinden"/></svg></span>Verbinden<span id="tabDot" class="hidden"></span></button>
+      <button data-tab="mehr" role="tab"><span class="ico"><svg class="symbol" aria-hidden="true"><use href="#i-mehr"/></svg></span>Mehr</button>
     </div>
 
     <div id="drawerBody">
@@ -460,7 +483,7 @@
       <section data-tab="spiel">
         <div class="scard">
           <h3>Gezogene Buchstaben <span class="tiny" id="drawnCount"></span></h3>
-          <div class="tiny">In der Reihenfolge, in der sie gezogen wurden. Der neueste ist gelb umrandet.</div>
+          <div class="tiny">In der Reihenfolge, in der sie gezogen wurden. Der neueste ist dunkel umrandet.</div>
           <div id="drawnLetters" class="schrift">
             <span id="drawnEmpty">Noch keine Buchstaben gezogen.</span>
           </div>
@@ -530,17 +553,17 @@
         <details id="moreDev" class="more">
           <summary>Weitere Einstellungen <span class="tiny" id="moreInfo"></span></summary>
           <div class="scard">
-            <h3>🔊 Vorlesen</h3>
+            <h3><span class="titel"><svg class="symbol" aria-hidden="true"><use href="#i-ton"/></svg> Vorlesen</span></h3>
             <div class="setrow">
               <label class="switch"><span class="lbl">Buchstaben vorlesen</span><input type="checkbox" id="optSpeech"/></label>
             </div>
             <div class="setrow">
               <span class="lbl">Stimmprobe</span>
-              <button id="btnTestVoice" class="sbtn light">🔊 Probe hören</button>
+              <button id="btnTestVoice" class="sbtn light"><svg class="symbol" aria-hidden="true"><use href="#i-ton"/></svg> Probe hören</button>
             </div>
           </div>
           <div class="scard">
-            <h3>🐒 Anlaut-Bild</h3>
+            <h3><span class="titel"><svg class="symbol" aria-hidden="true"><use href="#i-bild"/></svg> Anlaut-Bild</span></h3>
             <div class="setrow" style="flex-direction:column; align-items:stretch">
               <div class="seg small" id="picSeg">
                 <button data-pic="off">Aus</button>
@@ -554,14 +577,14 @@
             </div>
           </div>
           <div class="scard">
-            <h3>🥁 Würfel-Klang <span class="tiny">Antippen zum Anhören und Auswählen</span></h3>
+            <h3><span class="titel"><svg class="symbol" aria-hidden="true"><use href="#i-klang"/></svg> Würfel-Klang</span> <span class="tiny">Antippen zum Anhören und Auswählen</span></h3>
             <div id="soundList" class="sound-list"></div>
             <div class="setrow">
               <label class="switch"><span class="lbl">Konfetti beim Ergebnis</span><input type="checkbox" id="fxConfetti"/></label>
             </div>
           </div>
           <div class="scard">
-            <h3>⏭️ Nach dem Buchstaben</h3>
+            <h3><span class="titel"><svg class="symbol" aria-hidden="true"><use href="#i-weiter"/></svg> Nach dem Buchstaben</span></h3>
             <div class="setrow">
               <label class="switch"><span class="lbl">„Weiter“-Knopf nach jedem Buchstaben</span><input type="checkbox" id="optWeiter"/></label>
             </div>
@@ -604,12 +627,12 @@
 
         <div class="scard" id="joinBox">
           <h3>Einem Spiel beitreten</h3>
-          <div class="tiny">Den Spielcode eingeben, der auf dem anderen iPad unter ⚙️ → Verbinden steht.</div>
+          <div class="tiny">Den Spielcode eingeben, der auf dem anderen iPad unter Zahnrad → Verbinden steht.</div>
           <div class="btnrow">
             <input id="joinInput" type="text" inputmode="latin" autocapitalize="off" autocomplete="off" spellcheck="false" placeholder="Spielcode"/>
             <button id="btnJoin" class="sbtn">Beitreten</button>
           </div>
-          <div class="tiny hidden" id="joinError">Diesen Code kenne ich nicht. Er steht auf dem anderen iPad unter ⚙️ → Verbinden.</div>
+          <div class="tiny hidden" id="joinError">Diesen Code kenne ich nicht. Er steht auf dem anderen iPad unter Zahnrad → Verbinden.</div>
         </div>
 
         <div class="scard" id="boardRow">
@@ -633,17 +656,17 @@
       <!-- ── Mehr ──────────────────────────────────────────── -->
       <section data-tab="mehr" class="hidden">
         <div class="scard">
-          <h3>🖨️ Wortkarten</h3>
+          <h3><span class="titel"><svg class="symbol" aria-hidden="true"><use href="#i-drucker"/></svg> Wortkarten</span></h3>
           <div class="tiny">Bingo-Karten aus fertigen Wortlisten, Silben oder eigenen Wörtern erstellen und drucken.</div>
           <a class="sbtn" href="karten.html">Wortkarten-Generator öffnen</a>
         </div>
         <div class="scard">
-          <h3>📖 Anleitung</h3>
+          <h3><span class="titel"><svg class="symbol" aria-hidden="true"><use href="#i-buch"/></svg> Anleitung</span></h3>
           <div class="tiny">Alles zum Spielen, Verbinden, zur Tafel und zur App auf dem Home-Bildschirm.</div>
           <button id="btnGuide" class="sbtn light">Anleitung öffnen</button>
         </div>
         <div class="scard">
-          <h3>ℹ️ Über diese App</h3>
+          <h3><span class="titel"><svg class="symbol" aria-hidden="true"><use href="#i-info"/></svg> Über diese App</span></h3>
           <div class="tiny">Buchstaben-Bingo. Alle Apps wurden per Vibe-Coding mit Claude erstellt.</div>
           <p class="copyright-line" style="margin:16px 0 0;font-size:.8rem;opacity:.75;text-align:center;line-height:1.4;text-align:left">© 2026 Walteroelf · Work in Progress · <a href="https://github.com/Walteroelf/ABC-Bingo1/blob/main/LICENSE.md" target="_blank" rel="noopener" style="color:inherit">CC BY-NC-SA 4.0</a></p>
         </div>
@@ -655,8 +678,8 @@
 <div id="guide" class="hidden">
   <div id="guideInner" role="dialog" aria-label="Anleitung">
     <div id="guideHead">
-      <h2>📖 Anleitung</h2>
-      <button id="btnCloseGuide">✕ Schließen</button>
+      <h2><svg class="symbol" aria-hidden="true"><use href="#i-buch"/></svg> Anleitung</h2>
+      <button id="btnCloseGuide"><svg class="symbol" aria-hidden="true"><use href="#i-schliessen"/></svg> Schließen</button>
     </div>
     <div id="guideBody"></div>
   </div>
@@ -717,13 +740,19 @@ const LOCKS    = [0, 3, 5, 10, 20];
 let colors = {};
 let owners = {};
 
+// Farben der iPads aus der Olympia-72-Palette (siehe design.css und DESIGN.md), Buchstabe in Dunkelblau.
+// Die Schlüssel bleiben die alten, damit iPads mit älterem Stand sich weiter verstehen:
+// orange ist jetzt das Deutsch-Rot (Orange wäre ihm zu ähnlich), lila Gelb, tuerkis Hellgrün, pink Silber.
 const COLORS = {
-  gruen:   "#2a7d2e",
-  blau:    "#1f5fa8",
-  orange:  "#d9731a",
-  lila:    "#7b3fa0",
-  tuerkis: "#12857f",
-  pink:    "#c2357a",
+  gruen:   "#46A84A",
+  blau:    "#4DB2E6",
+  orange:  "#EF6B45",
+  lila:    "#FFD100",
+  tuerkis: "#A6D27A",
+  pink:    "#B9C1C8",
+};
+const COLOR_NAMES = {
+  gruen: "Grün", blau: "Hellblau", orange: "Deutsch-Rot", lila: "Gelb", tuerkis: "Hellgrün", pink: "Silber",
 };
 
 // Anlaut-Bilder: Emoji des Geräts, darum keine Bilddateien und keine Lizenzfragen.
@@ -997,7 +1026,7 @@ function confetti(mainColor) {
   const cv = document.getElementById("confetti");
   const w = cv.width = innerWidth, h = cv.height = innerHeight;
   const g = cv.getContext("2d");
-  const palette = [mainColor, "#f0c020", "#ffffff", "#ff6b6b", "#4dabf7"];
+  const palette = [mainColor, "#EF6B45", "#FFD100", "#4DB2E6", "#46A84A", "#FFFFFF"];
   const parts = Array.from({ length: 90 }, () => ({
     x: w / 2 + (Math.random() - 0.5) * w * 0.3, y: h * 0.45,
     vx: (Math.random() - 0.5) * 14, vy: -Math.random() * 14 - 4,
@@ -1325,18 +1354,18 @@ function renderSync() {
                     : qrVisible ? "QR-Code ausblenden" : "QR-Code für weitere iPads zeigen";
   document.getElementById("shareTitle").textContent = code ? "Weitere iPads dazuholen" : "Gemeinsames Spiel starten";
   document.getElementById("shareDesc").textContent = code
-    ? "Auf dem anderen iPad den QR-Code scannen, oder dort unter ⚙️ → Verbinden → „Einem Spiel beitreten“ den Spielcode von oben eintippen."
+    ? "Auf dem anderen iPad den QR-Code scannen, oder dort unter Zahnrad → Verbinden → „Einem Spiel beitreten“ den Spielcode von oben eintippen."
     : "Mehrere iPads ziehen dann aus einem Topf, kein Buchstabe kommt doppelt.";
   const big = document.getElementById("codeBig");
   big.classList.toggle("hidden", !code);
   big.textContent = code ? displayCode() : "";
   document.getElementById("alleDoneHint").textContent = code
-    ? "Neues Spiel über ⚙️ → Spiel → Neues Spiel."
+    ? "Neues Spiel über Zahnrad → Spiel → Neues Spiel."
     : "Drücke „Weiter\", um neu zu starten.";
 
   if (!code) status.textContent = "Nicht verbunden. Dieses iPad spielt allein.";
-  else if (isOnline()) status.textContent = `🟢 Verbunden über ${BROKERS[brokerIdx].name}. Spielcode:`;
-  else status.textContent = "🟠 Gerade keine Verbindung. Dieses iPad zieht vorerst allein weiter. Spielcode:";
+  else if (isOnline()) status.textContent = `Verbunden über ${BROKERS[brokerIdx].name}. Spielcode:`;
+  else status.textContent = "Gerade keine Verbindung. Dieses iPad zieht vorerst allein weiter. Spielcode:";
   document.getElementById("joinBox").classList.toggle("hidden", !!code);
 
   document.getElementById("boardInfo").classList.toggle("hidden", !!code || boardMode);
@@ -1455,7 +1484,7 @@ function renderColors() {
       const b = document.createElement("button");
       b.dataset.color = k;
       b.style.background = hex;
-      b.setAttribute("aria-label", "Farbe " + k);
+      b.setAttribute("aria-label", "Farbe " + COLOR_NAMES[k]);
       b.addEventListener("click", () => { colorKey = k; save(); renderAll(); });
       row.appendChild(b);
     });
@@ -1521,7 +1550,7 @@ function renderBoard() {
   const order = drawnOrder();
   const last  = order[order.length - 1] || "";
   document.getElementById("boardCount").textContent =
-    code ? countText() : "Nicht verbunden: ⚙️ → Verbinden → Gemeinsames Spiel starten";
+    code ? countText() : "Nicht verbunden: Zahnrad → Verbinden → Gemeinsames Spiel starten";
   const lastEl = document.getElementById("boardLast");
   lastEl.textContent = "";
   lastEl.classList.toggle("long", !!last && isLong(last));
@@ -1675,7 +1704,7 @@ function undoLast() {
 // ── Würfeln ──────────────────────────────────────────────────────────
 function showDone() {
   document.getElementById("alleDoneTitle").textContent = pool.size
-    ? "Alle Buchstaben wurden gezogen! 🎉"
+    ? "Alle Buchstaben wurden gezogen!"
     : "Keine Buchstaben im Topf.";
   document.getElementById("alleDone").classList.remove("hidden");
   document.getElementById("btnWeiter").classList.remove("hidden");
@@ -1919,7 +1948,7 @@ function renderSwitch() {
   document.getElementById("keyInfo").textContent = learning
     ? "Jetzt den Taster einmal drücken."
     : switchKey === "mouse"
-      ? "Ein Klick irgendwo auf dem Bildschirm würfelt. „Weiter“ und ⚙️ reagieren nicht auf den Taster."
+      ? "Ein Klick irgendwo auf dem Bildschirm würfelt. „Weiter“ und das Zahnrad reagieren nicht auf den Taster."
       : fixed.includes(switchKey) ? "" : "Angelernt: " + keyLabel(switchKey);
   document.getElementById("keyRow").classList.toggle("hidden", trigMode === "tap");
   document.getElementById("optWeiter").checked = weiterOn;

@@ -3,13 +3,14 @@
 // und nur ohne Netz aus dem Speicher. Alles andere (Töne, Schrift,
 // Bibliotheken, Symbole) kommt sofort aus dem Speicher und wird im
 // Hintergrund aufgefrischt. Bei Änderungen an der Dateiliste VERSION erhöhen.
-const VERSION = "abcbingo-v6";
+const VERSION = "abcbingo-v7";
 
 const LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 const FILES = [
   "./",
   "index.html",
   "karten.html",
+  "design.css",
   "README.md",
   "sounds.js",
   "manifest.webmanifest",

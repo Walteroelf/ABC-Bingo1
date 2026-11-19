@@ -6,8 +6,10 @@
   <title>Wortkarten – Buchstaben-Bingo</title>
   <link rel="manifest" href="manifest.webmanifest"/>
   <link rel="apple-touch-icon" href="icons/icon-180.png"/>
-  <meta name="theme-color" content="#c92b2b"/>
+  <meta name="theme-color" content="#EF6B45"/>
+  <link rel="stylesheet" href="design.css"/>
   <style>
+    /* Wortkarten: Farben und Grundregeln aus design.css (siehe DESIGN.md), Akzent = Fachfarbe Deutsch */
     @font-face {
       font-family: "Andika"; font-weight: 400;
       src: url("fonts/andika-latin-400.woff2") format("woff2");
@@ -16,42 +18,52 @@
       font-family: "Andika"; font-weight: 700;
       src: url("fonts/andika-latin-700.woff2") format("woff2");
     }
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --app-akzent: var(--fach-deutsch); }
+    *, *::before, *::after { margin: 0; padding: 0; }
     body {
-      font-family: system-ui, sans-serif; background: #f6f8fa; color: #222;
-      padding: calc(1rem + env(safe-area-inset-top)) 1rem 3rem;
+      background: var(--hg); color: var(--text);
+      padding: 0 1rem 3rem;
     }
-    .schrift { font-family: "Andika", system-ui, sans-serif; }
+    .schrift { font-family: var(--schrift); }
 
     /* ── Auswahl ─────────────────────────────────────────── */
     #controls { max-width: 960px; margin: 0 auto 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
-    header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
-    h1 { font-size: 1.5rem; }
-    a.back { color: #1f5fa8; font-weight: 700; text-decoration: none; }
-    .box { background: #fff; border-radius: 14px; padding: 1rem; display: flex; flex-direction: column; gap: .7rem; }
+    header {
+      display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+      margin: 0 -1rem; padding: calc(.8rem + env(safe-area-inset-top)) 1rem .8rem;
+      background: var(--app-akzent); color: var(--dunkelblau);
+    }
+    h1 { font-size: var(--gr-2); display: flex; align-items: center; gap: .4em; }
+    a.back {
+      color: var(--dunkelblau); font-weight: 700; text-decoration: none;
+      min-height: 48px; display: inline-flex; align-items: center;
+      padding: 0 14px; border-radius: 10px; background: var(--weiss);
+    }
+    .box { background: var(--karte); border-radius: 14px; padding: 1rem; display: flex; flex-direction: column; gap: .7rem; }
     .lbl { font-weight: 700; }
-    .tiny { font-size: .85rem; color: #555; }
-    .warn { color: #b22222; }
-    .ok { color: #2a7d2e; }
+    .tiny { font-size: .9rem; color: var(--leise); }
+    .warn { color: var(--hinweis-text); }
+    .ok { color: var(--gruen-text); }
+    @media (prefers-color-scheme: dark) { .ok { color: var(--gruen); } }
 
     #tabs { display: flex; flex-wrap: wrap; gap: .4rem; }
     #tabs button {
-      padding: 8px 12px; border-radius: 10px; border: 2px solid #1f5fa8;
-      background: #fff; color: #1f5fa8; font-weight: 700; font-size: 1rem; cursor: pointer;
+      min-height: 48px; padding: 0 12px; border-radius: 10px; border: 2px solid var(--rand);
+      background: var(--karte); color: var(--text); font-weight: 700; font-size: 1rem; cursor: pointer;
     }
-    #tabs button.on { background: #1f5fa8; color: #fff; }
+    #tabs button.on { background: var(--app-akzent); border-color: var(--app-akzent); color: var(--dunkelblau); }
     #tabs button .n {
       display: inline-block; min-width: 1.4em; margin-left: .35em; padding: 0 .3em;
-      border-radius: 6px; background: #f0c020; color: #222; font-size: .8em;
+      border-radius: 6px; background: var(--gelb); color: var(--dunkelblau); font-size: .8em;
     }
     #tabs button .n:empty { display: none; }
 
     .chips { display: flex; flex-wrap: wrap; gap: .4rem; }
     .chips button {
-      padding: 6px 10px; border-radius: 9px; border: 2px solid #ccc;
-      background: #fff; color: #555; font-size: 1.05rem; cursor: pointer; letter-spacing: .04em;
+      min-height: 44px; padding: 0 10px; border-radius: 9px; border: 2px solid var(--linie);
+      background: var(--karte); color: var(--leise); font-size: 1.05rem; cursor: pointer; letter-spacing: .04em;
     }
-    .chips button.on { background: #2a7d2e; border-color: #2a7d2e; color: #fff; }
+    .chips button.on { background: var(--hellgruen); border-color: var(--hellgruen); color: var(--dunkelblau); }
     .group { display: flex; flex-direction: column; gap: .3rem; }
     #panel.sylgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: .7rem 1rem; }
     #panel.sylgrid .group.wide { grid-column: 1 / -1; }
@@ -59,24 +71,28 @@
 
     .btnrow { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
     button.act {
-      padding: 10px 16px; border-radius: 10px; border: none; cursor: pointer;
-      background: #1f5fa8; color: #fff; font-weight: 700; font-size: 1rem;
+      min-height: var(--knopf-hoehe); padding: 0 18px; border-radius: var(--rundung); border: 2px solid transparent; cursor: pointer;
+      background: var(--app-akzent); color: var(--dunkelblau); font-weight: 700; font-size: 1rem;
     }
-    button.act.light { background: #ddd; color: #333; }
-    button.act.print { background: #c92b2b; }
-    input[type=number] { width: 4.5rem; padding: 7px 8px; border-radius: 8px; border: 2px solid #ccc; font-size: 1rem; }
+    button.act.light { background: var(--karte); color: var(--text); border-color: var(--rand); }
+    button.act.print { background: var(--app-akzent); }
+    input[type=number] {
+      width: 4.5rem; min-height: 48px; padding: 7px 8px; border-radius: 8px;
+      border: 2px solid var(--rand); background: var(--karte); color: var(--text); font-size: 1rem;
+    }
     textarea {
       width: 100%; min-height: 9rem; padding: .7rem; border-radius: 10px;
-      border: 2px solid #ccc; font-size: 1.1rem; line-height: 1.5; resize: vertical;
+      border: 2px solid var(--rand); background: var(--karte); color: var(--text);
+      font-size: 1.1rem; line-height: 1.5; resize: vertical;
     }
 
     #letters { display: flex; flex-wrap: wrap; gap: .3rem; }
     #letters span {
-      min-width: 1.9rem; height: 1.9rem; border-radius: 8px; display: flex;
+      min-width: 2rem; height: 2rem; border-radius: 8px; display: flex;
       align-items: center; justify-content: center; font-weight: 700;
-      background: #2a7d2e; color: #fff;
+      background: var(--app-akzent); color: var(--dunkelblau);
     }
-    #letters span.off { background: #eee; color: #bbb; }
+    #letters span.off { background: var(--flaeche-2); color: var(--leise); }
 
     /* ── Karten ──────────────────────────────────────────── */
     #sheet { max-width: 202mm; margin: 0 auto; background: #fff; padding: 8mm; border-radius: 6px; }
@@ -95,7 +111,7 @@
     .card .dots span {
       width: 13mm; height: 13mm; margin: 0 auto; border: 0.5mm solid #111; border-radius: 50%;
     }
-    #empty { color: #999; text-align: center; padding: 2rem; }
+    #empty { color: #4A5E74; text-align: center; padding: 2rem; }
 
     @page { size: A4; margin: 12mm; }
     @media print {
@@ -112,7 +128,7 @@
 
 <div id="controls">
   <header>
-    <h1>🖨️ Wortkarten für das Buchstaben-Bingo</h1>
+    <h1><svg class="symbol" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 9V3.5h10V9"/><rect x="3.5" y="9" width="17" height="8" rx="2"/><path d="M7 14h10v6.5H7z"/></svg> Wortkarten für das Buchstaben-Bingo</h1>
     <a class="back" href="./">← Zurück zum Spiel</a>
   </header>
 
@@ -466,7 +482,7 @@ $("btnPool").addEventListener("click", () => {
     $("poolMsg").textContent = `Erledigt: ${used.length} Buchstaben sind jetzt im Topf. Beim nächsten Öffnen des Spiels auf diesem Gerät gilt der neue Topf, auch für verbundene iPads.`;
   } catch (e) {
     $("poolMsg").className = "tiny warn";
-    $("poolMsg").textContent = "Das hat nicht geklappt. Bitte im Spiel unter ⚙️ → Spiel → Buchstaben im Topf einstellen.";
+    $("poolMsg").textContent = "Das hat nicht geklappt. Bitte im Spiel unter Zahnrad → Spiel → Buchstaben im Topf einstellen.";
   }
 });
 
