@@ -20,7 +20,7 @@ bis das Spiel zurückgesetzt wird.
 
 Wer zuerst alle Wörter voll hat, ruft „Bingo!“.
 
-## Einstellungen (⚙️ unten links)
+## Einstellungen (Zahnrad unten links)
 
 Daneben schaltet ein Knopf auf jedem Bildschirm (iPad und Tafel) **Vollbild**
 ein und aus. In der App vom Home-Bildschirm fehlt er, die läuft ohnehin im
@@ -30,18 +30,18 @@ Das Menü hat fünf Reiter. Es öffnet sich mit dem Reiter, der zuletzt offen wa
 
 | Reiter | Was es dort gibt |
 |---|---|
-| 🎲 **Spiel** | Gezogene Buchstaben in Zieh-Reihenfolge (der neueste dunkel umrandet), **Letzten zurücknehmen** (z. B. nach versehentlichem Doppeltippen), **Neues Spiel**. Darunter **Buchstaben im Topf**: antippen, um Buchstaben heraus- oder hineinzunehmen; Schnellknöpfe Alle, Keine, Ohne Q, X, Y. Schalter **Zusatzlaute** (siehe [Zusatzlaute](#zusatzlaute)). |
-| 📱 **Dieses iPad** | Gilt nur für dieses Gerät. Oben das Wichtigste: **Farbe** (gezogene Buchstaben erscheinen in dieser Farbe, auch auf der Tafel), **Schreibweise** „A“, „A a“ oder „a“, **Lautstärke**. Darunter aufklappbar **Weitere Einstellungen** (ein Hinweis zeigt, wie viele davon verstellt sind): Vorlesen an/aus und Stimmprobe, Anlaut-Bild (siehe [Anlaut-Bilder](#anlaut-bilder)), Würfel-Klang 🥁 🎺 🎡 🎵 ✨ 🔇 (Antippen zum Anhören) und Konfetti, und **↺ Dieses iPad auf Standard zurücksetzen**: alles wie beim ersten Start, Farbe, Spielstand und Verbindung bleiben. |
-| ◎ **Taster** | Alles für das Würfeln mit Taster, siehe [Taster](#taster): **Würfeln mit** Antippen, Taster oder beidem, **Der Taster sendet**, „Weiter“-Knopf und Sperrzeit. Gilt nur für dieses Gerät. |
-| 📡 **Verbinden** | Mehrere iPads und die Tafel, siehe unten. Ein Punkt am Reiter zeigt den Verbindungsstatus. |
-| ➕ **Mehr** | Wortkarten-Generator und diese Anleitung (als Fenster in der App, auch offline). |
+| **Spiel** | Gezogene Buchstaben in Zieh-Reihenfolge (der neueste dunkel umrandet), **Letzten zurücknehmen** (z. B. nach versehentlichem Doppeltippen), **Neues Spiel**. Darunter **Buchstaben im Topf**: antippen, um Buchstaben heraus- oder hineinzunehmen; Schnellknöpfe Alle, Keine, Ohne Q, X, Y. Schalter **Zusatzlaute** (siehe [Zusatzlaute](#zusatzlaute)). |
+| **Dieses iPad** | Gilt nur für dieses Gerät. Oben das Wichtigste: **Farbe** (gezogene Buchstaben erscheinen in dieser Farbe, auch auf der Tafel), **Schreibweise** „A“, „A a“ oder „a“, **Lautstärke**. Darunter aufklappbar **Weitere Einstellungen** (ein Hinweis zeigt, wie viele davon verstellt sind): Vorlesen an/aus und Stimmprobe, Anlaut-Bild (siehe [Anlaut-Bilder](#anlaut-bilder)), Würfel-Klang (Trommelwirbel, Tusch, Glücksrad, Xylophon, Zauber oder aus; Antippen zum Anhören) und Konfetti, und **↺ Dieses iPad auf Standard zurücksetzen**: alles wie beim ersten Start, Farbe, Spielstand und Verbindung bleiben. |
+| **Taster** | Alles für das Würfeln mit Taster, siehe [Taster](#taster): **Würfeln mit** Antippen, Taster oder beidem, **Der Taster sendet**, „Weiter“-Knopf und Sperrzeit. Gilt nur für dieses Gerät. |
+| **Verbinden** | Mehrere iPads und die Tafel, siehe unten. Ein Punkt am Reiter zeigt den Verbindungsstatus. |
+| **Mehr** | Wortkarten-Generator und diese Anleitung (als Fenster in der App, auch offline). |
 
 Gezogene Buchstaben und Einstellungen bleiben beim Neuladen erhalten.
 
 ## Anlaut-Bilder
 
 Auf Wunsch erscheint nach dem Würfeln unter dem Buchstaben ein Bild zum
-Anlaut, z. B. A wie Affe 🐒. Einstellen unter ⚙️ → **Dieses iPad** →
+Anlaut, z. B. A wie Affe. Einstellen unter Zahnrad → **Dieses iPad** →
 **Anlaut-Bild**:
 
 - **Aus**, **Immer** (das Bild erscheint mit dem Buchstaben) oder **Auf
@@ -66,7 +66,7 @@ Qualle.
 
 ## Zusatzlaute
 
-Unter ⚙️ → **Spiel** → **Buchstaben im Topf** schaltet **Zusatzlaute**
+Unter Zahnrad → **Spiel** → **Buchstaben im Topf** schaltet **Zusatzlaute**
 die Laute Ä, Ö, Ü, ß, Eu, Sch und Ch dazu. Sie kommen dann alle in den
 Topf und lassen sich wie die anderen Buchstaben einzeln heraus- und
 hineinnehmen. Ausschalten nimmt sie wieder aus dem Topf. Der Topf gilt
@@ -78,14 +78,14 @@ Ch wird wie in „ich“ gesprochen, ß als „Ess-Zett“.
 ## Taster
 
 Ein einzelner Taster (per Adapter am iPad) kann statt des Bildschirms
-würfeln. Einstellung unter ⚙️ → **Taster**:
+würfeln. Einstellung unter Zahnrad → **Taster**:
 
 - **Würfeln mit:** Antippen, Taster oder Beides. Bei „Taster“ löst eine
   Berührung des Bildschirms kein Würfeln aus.
 - **Der Taster sendet:** Leertaste, Enter oder Mausklick. Bei einer anderen
   Taste auf **Anlernen** tippen und den Taster einmal drücken.
   Beim Mausklick würfelt ein Klick irgendwo auf dem Bildschirm; „Weiter“
-  und ⚙️ reagieren nicht auf den Taster.
+  und Zahnrad reagieren nicht auf den Taster.
 - Gedrückt halten würfelt nur einmal.
 - Die **Schaltersteuerung** in den iPad-Bedienungshilfen muss für diesen
   Taster aus sein, sonst kommt der Druck nicht in der App an.
@@ -102,10 +102,10 @@ Rand läuft ab). Danach würfelt der nächste Druck sofort neu. Antippen währen
 Mehrere Glücksfeen können gleichzeitig ziehen, ohne dass ein Buchstabe
 doppelt kommt.
 
-1. Auf einem iPad: ⚙️ → Verbinden → **Gemeinsames Spiel starten**. Es
+1. Auf einem iPad: Zahnrad → Verbinden → **Gemeinsames Spiel starten**. Es
    erscheinen groß der Spielcode (z. B. `4gux pjs9 78`) und ein QR-Code.
 2. Auf jedem weiteren iPad den QR-Code mit der Kamera scannen, **oder**
-   dort unter ⚙️ → Verbinden → **Einem Spiel beitreten** den Spielcode
+   dort unter Zahnrad → Verbinden → **Einem Spiel beitreten** den Spielcode
    eintippen.
 3. Ein grüner Punkt oben rechts heißt „verbunden“, ein oranger
    „gerade keine Verbindung“.
@@ -120,7 +120,7 @@ Gut zu wissen:
   Schul-WLAN testen: Wird der Punkt grün, klappt es.
 - Mit mehreren iPads setzt „Weiter“ nach dem letzten Buchstaben das Spiel
   **nicht** zurück, damit keine Fee das Spiel aller beendet. Neues Spiel
-  über ⚙️ → Spiel → **Neues Spiel**.
+  über Zahnrad → Spiel → **Neues Spiel**.
 - Ohne Verbindung zieht ein iPad allein weiter. Nur in diesem Fall kann
   ein Buchstabe doppelt kommen.
 
@@ -130,14 +130,14 @@ Zeigt den zuletzt gezogenen Buchstaben ganz groß und darunter alle
 bisherigen, in der Farbe der jeweiligen Fee. Auf der Tafel wird nicht
 gewürfelt, aber man kann dort ein neues Spiel starten und den Topf ändern.
 
-Erst ein gemeinsames Spiel starten oder beitreten, dann unter ⚙️ →
+Erst ein gemeinsames Spiel starten oder beitreten, dann unter Zahnrad →
 Verbinden → Tafel-Ansicht:
 
 - **QR-Code für die Tafel** mit der Kamera der Tafel scannen, oder
 - **Link kopieren** und auf dem Beamer-Rechner öffnen, oder
 - **Dieses Gerät als Tafel** (z. B. ein iPad per Kabel oder AirPlay am Beamer).
 
-Der Vollbild-Knopf neben ⚙️ blendet Adressleiste und Tabs aus und wieder ein.
+Der Vollbild-Knopf neben Zahnrad blendet Adressleiste und Tabs aus und wieder ein.
 
 ## Als App auf den Home-Bildschirm
 
@@ -158,7 +158,7 @@ festsetzen.
 
 ## Wortkarten drucken
 
-⚙️ → Mehr → **Wortkarten-Generator öffnen** (oder direkt `karten.html`).
+Zahnrad → Mehr → **Wortkarten-Generator öffnen** (oder direkt `karten.html`).
 
 1. Oben eine Liste wählen: fertige Wörter mit **3 bis 10 Buchstaben**,
    **Silben** (Silbenteppich MA ME MI MO MU … sowie häufige Silben und Laute
@@ -181,7 +181,7 @@ die App nicht kennt, warnt der Generator.
 
 ## Datenschutz
 
-- Solange unter ⚙️ → Verbinden kein gemeinsames Spiel läuft, bleibt alles
+- Solange unter Zahnrad → Verbinden kein gemeinsames Spiel läuft, bleibt alles
   auf dem Gerät.
 - Beim Verbinden tauschen die Geräte über einen öffentlichen Test-Server
   (HiveMQ, als Ersatz EMQX) nur Buchstaben, Farben, Topf und einen

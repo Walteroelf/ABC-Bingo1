@@ -95,27 +95,27 @@
     #letters span.off { background: var(--flaeche-2); color: var(--leise); }
 
     /* ── Karten ──────────────────────────────────────────── */
-    #sheet { max-width: 202mm; margin: 0 auto; background: #fff; padding: 8mm; border-radius: 6px; }
+    #sheet { max-width: 202mm; margin: 0 auto; background: var(--weiss); padding: 8mm; border-radius: 6px; }
     /* Jede Seite ist ein eigener Block mit fester Breite: die Karten werden in
        cards() von Hand auf Seiten verteilt, damit der Browser nie mitten durch
        eine Karte umbricht. */
     .page { display: flex; flex-wrap: wrap; align-content: flex-start; gap: 6mm 5mm; width: 186mm; max-width: 100%; }
-    .page + .page { margin-top: 8mm; padding-top: 8mm; border-top: 1px dashed #bbb; }
+    .page + .page { margin-top: 8mm; padding-top: 8mm; border-top: 1px dashed var(--silber); }
     .card {
-      border: 0.6mm solid #111; border-radius: 1.5mm;
+      border: 0.6mm solid var(--dunkelblau); border-radius: 1.5mm;
       padding: 3mm 2.5mm 2.5mm; break-inside: avoid; page-break-inside: avoid;
       box-sizing: border-box;
     }
     .card .word, .card .dots { display: grid; grid-auto-flow: column; grid-auto-columns: 14mm; gap: 1mm; }
-    .card .word span { text-align: center; font-size: 15mm; line-height: 1.05; color: #111; }
+    .card .word span { text-align: center; font-size: 15mm; line-height: 1.05; color: var(--dunkelblau); }
     .card .dots span {
-      width: 13mm; height: 13mm; margin: 0 auto; border: 0.5mm solid #111; border-radius: 50%;
+      width: 13mm; height: 13mm; margin: 0 auto; border: 0.5mm solid var(--dunkelblau); border-radius: 50%;
     }
     #empty { color: #4A5E74; text-align: center; padding: 2rem; }
 
     @page { size: A4; margin: 12mm; }
     @media print {
-      body { background: #fff; padding: 0; }
+      body { background: var(--weiss); padding: 0; }
       #controls { display: none; }
       #sheet { max-width: none; padding: 0; border-radius: 0; }
       .page { break-after: page; page-break-after: always; }
@@ -129,7 +129,7 @@
 <div id="controls">
   <header>
     <h1><svg class="symbol" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 9V3.5h10V9"/><rect x="3.5" y="9" width="17" height="8" rx="2"/><path d="M7 14h10v6.5H7z"/></svg> Wortkarten für das Buchstaben-Bingo</h1>
-    <a class="back" href="./">← Zurück zum Spiel</a>
+    <a class="back" href="./"><svg class="symbol" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg> Zurück zum Spiel</a>
   </header>
 
   <div class="box">
@@ -153,7 +153,7 @@
     <div class="btnrow">
       <label for="copies">Jede Karte</label>
       <input id="copies" type="number" min="1" max="10" value="1"/>
-      <label for="copies">× drucken</label>
+      <label for="copies">mal drucken</label>
     </div>
     <div class="btnrow">
       <button class="act print" id="btnPrint">Drucken / als PDF sichern</button>
